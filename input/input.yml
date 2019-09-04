@@ -1,0 +1,18 @@
+# L-Galaxies input file
+
+inputFiles:
+ graphFile: 'MergerGraphs/SMT13Graph.hdf5'
+
+outputFiles:
+ haloOutputFile:   'output/SMT13HaloOutput.hdf5'
+ galaxyOutputFile: 'output/SMT13GalaxyOutput.hdf5'
+
+cosmology:
+ OmegaM:        
+  Description: 'Matter density parameter'
+  Value:        0.30
+  Units:       'None'
+ fBaryon:
+  Description: 'Baryon fraction'
+  Value:        0.155
+  Units:       'None'
