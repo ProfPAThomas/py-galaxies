@@ -16,3 +16,6 @@ cosmology:
   Description: 'Baryon fraction'
   Value:        0.155
   Units:       'None'
+
+modelSwitches:
+ test:         True
