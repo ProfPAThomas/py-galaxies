@@ -1,7 +1,7 @@
 # L-Galaxies input file
 
 inputFiles:
- graphFile: 'MergerGraphs/SMT13Graph.hdf5'
+ graphFile: 'MergerGraphs/FullGraphs_subsample.hdf5'
 
 outputFiles:
  haloOutputFile:   'output/SMT13HaloOutput.hdf5'
@@ -18,4 +18,5 @@ cosmology:
   Units:       'None'
 
 modelSwitches:
- test:         True
+ HOD:          True
+
