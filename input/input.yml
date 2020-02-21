@@ -18,5 +18,13 @@ cosmology:
   Units:       'None'
 
 modelSwitches:
- HOD:          True
+ HOD:
+  Description: 'Halo occupation description for stars (as primitive test)'
+  Value:        True
+ 
+performance:
+ io_nRec:
+  Description: 'Size of HDF5 io buffer (number of records)'
+  Value:        1000
+  
 
