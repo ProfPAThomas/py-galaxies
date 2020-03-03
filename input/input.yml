@@ -1,11 +1,11 @@
 # L-Galaxies input file
 
 inputFiles:
- graphFile: 'MergerGraphs/FullGraphs_subsample.hdf5'
+ graphFile: 'MergerGraphs/FullGraphs_subsample_new.hdf5'
 
 outputFiles:
- haloOutputFile:   'output/SMT13HaloOutput.hdf5'
- galaxyOutputFile: 'output/SMT13GalaxyOutput.hdf5'
+ haloFile:   'output/SMT13HaloOutput.hdf5'
+ galaxyFile: 'output/SMT13GalaxyOutput.hdf5'
 
 cosmology:
  OmegaM:        
