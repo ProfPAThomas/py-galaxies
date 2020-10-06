@@ -1,0 +1,16 @@
+Desired/required halo properties:
+
+Essential:
+* Mass (not critical which one)
+* Position (ditto), but mean is obvious choice
+* Velocity (ditto), but mean is obvious choice
+* Velocity dispersion
+* Vmax - maximum of the rotation curve
+
+Desirable:
+* Some sort of substructure regularity/smoothness parameter
+* Ditto in velocity space
+* Rhalf - half mass radius
+* Angular momentum, or specific angular momentum, about CofM
+
+
