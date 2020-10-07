@@ -4,13 +4,16 @@ Essential:
 * Mass (not critical which one)
 * Position (ditto), but mean is obvious choice
 * Velocity (ditto), but mean is obvious choice
-* Velocity dispersion
+* Mean square radius (np.sqrt(np.sum(radius**2))
+* Velocity dispersion (3-D), i.e. mean square relative velocity
 * Vmax - maximum of the rotation curve
 
-Desirable:
+Highly desirable:
 * Some sort of substructure regularity/smoothness parameter
 * Ditto in velocity space
 * Rhalf - half mass radius
+* Ditto in velocity space (why not?)
 * Angular momentum, or specific angular momentum, about CofM
 
+Desirable:
 
