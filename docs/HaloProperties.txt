@@ -4,8 +4,8 @@ Essential:
 * Mass (not critical which one)
 * Position (ditto), but mean is obvious choice
 * Velocity (ditto), but mean is obvious choice
-* Mean square radius (np.sqrt(np.sum(radius**2))
-* Velocity dispersion (3-D), i.e. mean square relative velocity
+* Root mean square radius (np.sqrt(np.sum(radius**2))
+* Velocity dispersion (3-D), i.e. RMS relative velocity
 * Vmax - maximum of the rotation curve
 
 Highly desirable:
