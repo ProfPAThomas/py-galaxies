@@ -1,30 +1,36 @@
 # L-Galaxies input file
 
-inputFiles:
- graphFile: 'MergerGraphs/FullGraphs_subsample_new.hdf5'
+# Compulsory parameters: presence may be relied upon
 
-outputFiles:
- haloFile:   'output/SMT13HaloOutput.hdf5'
- galaxyFile: 'output/SMT13GalaxyOutput.hdf5'
+input_files:
+ graph_file: 'MergerGraphs/mega_graph_micro_09-11.hdf5'
 
+output_files:
+ halo_file:   'output/SMT13HaloOutput.hdf5'
+ galaxy_file: 'output/SMT13GalaxyOutput.hdf5'
+
+# Should be attributes in the graph input file
 cosmology:
- OmegaM:        
+ omega_m:        
   Description: 'Matter density parameter'
   Value:        0.30
   Units:       'None'
- fBaryon:
+ baryon_fraction:
   Description: 'Baryon fraction'
   Value:        0.155
   Units:       'None'
 
-modelSwitches:
+performance:
+ n_HDF5_io_rec:
+  Description: 'Size of HDF5 io buffer (number of records)'
+  Value:        1000
+  
+
+# Optional parameters: do not write code that relies on their existence
+
+model_switches:
  HOD:
   Description: 'Halo occupation description for stars (as primitive test)'
   Value:        True
  
-performance:
- io_nRec:
-  Description: 'Size of HDF5 io buffer (number of records)'
-  Value:        1000
-  
 
