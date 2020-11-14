@@ -1,101 +1,67 @@
 import numpy as np
     
 class C_graph:
-   """A container for all data contained within a single graph
+   """
+   A container for all data contained within a single graph.
     
-    This class consists of data gathered from a single graph. This documentat-
-    tion will essentially be copied from Will's. 
-    
-    
-    Attributes
-    ----------
-    desc_start_index : ndarray of type 'int'
-        The starting index (pointer) for each halo’sentries in all descendant 
-        halo arrays (i.e.direct_desc_ids,direct_desc_contribution,​ etc.). 
-        Entries containing 2**30 have no descendants.
-    direct_desc_contribution : ndarray of type 'int'
-        The number of dark matter particles contributed ​to​ each direct
-        descendent ​from the halo.
-    direct_desc_ids : ndarray of type 'int'
-        The descendent halo IDs, extracted usingdesc_start_index​ and ​ndesc​
-    direct_prog_contribution : ndarray of type 'int'
-        The number of dark matter particles contributed ​by​ each direct 
-        progenitor ​to​ thehalo.
-    direct_prog_ids : ndarray of type 'int'
-        The progenitor halo IDs, extracted using prog_start_index​ and ​nprog​.
-    generation_id : ndarray of type 'int'
-        The ID (or number) associated with each generation. Counting starts
-        from the earliest snapshot.
-    generation_length : ndarray of type 'int'
-        The number of halos in each generation
-    generation_start_index : ndarray of type 'int'
-        The starting index (pointer) for each host halo generation.
-    halo_catalog_halo_ids : ndarray of type 'int'
-        The halo catalog ID assigned to each halo.
-    mean_pos : ndarray of type 'float'
-        The mean position of the particles in the halo.
-    ndesc : ndarray of type 'int'
-        The number of descendants for each halo.
-    nparts : ndarray of type 'int'
-        The number of dark matter particles in each halo. 
-    nprog : ndarray of type 'int'
-        The number of progenitors for each halo.
-    prog_start_index : ndarray of type 'int'
-        The starting index (pointer) for each halo’s entries in all progenitor
-        halo arrays (i.e. direct_prog_ids, direct_prog_contribution,​ etc.).
-        Entries containing 2**30 have nodescendants.
-    redshifts : ndarray of type 'float'
-        The redshift for each halo in the graph.
-    snapshots : ndarray of type 'int'
-        The index of the snapshot in the snapshottext file dictated in the 
-        param file, for each halo.
-    sub_desc_start_index : ndarray of type 'int'
-        The starting index (pointer) for each subhalo’s entries in all
-        descendant subhalo arrays (i.e. ​sub_direct_desc_ids,
-        sub_direct_desc_contribution,​ etc.). Entries containing 2**30 have 
-        no descendants.
-    sub_direct_desc_contribution : ndarray of type 'int'
-        The number of dark matter particles contributed ​to​ each direct
-        descendent ​from the subhalo.
-    sub_direct_desc_ids : ndarray of type 'int'
-        The descendent subhalo IDs, extracted using ​sub_desc_start_index​ 
-        and sub_ndesc​.
-    sub_direct_prog_contribution : ndarray of type 'int'
-        The number of dark matter particles contributed ​by​ each direct
-        progenitor ​to​ the subhalo.
-    sub_direct_prog_ids : ndarray of type 'int'
-        The progenitor subhalo IDs, extracted using sub_prog_start_index​ and 
-        ​sub_nprog​.
-    sub_generation_id : ndarray of type 'int'
-        The ID (or number) associated with each generation. Counting starts
-        from the earliest snapshot.
-    sub_generation_length : ndarray of type 'int'
-        The number of subhalos in each generation.
-    sub_generation_start_index : indarray of type 'int'nt
-        The starting index (pointer) for each subhalo generation.
-    sub_mean_pos : ndarray of type 'float'
-        The mean position of the particles in the subhalo.
-    sub_ndesc : ndarray of type 'int'
-        The number of descendents for eachsubhalo.
-    sub_nparts : ndarray of type 'int'
-        The number of dark matter particles in eachhalo.
-    sub_nprog : ndarray of type 'int'
-        The number of progenitors for each halo.
-    sub_prog_start_index : ndarray of type 'int'
-        The starting index (pointer) for eachsubhalo’s entries in all 
-        progenitor subhaloarrays (i.e. ​sub_direct_prog_ids,
-        sub_direct_prog_contribution,​ etc.).Entries containing 2**30 have
-        no descendants.
-    sub_redshifts : ndarray of type 'float'
-        The redshift for each subhalo in the graph.
-    sub_snapshots : ndarray of type 'int'
-        The index of the snapshot in the snapshottext file dictated in the
-        param file, for each subhalo.
-    subhalo_catalog_halo_ids : ndarray of type 'int'
-        The subhalo catalog ID assigned to each subhalo.
+   Data attributes:
+   ----------------
+   graph_ID : int
+      The ID of this graph
+   n_halo : int
+      Number of halos in the graph
+   root_mass : float
+      Mass of the root halo
+   # Properties of graph: halos per snaphot (generation)
+   generation_id : ndarray : int32
+      ID of this snapshot (NO_DATA if no halos); redundant
+   generation_length : ndarray : float32
+      Number of halos in each generation(snapshot)
+   generation_start_index : ndarry : float32
+      First generation (snaphot) with halos in it
+   # Halo properties, fixed length arrays
+   desc_start_index : ndarray : int32
+      First entry in descendant arrays
+   half_mass_radius : ndarray : float32
+      Half mass radius of halo (Units?)
+   half_mass_speed : ndarray : float32
+      Half mass speed of halo (Units?)
+   halo_catalog_halo_ids : ndarray : int64
+      IDs in original halo catalogue from N-body simulation
+   mean_pos : ndarray : float32[3]
+      Position of CofM of halo (Units? Presumably comoving?)
+   mean_vel : ndarray : float32[3]
+      Velocity of CofM of halo (Units?)
+   ndesc : ndarray : int32
+      Number of descendant halos
+   nparts : ndarray : int32
+      Number of particles in this halo
+   nprog : ndarray : int32
+      Number of progenitors of this halo
+   prog_start_index : ndarray : int32
+      First entry in progenitor arrays
+   redshifts : ndarray : float32
+      Redshift of halo (redundant)
+   rms_radius : ndarray : float32
+      RMS size of halo (Units?)
+   rms_speed : ndarray : float32
+      RMS speed of halo particles (3-D velocity dispersion) (Units?)
+   snapshots : ndarray : int32
+      Snapshot of halo (redundant)
+   v_max : ndarray : float32
+      Maximum rotation speed of halo (Units?)      
+   # Halo properties, variable length arrays (because of possible graph branching)
+   direct_desc_contribution : ndarray : int32
+      Number of particles contributed to descendant
+   direct_desc_ids : ndarry : int32
+      The IDs of the direct descendants
+   direct_prog_contribution : ndarray : int32
+      Number of particles contributed by progenitor
+   direct_prog_ids : ndarry : int32
+      The IDs of the direct progenitors
+   ... and more for subhalos ...
 
     Authors: Andrew Bowell & Peter Thomas
-    Latest edit: 9-Nov-20
         
    """
    
@@ -107,42 +73,48 @@ class C_graph:
       ----------
       graph_ID : int
          The ID of the graph to be opened.
-      open_graph_file : :obj: 'File'
+      open_graph_file : obj : 'File'
          Open HDF5 file that is to be read from.
-      model_params : obj: 'Class'
+      parameters : obj : 'Class'
          parameters class object.  
          Included in case graph file has parameters to be read.
       
       """
-    
-      self.graph_ID = graph_ID
 
+      """ Note:
+      Unclear whether better to read in array data here (the [:] forces that), or
+      at point of use.  The latter is more memory efficient but may be slower. """
+      
+      self.graph_ID = graph_ID
       graph = open_graph_file[str(graph_ID)]
+      # Attributes of graph
+      self.n_halo=graph.attrs['nhalos_in_graph']
+      self.root_mass=graph.attrs['root_mass']
       # Properties of graph: halos per snaphot (generation)
       self.generation_id = graph['generation_id'][:]
       self.generation_length = graph['generation_length'][:]
       self.generation_start_index = graph['generation_start_index'][:]
-      # Variable length arrays (because of possible graph branching)
-      self.direct_desc_contribution = graph['direct_desc_contribution'][:]
-      self.direct_desc_ids = graph['direct_desc_ids'][:]
-      self.direct_prog_contribution = graph['direct_prog_contribution'][:]
-      self.direct_prog_ids = graph['direct_prog_ids'][:]
-      # Halo properties
-      self.rms_speed = graph['3D_velocity_dispersion'][:]
+      # Halo properties, fixed length arrays
       self.desc_start_index = graph['desc_start_index'][:]
       self.half_mass_radius = graph['half_mass_radius'][:]
       self.half_mass_speed = graph['half_mass_velocity_radius'][:]
       self.halo_catalog_halo_ids = graph['halo_catalog_halo_ids'][:]
       self.mean_pos = graph['mean_pos'][:]
+      self.mean_vel = graph['mean_vel'][:]
       self.ndesc = graph['ndesc'][:]
       self.nparts = graph['nparts'][:]
       self.nprog = graph['nprog'][:]
       self.prog_start_index = graph['prog_start_index'][:]
       self.redshifts = graph['redshifts'][:]
       self.rms_radius = graph['rms_radius'][:]
+      self.rms_speed = graph['3D_velocity_dispersion'][:]
       self.snapshots = graph['snapshots'][:]
       self.v_max = graph['v_max'][:]
-      self.n_halos = len(self.nparts)
+      # Halo properties, variable length arrays (because of possible graph branching)
+      self.direct_desc_contribution = graph['direct_desc_contribution'][:]
+      self.direct_desc_ids = graph['direct_desc_ids'][:]
+      self.direct_prog_contribution = graph['direct_prog_contribution'][:]
+      self.direct_prog_ids = graph['direct_prog_ids'][:]      
       # Subhalos (galaxies)
       try:
          self.nsubhalos = graph['nsubhalos'][:]
@@ -163,5 +135,5 @@ class C_graph:
          self.sub_snapshots = graph['sub_snapshots'][:]
          self.subhalo_catalog_halo_ids = graph['subhalo_catalog_halo_ids'][:]
       except:
-         self.nsubhalos=np.zeros(self.n_halos)
+         self.nsubhalos=np.zeros(self.n_halo)
          

@@ -3,31 +3,26 @@ class C_parameters:
     
     Simple class to read in and store parameters from the yml file. Simple
     methods included to print out the parameters etc.
-    
-    Attributes
-    ----------
-    param_file : str
-        Filepath to the yml file containing the model parameters.
-    verbosity : int
-        The level of detail needed for debugging messages.
-    b_debug : bool
-        To print out debugging messages, true or false. 
-    D_param : dictionary 
-        Dictionary containing contents of yml file.
-    graph_input_file : str
-        The filepath to the input graph HDF5 file.
-    galaxy_output_file : str
-        The filepath to the halo output HDF5 file.
-    halo_output_file : str
-        The filepath to the galaxy output HDF5 file.
+
+    Data attributes:
+    ----------------
+    b_* : boolean
+        Flag for each of the model parameters
     baryon_fraction : float
         Cosmic baryon fraction.
+    D_param : dictionary 
+        Dictionary containing contents of yml file.
+    galaxy_output_file : str
+        The filepath to the halo output HDF5 file.
+    graph_input_file : str
+        The filepath to the input graph HDF5 file.
+    halo_output_file : str
+        The filepath to the galaxy output HDF5 file.
     n_HDF5_io_rec : int
         IO HDF5 buffer size.
-    omega_m : float
-        Density parameter.
-    
-    methods:
+ 
+    Methods:
+    --------
         __init__
         __str__ 
     
@@ -37,8 +32,8 @@ class C_parameters:
         """ 
         Key parameters for the model
         
-        Parameters
-        ----------
+        Input parameters
+        ----------------
         param_file : str
            Filepath to the yml file containing the model parameters.
         verbosity : int
@@ -63,16 +58,16 @@ class C_parameters:
         self.n_HDF5_io_rec = self.D_param['performance']['n_HDF5_io_rec']['Value']
         #   self.sub_halo = self.D_param['model_switches']['sub_halo']['Value']
 
+        # Loop over model switches, creating a boolen flag for each
+        for key in self.D_param['model_switches']:
+            exec('self.b_'+key+'='+str(self.D_param['model_switches'][key]['Value']))
 
     def __str__(self):
         """ 
-        Simple method to print out parameters.
-            
+        Simple method to print out parameters.  
         Returns 
-        -------
-        None
         """
-
         for item in self.D_param:
             print("{:20s}: {}".format(item,self.D_param[item]))
-        return '\n'
+        return ''
+    

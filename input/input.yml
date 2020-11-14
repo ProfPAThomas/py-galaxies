@@ -24,13 +24,14 @@ performance:
  n_HDF5_io_rec:
   Description: 'Size of HDF5 io buffer (number of records)'
   Value:        1000
+  Units:       'None'
   
 
-# Optional parameters: do not write code that relies on their existence
+# Optional parameters: test for their existence before use
 
 model_switches:
  HOD:
   Description: 'Halo occupation description for stars (as primitive test)'
   Value:        True
- 
+  Units:       'None'
 
