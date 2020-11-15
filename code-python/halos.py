@@ -87,13 +87,10 @@ class C_halo:
       self.mass_baryon = 0.
       self.mass_from_progenitors = 0.
       self.mass_baryon_from_progenitors = 0.
-      try:
-         if parameters.b_HOD==True:
-            self.mass_stars = 0.
-            self.mass_stars_from_progenitors = 0.
-            self.star_formation_rate = 0.
-      except:
-         pass
+      if parameters.b_HOD==True:
+         self.mass_stars = 0.
+         self.mass_stars_from_progenitors = 0.
+         self.star_formation_rate = 0.
       self.inclusive_contribution = 0.       
       self.b_done = False
 
@@ -138,12 +135,9 @@ class C_halo_output:
       dtype.append(('halo_ID',np.int32))
       dtype.append(('mass',np.float32))
       dtype.append(('mass_baryon',np.float32))
-      try:
-         if parameters.b_HOD==True:
-            dtype.append(('mass_stars',np.float32))
-            dtype.append(('star_formation_rate',np.float32))
-      except:
-         pass
+      if parameters.b_HOD==True:
+         dtype.append(('mass_stars',np.float32))
+         dtype.append(('star_formation_rate',np.float32))
       # Create halo io buffer
       print('self.n_rec =',self.n_rec)
       self.io_buffer=np.empty(self.n_rec,dtype=dtype)
@@ -185,12 +179,9 @@ class C_halo_output:
          self.io_buffer[self.i_rec]['halo_ID'] = halo.halo_ID
          self.io_buffer[self.i_rec]['mass'] = halo.mass
          self.io_buffer[self.i_rec]['mass_baryon']= halo.mass_baryon
-         try:
-            if parameters.b_HOD==True:
-               self.io_buffer[self.i_rec]['mass_stars'] = halo.mass_stars
-               self.io_buffer[self.i_rec]['star_formation_rate'] = halo.star_formation_rate
-         except:
-            pass         
+         if parameters.b_HOD==True:
+            self.io_buffer[self.i_rec]['mass_stars'] = halo.mass_stars
+            self.io_buffer[self.i_rec]['star_formation_rate'] = halo.star_formation_rate
          self.i_rec+=1
          if self.i_rec == self.n_rec: self.flush()
       return None
