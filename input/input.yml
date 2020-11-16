@@ -30,7 +30,7 @@ performance:
 # Optional parameters: test for their existence before use
 
 model_switches:
- HOD:
+ b_HOD:
   Description: 'Halo occupation description for stars (as primitive test)'
   Value:        True
   Units:       'None'

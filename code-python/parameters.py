@@ -28,7 +28,7 @@ class C_parameters:
     
     """
     
-    def __init__(self,param_file,verbosity,b_debug):
+    def __init__(self,param_file,available_option_file,verbosity,b_debug):
         """ 
         Key parameters for the model
         
@@ -60,13 +60,25 @@ class C_parameters:
 
         # Loop over model switches, creating a boolen flag for each
         for key in self.D_param['model_switches']:
-            exec('self.b_'+key+'='+str(self.D_param['model_switches'][key]['Value']))
+            exec('self.'+key+'='+str(self.D_param['model_switches'][key]['Value']))
+
+        # Loop over all available options, creating False flag for each missing one
+        self.D_option = yaml.load(open(available_option_file),Loader=yaml.Loader)
+        for key in self.D_option:
+            try:
+                exec('self.'+key)
+            except:
+                exec('self.'+key+'='+str(self.D_option[key]['Value']))
 
     def __str__(self):
         """ 
         Simple method to print out parameters.  
         Returns 
         """
+        print('Inbuilt options:')
+        for item in self.D_option:
+            print("{:20s}: {}".format(item,self.D_option[item]))
+        print('\nRuntime options:')
         for item in self.D_param:
             print("{:20s}: {}".format(item,self.D_param[item]))
         return ''
