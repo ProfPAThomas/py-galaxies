@@ -28,7 +28,7 @@ class C_parameters:
     
     """
     
-    def __init__(self,param_file,available_option_file,verbosity,b_debug):
+    def __init__(self,param_file,available_option_file):
         """ 
         Key parameters for the model
         
@@ -45,8 +45,6 @@ class C_parameters:
         import yaml
         
         self.param_file = param_file
-        self.verbosity = verbosity
-        self.b_debug = b_debug
         self.D_param = yaml.load(open(param_file),Loader=yaml.Loader)
 
         # extract key variables for ease of later use
@@ -70,6 +68,8 @@ class C_parameters:
             except:
                 exec('self.'+key+'='+str(self.D_option[key]['Value']))
 
+        if self.b_display_parameters: self.__str__()
+
     def __str__(self):
         """ 
         Simple method to print out parameters.  
@@ -81,5 +81,6 @@ class C_parameters:
         print('\nRuntime options:')
         for item in self.D_param:
             print("{:20s}: {}".format(item,self.D_param[item]))
+        print('\n')
         return ''
     
