@@ -1,0 +1,24 @@
+# L-Galaxies list of available runtime options.
+# Add to this list whenever the code is modified.
+# It will be used to generate the appropriate runtime flags
+
+# *** Warning: settings in input.yml file will over-ride these option choices ***
+# *** To avoid unintended behaviour, initialise all non-essential options to False ***
+
+b_debug:
+ Description: 'Print out debugging diagnostics'
+ Value: True
+
+b_display_parameters:
+ Description: 'Display runitme parameters after reading in'
+ Value: True
+
+verbosity:
+ Description: 'Level of diagnostic messages: 0 - None; 1/2 - main counters; 3/4/5 - debugging info'
+ Value: 2
+
+# Model switches
+
+b_HOD:
+ Description: 'Star formation based on stellar-to-halo mass ratio'
+ Value: False
