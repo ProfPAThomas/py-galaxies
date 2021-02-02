@@ -9,6 +9,8 @@ cosmo:
 
 plots:
  baryonFraction: True
+ stellarHaloMassRatio: True
+ starFormationRate: True
 
 graphs:
  graphMin: 0
@@ -23,3 +25,21 @@ baryonFraction:
  xscale: 'log'
  yscale: 'linear'
  markerType: '.'
+ xlabel: 'M$_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
+ ylabel: 'Baryon fraction'
+
+stellarHaloMassRatio:
+ figsize: [12,8]
+ xscale: 'log'
+ yscale: 'log'
+ markerType: '.'
+ xlabel: 'M$_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
+ ylabel: 'M$_\mathrm{stars}$ / M$_\mathrm{halo}$'
+
+starFormationRate:
+ figsize: [12,8]
+ xscale: 'log'
+ yscale: 'log'
+ markerType: '.'
+ xlabel: 'M$_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
+ ylabel: 'M$_\mathrm{stars}$ / M$_\odot$'
