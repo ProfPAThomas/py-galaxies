@@ -25,7 +25,7 @@ baryonFraction:
  xscale: 'log'
  yscale: 'linear'
  markerType: '.'
- xlabel: 'M$_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
+ xlabel: '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
  ylabel: 'Baryon fraction'
 
 stellarHaloMassRatio:
@@ -33,13 +33,13 @@ stellarHaloMassRatio:
  xscale: 'log'
  yscale: 'log'
  markerType: '.'
- xlabel: 'M$_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
- ylabel: 'M$_\mathrm{stars}$ / M$_\mathrm{halo}$'
+ xlabel: '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
+ ylabel: '$M_\mathrm{stars}$ / $M_\mathrm{halo}$'
 
 starFormationRate:
  figsize: [12,8]
  xscale: 'log'
  yscale: 'log'
  markerType: '.'
- xlabel: 'M$_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
- ylabel: 'M$_\mathrm{stars}$ / M$_\odot$'
+ xlabel: '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
+ ylabel: 'SFR / M$_\odot$ yr$^{-1}$'

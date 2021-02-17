@@ -1,3 +1,5 @@
+import numpy as np
+
 class C_parameters:
     """Read in yml parameters and store them.
     
@@ -49,6 +51,7 @@ class C_parameters:
 
         # extract key variables for ease of later use
         self.graph_input_file = self.D_param['input_files']['graph_file']
+        self.snap_input_file = self.D_param['input_files']['snap_file']
         self.halo_output_file = self.D_param['output_files']['halo_file']
         self.galaxy_output_file = self.D_param['output_files']['galaxy_file']
         self.omega_m = self.D_param['cosmology']['omega_m']['Value']
@@ -69,6 +72,23 @@ class C_parameters:
                 exec('self.'+key+'='+str(self.D_option[key]['Value']))
 
         if self.b_display_parameters: self.__str__()
+
+        # Create the dtype that we will need to store galaxy properties.
+        # Not strictly a parameter but makes sense to do it here.
+        D_dtype_gal=[
+            ('halo_graph',np.int32),
+            ('halo_snap',np.int32),
+            ('sub_graph',np.int32),
+            ('sub_snap',np.int32),
+            ('first_prog_snap',np.int32),
+            ('next_prog_snap',np.int32),
+            ('stellar_mass',np.float32),
+            ('cold_gas_mass',np.float32)
+            ]
+        # Properties that are optional depending upon run-tiem flags:
+        if self.b_HOD:
+            D_dtype_gal.append(('HOD_mass',np.float32))
+        self.dtype_gal=np.dtype(D_dtype_gal)
 
     def __str__(self):
         """ 

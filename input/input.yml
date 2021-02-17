@@ -4,6 +4,7 @@
 
 input_files:
  graph_file: 'MergerGraphs/mega_graph_micro_09-11.hdf5'
+ snap_file: 'MergerGraphs/snaplist.txt' # Should ideally be stored in graph_file
 
 output_files:
  halo_file:   'output/SMT13HaloOutput.hdf5'

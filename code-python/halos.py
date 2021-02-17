@@ -73,17 +73,32 @@ class C_halo:
        parameters : an instance of the class C_parameters
            The global parameters for this SAM run.
            
-       """
+      """
       self.graph_ID = graph_ID
       self.snap_ID = snap_ID
       self.halo_ID = halo_ID
-      self.nprog = graph.nprog[halo_ID]
-      self.prog_start = graph.prog_start_index[halo_ID]
-      self.ndesc = graph.ndesc[halo_ID]
-      self.desc_start = graph.desc_start_index[halo_ID]
-    
+      # The following could be looked up as required but useful to define them here for quick reference
+      # Note that we define links relative to the snap to enable lookup in the halo/subhalo instance lists
+      halo_offset = graph.halo_start[snap_ID]
+      #self.n_prog = graph.n_prog[halo_ID]
+      #self.prog_start = graph.prog_start[halo_ID]
+      #self.prog_start_snap = self.prog_start - halo_offset
+      #self.prog_end = self.prog_start + self.n_prog
+      #self.prog_end_snap = self.prog_start_snap + self.n_prog
+      self.n_desc = graph.n_desc[halo_ID]
+      self.desc_start = graph.desc_start[halo_ID]
+      self.desc_start_snap = self.desc_start - halo_offset
+      self.desc_end = self.desc_start + self.n_desc
+      self.desc_end_snap = self.desc_start_snap + self.n_desc
+      self.desc_main_snap = parameters.NO_DATA_INT # To be populated later
       part_mass=parameters.part_mass
-      self.mass = graph.nparts[halo_ID]*part_mass
+      self.mass = graph.n_part[halo_ID]*part_mass
+      self.pos = graph.mean_pos[halo_ID]
+      self.vel = graph.mean_vel[halo_ID]
+      self.rms_radius = graph.rms_radius[halo_ID]
+      self.rms_speed = graph.rms_speed[halo_ID]
+      # The following are properties of the SAM
+      self.desc_main_snap = parameters.NO_DATA_INT  # Main descendant location in halos_this_snap
       self.mass_baryon = 0.
       self.mass_from_progenitors = 0.
       self.mass_baryon_from_progenitors = 0.
@@ -94,6 +109,58 @@ class C_halo:
       self.inclusive_contribution = 0.       
       self.b_done = False
 
+      # Subhalos
+      self.n_sub = graph.n_sub_halo[halo_ID]
+      self.sub_start=parameters.NO_DATA_INT  # Updated below if n_sub>0
+      # Copy in only those properties that we will use within the halo class
+      if self.n_sub>0:
+         sub_offset = graph.sub_start[snap_ID]
+         # Many of the following could be looked up as required but useful to define them here for quick reference
+         self.sub_start = graph.sub_start_halo[halo_ID]
+         self.sub_start_snap = self.sub_start - sub_offset
+         self.sub_end = self.sub_start+self.n_sub
+         self.sub_end_snap = self.sub_end - sub_offset
+         self.sub_mass = graph.sub_n_part[self.sub_start:self.sub_end]*part_mass
+         self.sub_rel_pos = graph.sub_pos[self.sub_start:self.sub_end]-self.pos  # Assumes not already relative from MEGA
+         self.sub_rel_vel = graph.sub_vel[self.sub_start:self.sub_end]-self.vel  #                 --"--
+
+      # Galaxies
+      self.n_gal = 0  # Total number of galaxies in halo + subhalos
+      self.gal_start = parameters.NO_DATA_INT
+      self.n_orphan = 0  # Galaxies not associated with a subhalo
+      self.orphan_start = parameters.NO_DATA_INT
+
+      # Identify central subhalo.
+      # For now, we will assume that there IS a central subhalo; later we may relax this assumption
+      if self.n_sub>0:
+         metric2 = np.sum((self.sub_rel_pos/self.rms_radius)**2,1)+np.sum((self.sub_rel_vel/self.rms_speed)**2,1)
+         self.sub_central = self.sub_start+np.argmin(metric2)
+      else:
+         self.central_sub = parameters.NO_DATA_INT
+
+   def __str__(self):
+      print('graph_ID =',self.graph_ID,',',end=' ')
+      print('snap_ID =',self.snap_ID,',',end=' ')
+      print('halo_ID =',self.halo_ID,flush=True)
+      return ''
+
+   def init_gal(self,gal_start0,gal_start):
+      """
+      Sets the location of this halo's subhalo and orphan galaxies in the galaxy lookup table.
+      """
+      self.gal_start = gal_start0
+      self.orphan_start = gal_start
+      self.orphan_next = self.orphan_start # Will be used to keep track of orphans during update_halo phase
+      gal_start = gal_start + self.n_orphan
+      return None
+
+   def add_gal(self,n_orphan):
+      """
+      Returns the current orphan galaxy counter and updates it.
+      """
+      orphan_next = self.orphan_next
+      self.orphan_next += n_orphan
+      return orphan_next
 
 class C_halo_output:
    

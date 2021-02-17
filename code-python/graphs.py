@@ -82,58 +82,77 @@ class C_graph:
       """
 
       """ Note:
-      Unclear whether better to read in array data here (the [:] forces that), or
-      at point of use.  The latter is more memory efficient but may be slower. """
-      
+      * Unclear whether better to read in array data here (the [:] forces that), or
+      at point of use.  The latter is more memory efficient but may be slower.
+      * Many variables are renamed upon read to simplify and impose uniform convention throughout the rest of the code.
+      * Uncomment variables as required.  Conditional inclusion depending upon run-time parameter choices is fine.
+      * Indices are relative to the graph (with 0 in the past) unless labelled otherwise.
+      * Similarly, counts, etc refer to the whole graph unless labelled otherwise.
+      """
       self.graph_ID = graph_ID
       graph = open_graph_file[str(graph_ID)]
       # Attributes of graph
-      self.n_halo=graph.attrs['nhalos_in_graph']
+      self.n_halo = graph.attrs['nhalos_in_graph']            # Total number of halos in the graph
+      try:
+         self.n_sub = graph.attrs['sub_nhalos_in_graph']      # Total number of subhalos in the graph
+      except:
+         self.n_sub = 0
       self.root_mass=graph.attrs['root_mass']
       # Properties of graph: halos per snaphot (generation)
-      self.generation_id = graph['generation_id'][:]
-      self.generation_length = graph['generation_length'][:]
-      self.generation_start_index = graph['generation_start_index'][:]
+      self.snap_ID = graph['generation_id'][:]
+      # Note that the following is set to the no data flag, not 0, if there are no halos - need to correct
+      self.n_halo_snap = graph['generation_length'][:]        # Number of halos in each snapshot
+      self.n_halo_snap=np.where(self.n_halo_snap == parameters.NO_DATA_INT, 0, self.n_halo_snap)
+      self.halo_start = graph['generation_start_index'][:]    # First halo in each snapshot
       # Halo properties, fixed length arrays
-      self.desc_start_index = graph['desc_start_index'][:]
-      self.half_mass_radius = graph['half_mass_radius'][:]
-      self.half_mass_speed = graph['half_mass_velocity_radius'][:]
-      self.halo_catalog_halo_ids = graph['halo_catalog_halo_ids'][:]
+      self.desc_start = graph['desc_start_index'][:]
+      #self.half_mass_radius = graph['half_mass_radius'][:]
+      #self.half_mass_speed = graph['half_mass_velocity_radius'][:]
+      #self.catalog_halo_ids = graph['halo_catalog_halo_ids'][:]
       self.mean_pos = graph['mean_pos'][:]
       self.mean_vel = graph['mean_vel'][:]
-      self.ndesc = graph['ndesc'][:]
-      self.nparts = graph['nparts'][:]
-      self.nprog = graph['nprog'][:]
-      self.prog_start_index = graph['prog_start_index'][:]
-      self.redshifts = graph['redshifts'][:]
+      self.n_desc = graph['ndesc'][:]
+      self.n_part = graph['nparts'][:]
+      self.n_prog = graph['nprog'][:]
+      self.prog_start = graph['prog_start_index'][:]
+      #self.redshifts = graph['redshifts'][:]
       self.rms_radius = graph['rms_radius'][:]
       self.rms_speed = graph['3D_velocity_dispersion'][:]
-      self.snapshots = graph['snapshots'][:]
-      self.v_max = graph['v_max'][:]
+      #self.snapshots = graph['snapshots'][:]
+      #self.v_max = graph['v_max'][:]
       # Halo properties, variable length arrays (because of possible graph branching)
-      self.direct_desc_contribution = graph['direct_desc_contribution'][:]
-      self.direct_desc_ids = graph['direct_desc_ids'][:]
-      self.direct_prog_contribution = graph['direct_prog_contribution'][:]
-      self.direct_prog_ids = graph['direct_prog_ids'][:]      
+      self.desc_contribution = graph['direct_desc_contribution'][:]
+      self.desc_IDs = graph['direct_desc_ids'][:]
+      #self.prog_contribution = graph['direct_prog_contribution'][:]
+      #self.prog_IDs = graph['direct_prog_ids'][:]      
       # Subhalos (galaxies)
-      try:
-         self.nsubhalos = graph['nsubhalos'][:]
-         self.sub_desc_start_index = graph['sub_desc_start_index'][:]
-         self.sub_direct_desc_contribution = graph['sub_direct_desc_contribution'][:]
-         self.sub_direct_desc_ids = graph['sub_direct_desc_ids'][:]
-         self.sub_direct_prog_contribution = graph['sub_direct_prog_contribution'][:]
-         self.sub_direct_prog_ids = graph['sub_direct_prog_ids'][:]
-         self.sub_generation_id = graph['sub_generation_id'][:]
-         self.sub_generation_length = graph['sub_generation_length'][:]
-         self.sub_generation_start_index = graph['sub_generation_start_index'][:]
-         self.sub_mean_pos = graph['sub_mean_pos'][:]
-         self.sub_ndesc = graph['sub_ndesc'][:]
-         self.sub_nparts = graph['sub_nparts'][:]
-         self.sub_nprog = graph['sub_nprog'][:]
-         self.sub_prog_start_index = graph['sub_prog_start_index'][:]
-         self.sub_redshifts = graph['sub_redshifts'][:]
-         self.sub_snapshots = graph['sub_snapshots'][:]
-         self.subhalo_catalog_halo_ids = graph['subhalo_catalog_halo_ids'][:]
-      except:
-         self.nsubhalos=np.zeros(self.n_halo)
+      if self.n_sub == 0:
+         self.n_sub_halo = np.zeros(self.n_halo,dtype=np.int32)
+      else:
+         self.n_sub_halo = graph['nsubhalos'][:]               # Number of subhalos in each halo
+         #self.sub_rms_speed = graph['sub_3D_velocity_dispersion'][:]
+         #self.sub_catalog_halo_ids = graph['subhalo_catalog_halo_ids'][:]
+         self.sub_desc_start = graph['sub_desc_start_index'][:]
+         self.sub_desc_contribution = graph['sub_direct_desc_contribution'][:]
+         self.sub_desc_IDs = graph['sub_direct_desc_ids'][:]
+         #self.sub_direct_prog_contribution = graph['sub_direct_prog_contribution'][:]
+         #self.sub_direct_prog_ids = graph['sub_direct_prog_ids'][:]
+         #self.sub_generation_id = graph['sub_generation_id'][:]
+         self.n_sub_snap = graph['sub_generation_length'][:]       # Number of subhalos in this snapshot
+         self.n_sub_snap=np.where(self.n_sub_snap == parameters.NO_DATA_INT, 0, self.n_sub_snap)
+         self.sub_start = graph['sub_generation_start_index'][:]   # First subhalo in each snapshot
+         #self.sub_half_mass_radius = graph['sub_half_mass_radius'][:]
+         #self.sub_half_mass_speed = graph['sub_half_mass_velocity_radius'][:]
+         self.sub_host = graph['host_halos'][:]
+         self.sub_pos = graph['sub_mean_pos'][:]
+         self.sub_vel = graph['sub_mean_vel'][:]
+         self.sub_n_desc = graph['sub_ndesc'][:]
+         self.sub_n_part = graph['sub_nparts'][:]
+         #self.sub_n_prog = graph['sub_nprog'][:]
+         #self.sub_prog_start = graph['sub_prog_start_index'][:]
+         #self.sub_redshifts = graph['sub_redshifts'][:]
+         #self.sub_rms_radius = graph['sub_rms_radius'][:]
+         #self.sub_snapshots = graph['sub_snapshots'][:]
+         self.sub_start_halo = graph['subhalo_start_index'][:]      # First subhalo in each halo
+         #self.sub_v_max = graph['sub_v_max']
          
