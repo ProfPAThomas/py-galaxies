@@ -3,12 +3,13 @@
 # Compulsory parameters: presence may be relied upon
 
 input_files:
- graph_file: 'MergerGraphs/mega_graph_micro_09-11.hdf5'
- snap_file: 'MergerGraphs/snaplist.txt' # Should ideally be stored in graph_file
+ graph_file:   'MergerGraphs/mega_graph_micro_09-11.hdf5'
+ snap_file:    'MergerGraphs/snaplist.txt' # Should ideally be stored in graph_file
 
 output_files:
- halo_file:   'output/SMT13HaloOutput.hdf5'
- galaxy_file: 'output/SMT13GalaxyOutput.hdf5'
+ halo_file:    'output/SMT13HaloOutput.hdf5'
+ subhalo_file: 'output/SMT13SubhaloOutput.hdf5'
+ galaxy_file:  'output/SMT13GalaxyOutput.hdf5'
 
 # Should be attributes in the graph input file
 cosmology:
@@ -33,6 +34,6 @@ performance:
 model_switches:
  b_HOD:
   Description: 'Halo occupation description for stars (as primitive test)'
-  Value:        True
+  Value:        False
   Units:       'None'
 
