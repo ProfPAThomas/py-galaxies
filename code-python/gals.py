@@ -24,28 +24,28 @@ D_gal=[
    ('cold_gas_mass',np.float32)
 ]
 
-class C_gal:
+def F_gal_template(parameters):
    """
    Creates a template for the galaxies
    """
-   def __init__(self,parameters):
-      NDI=parameters.NO_DATA_INT
-      self.template=np.empty(1,dtype=D_gal)
-      self.template['graph_ID']=NDI
-      self.template['snap_ID']=NDI
-      self.template['halo_gid']=NDI
-      self.template['halo_sid']=NDI
-      self.template['sub_gid']=NDI
-      self.template['sub_sid']=NDI
-      self.template['gal_gid']=0
-      self.template['first_prog_sid']=NDI
-      self.template['next_prog_sid']=NDI
-      self.template['b_exists']=True
-      self.template['b_merger']=False
-      self.template['pos']=np.nan
-      self.template['vel']=np.nan
-      self.template['stellar_mass']=0.
-      self.template['cold_gas_mass']=0.
+   NDI=parameters.NO_DATA_INT
+   template=np.empty(1,dtype=D_gal)
+   template['graph_ID']=NDI
+   template['snap_ID']=NDI
+   template['halo_gid']=NDI
+   template['halo_sid']=NDI
+   template['sub_gid']=NDI
+   template['sub_sid']=NDI
+   template['gal_gid']=0
+   template['first_prog_sid']=NDI
+   template['next_prog_sid']=NDI
+   template['b_exists']=True
+   template['b_merger']=False
+   template['pos']=np.nan
+   template['vel']=np.nan
+   template['stellar_mass']=0.
+   template['cold_gas_mass']=0.
+   return template
 
 class C_gal_output:
    """
