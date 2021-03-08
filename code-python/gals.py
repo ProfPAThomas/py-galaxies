@@ -6,7 +6,7 @@ Galaxies are stored in structured numpy arrays, so we will not create any instan
 But we use it to define the dtype of that strucured array.
 """
 # Create the dtype that we will need to store galaxy properties.
-D_dtype_gal=[
+D_gal=[
    ('graph_ID',np.int32),
    ('snap_ID',np.int32),
    ('halo_gid',np.int32),
@@ -23,7 +23,30 @@ D_dtype_gal=[
    ('stellar_mass',np.float32),
    ('cold_gas_mass',np.float32)
 ]
-   
+
+class C_gal:
+   """
+   Creates a template for the galaxies
+   """
+   def __init__(self,parameters):
+      NDI=parameters.NO_DATA_INT
+      self.template=np.empty(1,dtype=D_gal)
+      self.template['graph_ID']=NDI
+      self.template['snap_ID']=NDI
+      self.template['halo_gid']=NDI
+      self.template['halo_sid']=NDI
+      self.template['sub_gid']=NDI
+      self.template['sub_sid']=NDI
+      self.template['gal_gid']=0
+      self.template['first_prog_sid']=NDI
+      self.template['next_prog_sid']=NDI
+      self.template['b_exists']=True
+      self.template['b_merger']=False
+      self.template['pos']=np.nan
+      self.template['vel']=np.nan
+      self.template['stellar_mass']=0.
+      self.template['cold_gas_mass']=0.
+
 class C_gal_output:
    """
    This class contains the attributes and methods for the galaxy output file.
