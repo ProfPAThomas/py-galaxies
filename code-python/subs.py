@@ -19,7 +19,9 @@ class C_sub:
     snap_ID : int
          The snapshot ID currently being processed.
     halo_ID : int
-        The halo ID of currently being processed.
+        The halo ID of the subhalo currently being processed.
+    sub_ID : int
+        The subhalo ID of the subhalo currently being processed.
     catalog_ID : int
         The ID of the halo corresponding to the original catalog.
     mass : int [Inconsistent with description below.]
@@ -66,6 +68,8 @@ class C_sub:
            The graph_ID (from HDF5 group).
        snap_ID : int
            The snapshot ID currently being processed.
+       host_ID : int
+           The host halo ID of this subhalo currently being processed.
        sub_ID : int
            The sub ID currently being processed.
        graph : an instance of the class C_graph
@@ -76,8 +80,11 @@ class C_sub:
       """
       self.graph_ID = graph_ID
       self.snap_ID = snap_ID
+      # self.halo_ID = halo_ID  # not known at this stage - need to set later
       self.sub_ID = sub_ID
       # The following could be looked up as required but useful to define them here for quick reference
+      self.host_ID = graph.sub_host[sub_ID]
+      # This is a kludge as I have totally confused myself
       self.host = graph.sub_host[sub_ID]
       self.n_desc = graph.sub_n_desc[sub_ID]
       self.desc_start_gid = graph.sub_desc_start_gid[sub_ID]
@@ -159,7 +166,7 @@ class C_sub_output:
       dtype=[]
       dtype.append(('graph_ID',np.int32))
       dtype.append(('snap_ID',np.int32))
-      dtype.append(('halo_ID',np.int32))
+      dtype.append(('host_ID',np.int32))
       dtype.append(('sub_ID',np.int32))
       dtype.append(('pos',np.float32,(3,)))
       dtype.append(('vel',np.float32,(3,)))
@@ -204,7 +211,8 @@ class C_sub_output:
       for sub in subs:
          self.io_buffer[self.i_rec]['graph_ID'] = sub.graph_ID
          self.io_buffer[self.i_rec]['snap_ID'] = sub.snap_ID
-         self.io_buffer[self.i_rec]['halo_ID'] = sub.sub_ID
+         self.io_buffer[self.i_rec]['host_ID'] = sub.host_ID
+         self.io_buffer[self.i_rec]['sub_ID'] = sub.sub_ID
          self.io_buffer[self.i_rec]['pos'] = sub.pos
          self.io_buffer[self.i_rec]['vel'] = sub.vel
          self.io_buffer[self.i_rec]['mass'] = sub.mass

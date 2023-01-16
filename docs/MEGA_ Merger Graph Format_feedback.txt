@@ -1,0 +1,9 @@
+Feedback on documentation:
+* There seems no purpose to the Header group — the only attribute it currently possesses (I can think of many more, such as cosmology information, any kind of info about the simulation, etc) can be attached to ‘/’.  Is it there for future use?
+* graph_lengths: I don’t know what ‘length’ means.  Does it mean the number of snapshots it extends over?  If so, not sure if I care about this, but leave it for now.
+* root_nparts: helps to identify size of halo; why not do for graph and subhalos also.  ie root_graph_parts, root_halo_nparts and root_subhalo_nparts
+* The graph attributes reiterate some of information in the top-level arrays mentioned above.  Again, not sure how many of these are useful, but I guess that they take up little room.  Maybe knowing which halo / subhalo is the most massive would be more useful.
+* graph_halo_ids: isn’t this always just an array whose entry equals the array index, i.e. completely redundant?  Or am I missing something? 
+* The integer arrays all seem to be 64-bit: didn’t we decide that only references to the whole simulation needed to be 64-bit?  All internal references in the graph can be 32-bit.
+* (sub)generation_id: I don’t understand from the description what this is.  All the arrays that i have looked at seem to again be full of counting numbers (ie zero information).
+* There are no pointers telling me which subhalos are in which halos!  This is essential.  Because this is a tree, not a graph, it can be done with known-length arrays, as in the current L-Galaxies.  For halos: firstSubhalo; for subhalos: hostHalo, nextSubhalo (linked list; last entry points to 2e20)

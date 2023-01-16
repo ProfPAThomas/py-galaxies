@@ -18,8 +18,8 @@ D_gal=[
    ('next_prog_sid',np.int32),
    ('b_exists',np.bool),
    ('b_merger',np.bool),
-   ('pos',np.float32,(3,)),
-   ('vel',np.float32,(3,)),
+   #('pos',np.float32,(3,)),  # Not sure where to set thes in the main program ...
+   #('vel',np.float32,(3,)),  # ... and can be found in halo/subhalo catalogues (apart maybe for orphans)
    ('stellar_mass',np.float32),
    ('cold_gas_mass',np.float32)
 ]
@@ -41,8 +41,8 @@ def F_gal_template(parameters):
    template['next_prog_sid']=NDI
    template['b_exists']=True
    template['b_merger']=False
-   template['pos']=np.nan
-   template['vel']=np.nan
+   #template['pos']=np.nan
+   #template['vel']=np.nan
    template['stellar_mass']=0.
    template['cold_gas_mass']=0.
    return template
@@ -85,8 +85,8 @@ class C_gal_output:
       dtype.append(('sub_ID',np.int32))
       dtype.append(('gal_ID',np.int32))
       dtype.append(('b_exists',np.bool))
-      dtype.append(('pos',np.float32,(3,)))
-      dtype.append(('vel',np.float32,(3,)))
+      #dtype.append(('pos',np.float32,(3,)))
+      #dtype.append(('vel',np.float32,(3,)))
       dtype.append(('stellar_mass',np.float32))
       dtype.append(('cold_gas_mass',np.float32))
       # Create halo io buffer
@@ -131,8 +131,8 @@ class C_gal_output:
          self.io_buffer[self.i_rec]['gal_ID'] = gals[i_gal]['gal_gid']
          # Galaxy may have merged but still need to output it to avoid messing up indexing
          self.io_buffer[self.i_rec]['b_exists'] = gals[i_gal]['b_exists']  
-         self.io_buffer[self.i_rec]['pos'] = gals[i_gal]['pos']
-         self.io_buffer[self.i_rec]['vel'] = gals[i_gal]['vel']
+         #self.io_buffer[self.i_rec]['pos'] = gals[i_gal]['pos']
+         #self.io_buffer[self.i_rec]['vel'] = gals[i_gal]['vel']
          self.io_buffer[self.i_rec]['stellar_mass'] = gals[i_gal]['stellar_mass']
          self.io_buffer[self.i_rec]['cold_gas_mass']= gals[i_gal]['cold_gas_mass']
          self.i_rec+=1

@@ -1,7 +1,9 @@
-# Halo plot parameters
+# Galaxy plot parameters
 
 inputFiles:
- haloFile: 'data/SMT13HaloOutput.hdf5'
+  haloFile: 'data/SMT13HaloOutput.hdf5'
+  subhaloFile: 'data/SMT13SubhaloOutput.hdf5'
+  galaxyFile: 'data/SMT13GalaxyOutput.hdf5'
  
 # The following should really be attributes of the data
 cosmo:
@@ -9,8 +11,8 @@ cosmo:
 
 plots:
  baryonFraction: True
- stellarHaloMassRatio: False # Only works with HoD model
- starFormationRate: False # Only works with HoD model
+ stellarHaloMassRatio: True
+ starFormationRate: True
 
 graphs:
  graphMin: 0
