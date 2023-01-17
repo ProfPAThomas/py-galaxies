@@ -10,7 +10,25 @@ Welcome to py-galaxies's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+	jb_pygal/intro.rst
 
+	Merger graph
+
+	     Structure
+
+	     Navigation
+
+	Halos, subhalos and galaxies
+
+	     Relationship
+
+	     Navigation
+
+	     Classes and methods
+
+	Physics routines
+
+	
 
 Indices and tables
 ==================
