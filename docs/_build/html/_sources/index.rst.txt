@@ -3,32 +3,15 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to py-galaxies's documentation!
-=======================================
+Welcome to py-galaxies' documentation!
+======================================
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-	jb_pygal/intro.rst
-
-	Merger graph
-
-	     Structure
-
-	     Navigation
-
-	Halos, subhalos and galaxies
-
-	     Relationship
-
-	     Navigation
-
-	     Classes and methods
-
-	Physics routines
-
-	
+   jb_pygal/intro
+   jb_pygal/mega
 
 Indices and tables
 ==================
