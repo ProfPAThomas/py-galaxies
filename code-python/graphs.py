@@ -122,7 +122,7 @@ class C_graph:
       #self.v_max = graph['v_max'][:]
       # Halo properties, variable length arrays (because of possible graph branching)
       self.desc_contribution = graph['direct_desc_contribution'][:]
-      self.desc_IDs = graph['direct_desc_ids'][:]
+      self.desc_IDs_gid = graph['direct_desc_ids'][:]
       #self.prog_contribution = graph['direct_prog_contribution'][:]
       #self.prog_IDs = graph['direct_prog_ids'][:]      
       # Subhalos (galaxies)

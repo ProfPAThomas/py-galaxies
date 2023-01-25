@@ -12,6 +12,7 @@ Welcome to py-galaxies' documentation!
 
    jb_pygal/intro
    jb_pygal/mega
+.. jb_pygal/galf_primer
 
 Indices and tables
 ==================
