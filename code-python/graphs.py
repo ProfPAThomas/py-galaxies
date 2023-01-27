@@ -125,7 +125,7 @@ class C_graph:
       self.desc_IDs_gid = graph['direct_desc_ids'][:]
       #self.prog_contribution = graph['direct_prog_contribution'][:]
       #self.prog_IDs = graph['direct_prog_ids'][:]      
-      # Subhalos (galaxies)
+      # Subhalos
       if self.n_sub == 0:
          self.n_sub_halo = np.zeros(self.n_halo,dtype=np.int32)
       else:
@@ -134,7 +134,7 @@ class C_graph:
          #self.sub_catalog_halo_ids = graph['subhalo_catalog_halo_ids'][:]
          self.sub_desc_start_gid = graph['sub_desc_start_index'][:]
          self.sub_desc_contribution = graph['sub_direct_desc_contribution'][:]
-         self.sub_desc_IDs = graph['sub_direct_desc_ids'][:]
+         self.sub_desc_IDs_gid = graph['sub_direct_desc_ids'][:]
          #self.sub_direct_prog_contribution = graph['sub_direct_prog_contribution'][:]
          #self.sub_direct_prog_ids = graph['sub_direct_prog_ids'][:]
          #self.sub_generation_id = graph['sub_generation_id'][:]
@@ -143,7 +143,7 @@ class C_graph:
          self.sub_start_gid = graph['sub_generation_start_index'][:]   # First subhalo in each snapshot
          #self.sub_half_mass_radius = graph['sub_half_mass_radius'][:]
          #self.sub_half_mass_speed = graph['sub_half_mass_velocity_radius'][:]
-         self.sub_host = graph['host_halos'][:]
+         self.sub_host_gid = graph['host_halos'][:]
          self.sub_pos = graph['sub_mean_pos'][:]
          self.sub_vel = graph['sub_mean_vel'][:]
          self.sub_n_desc = graph['sub_ndesc'][:]
@@ -155,4 +155,5 @@ class C_graph:
          #self.sub_snapshots = graph['sub_snapshots'][:]
          self.sub_start_halo_gid = graph['subhalo_start_index'][:]      # First subhalo in each halo
          #self.sub_v_max = graph['sub_v_max']
-         
+      # Galaxies
+      self.n_gal=0

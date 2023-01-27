@@ -13,9 +13,10 @@ D_gal=[
    ('halo_sid',np.int32),
    ('sub_gid',np.int32),
    ('sub_sid',np.int32),
-   ('gal_gid',np.int32),
-   ('first_prog_sid',np.int32),
-   ('next_prog_sid',np.int32),
+   ('gal_gid',np.int32),      # The unique identifier for this galaxy within this graph; should match location in output file
+   ('desc_gid',np.int32),
+   ('first_prog_gid',np.int32),
+   ('next_prog_gid',np.int32),
    ('b_exists',np.bool),
    ('b_merger',np.bool),
    #('pos',np.float32,(3,)),  # Not sure where to set thes in the main program ...
@@ -36,9 +37,10 @@ def F_gal_template(parameters):
    template['halo_sid']=NDI
    template['sub_gid']=NDI
    template['sub_sid']=NDI
-   template['gal_gid']=0
-   template['first_prog_sid']=NDI
-   template['next_prog_sid']=NDI
+   template['gal_gid']=0 # Because there are no galaxies prior to the first snapshot; updated each snap.
+   template['desc_gid']=NDI
+   template['first_prog_gid']=NDI
+   template['next_prog_gid']=NDI
    template['b_exists']=True
    template['b_merger']=False
    #template['pos']=np.nan
@@ -81,9 +83,12 @@ class C_gal_output:
       dtype=[]
       dtype.append(('graph_ID',np.int32))
       dtype.append(('snap_ID',np.int32))
-      dtype.append(('halo_ID',np.int32))
-      dtype.append(('sub_ID',np.int32))
-      dtype.append(('gal_ID',np.int32))
+      dtype.append(('halo_gid',np.int32))
+      dtype.append(('sub_gid',np.int32))
+      dtype.append(('gal_gid',np.int32))
+      dtype.append(('desc_gid',np.int32))
+      dtype.append(('first_prog_gid',np.int32))
+      dtype.append(('next_prog_gid',np.int32))
       dtype.append(('b_exists',np.bool))
       #dtype.append(('pos',np.float32,(3,)))
       #dtype.append(('vel',np.float32,(3,)))
@@ -125,10 +130,13 @@ class C_gal_output:
       """
       for i_gal in range(len(gals)):
          self.io_buffer[self.i_rec]['graph_ID'] = gals[i_gal]['graph_ID']
-         self.io_buffer[self.i_rec]['halo_ID'] = gals[i_gal]['halo_gid']
-         self.io_buffer[self.i_rec]['sub_ID'] = gals[i_gal]['sub_gid']
          self.io_buffer[self.i_rec]['snap_ID'] = gals[i_gal]['snap_ID']
-         self.io_buffer[self.i_rec]['gal_ID'] = gals[i_gal]['gal_gid']
+         self.io_buffer[self.i_rec]['halo_gid'] = gals[i_gal]['halo_gid']
+         self.io_buffer[self.i_rec]['sub_gid'] = gals[i_gal]['sub_gid']
+         self.io_buffer[self.i_rec]['gal_gid'] = gals[i_gal]['gal_gid']
+         self.io_buffer[self.i_rec]['desc_gid'] = gals[i_gal]['desc_gid']
+         self.io_buffer[self.i_rec]['first_prog_gid'] = gals[i_gal]['first_prog_gid']
+         self.io_buffer[self.i_rec]['next_prog_gid'] = gals[i_gal]['next_prog_gid']
          # Galaxy may have merged but still need to output it to avoid messing up indexing
          self.io_buffer[self.i_rec]['b_exists'] = gals[i_gal]['b_exists']  
          #self.io_buffer[self.i_rec]['pos'] = gals[i_gal]['pos']
