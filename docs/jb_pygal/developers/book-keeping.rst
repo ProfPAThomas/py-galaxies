@@ -129,7 +129,7 @@ The first code block loops over halos, giving mass and hot gas to it's descendan
           for i_desc in range(desc_start_gid,desc_end_gid):
              desc_halo_gid=graph.desc_IDs_gid[i_desc]
              desc_halo=halos_this_snap[desc_halo_gid-halo_offset]
-          # Distribute mass to progenitors in proportion to fractional contributions
+          # Distribute mass to descendants in proportion to fractional contributions
           i_frac=i_desc-desc_start_gid # fraction index corresponding to descendent index i_desc
           desc_halo.mass_from_progenitors+=fractions[i_frac]*halo.mass
 
@@ -145,11 +145,12 @@ Next we loop over subhalos.  For now the main descendent subhalo gets everything
             host_sid=sub.host-halo_offset_last
             desc_main_sid=halos_last_snap[host_sid].desc_main_sid
             if sub.n_desc==0:
-                # If no descendant subhalo components get given to the (main descendant of) the host halo
+                # If no descendant, subhalo components get given to the (main descendant of) the host halo
                 # and gals become orphans of that halo.  So add to relevant orphan count.
                 halos_this_snap[desc_main_sid].n_orphan+=sub.n_gal
             else:
-                # Otherwise the main subhalo descendant gets all the gals
+                # Otherwise the main subhalo descendant gets all the gals and hot gas - 
+                # i.e. assume that subhalos cannot split.
                 fractions=graph.sub_desc_contribution[sub_desc_start_gid:sub_desc_end_gid]/ \
                     np.sum(graph.sub_desc_contribution[sub_desc_start_gid:sub_desc_end_gid])
                 sub_desc_main_sid=graph.sub_desc_IDs_gid[sub_desc_start_gid+np.argmax(fractions)]-sub_offset

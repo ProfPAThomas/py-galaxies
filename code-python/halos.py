@@ -98,9 +98,9 @@ class C_halo:
       self.mass_from_progenitors = 0.
       self.mass_baryon_from_progenitors = 0.
       self.mass_hot_gas = 0.
-      self.mass_hot_gas_from_progenitors = 0.
+      self.mass_metals_hot_gas = 0.
       self.mass_stars = 0.
-      self.mass_stars_from_progenitors = 0.
+      self.mass_metals_stars = 0.
       if parameters.b_HOD == True:
          self.star_formation_rate = 0.
       self.inclusive_contribution = 0.       
@@ -200,10 +200,12 @@ class C_halo_output:
       dtype.append(('pos',np.float32,(3,)))
       dtype.append(('vel',np.float32,(3,)))
       dtype.append(('mass',np.float32))
-      dtype.append(('mass_hot_gas',np.float32))
       dtype.append(('mass_baryon',np.float32))
+      dtype.append(('mass_hot_gas',np.float32))
+      dtype.append(('mass_metals_hot_gas',np.float32))
+      dtype.append(('mass_stars',np.float32))
+      dtype.append(('mass_metals_stars',np.float32))
       if parameters.b_HOD==True:
-         dtype.append(('mass_stars',np.float32))
          dtype.append(('star_formation_rate',np.float32))
       # Create halo io buffer
       print('self.n_rec =',self.n_rec)
@@ -247,10 +249,12 @@ class C_halo_output:
          self.io_buffer[self.i_rec]['pos'] = halo.pos
          self.io_buffer[self.i_rec]['vel'] = halo.vel
          self.io_buffer[self.i_rec]['mass'] = halo.mass
-         self.io_buffer[self.i_rec]['mass'] = halo.mass_hot_gas
          self.io_buffer[self.i_rec]['mass_baryon']= halo.mass_baryon
+         self.io_buffer[self.i_rec]['mass_hot_gas'] = halo.mass_hot_gas
+         self.io_buffer[self.i_rec]['mass_metals_hot_gas'] = halo.mass_metals_hot_gas
+         self.io_buffer[self.i_rec]['mass_stars'] = halo.mass_stars
+         self.io_buffer[self.i_rec]['mass_metals_stars'] = halo.mass_metals_stars
          if parameters.b_HOD==True:
-            self.io_buffer[self.i_rec]['mass_stars'] = halo.mass_stars
             self.io_buffer[self.i_rec]['star_formation_rate'] = halo.star_formation_rate
          self.i_rec+=1
          if self.i_rec == self.n_rec: self.flush()

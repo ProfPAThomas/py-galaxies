@@ -94,6 +94,7 @@ class C_sub:
       # SAM properties
       #self.mass_stars = 0.
       self.mass_hot_gas = 0.
+      self.mass_metals_hot_gas = 0.
       # May be more than 1 galaxy in a subhalo (if progenitor subhalos merge):
       self.n_gal = 0
       self.gal_start_sid = parameters.NO_DATA_INT
@@ -168,6 +169,7 @@ class C_sub_output:
       dtype.append(('mass',np.float32))
       #dtype.append(('stars_mass',np.float32))
       dtype.append(('mass_hot_gas',np.float32))
+      dtype.append(('mass_metals_hot_gas',np.float32))
       # Create halo io buffer
       print('self.n_rec =',self.n_rec)
       self.io_buffer=np.empty(self.n_rec,dtype=dtype)
@@ -213,6 +215,7 @@ class C_sub_output:
          self.io_buffer[self.i_rec]['mass'] = sub.mass
          #self.io_buffer[self.i_rec]['stars_mass']= sub.stars_mass
          self.io_buffer[self.i_rec]['mass_hot_gas']= sub.mass_hot_gas
+         self.io_buffer[self.i_rec]['mass_metals_hot_gas']= sub.mass_metals_hot_gas
          self.i_rec+=1
          if self.i_rec == self.n_rec: self.flush()
       return None
