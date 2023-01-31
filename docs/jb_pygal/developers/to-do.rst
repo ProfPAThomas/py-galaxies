@@ -6,9 +6,12 @@ Major structural development
 
 * Work out how to interface to C-routines
 * Implement MCMC to optimise parameters
+* Implement star formation and metal enrichment histories
 
 Minor structural development
 ----------------------------
+
+* Implement mini-steps (might be a major development)
 
 * Pre-processing merger graph to
   - ensure every halo has a subhalo (introduce dummy subhalos as necessary)
@@ -42,3 +45,9 @@ Galaxy physics modules to import from L-galaxies
 * Galaxy merging
   - redistributing gas and stars
   - triggering starburst (does this need to be explicit, or can it arise naturally from contraction of disc?)
+
+Plotting developments
+---------------------
+
+* Galaxy stellar mass function
+* Luminosity functions (requires code to generate SEDs from star formation history)
