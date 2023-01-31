@@ -17,7 +17,7 @@ verbosity:
 
 b_debug:
  Description: 'Print out debugging diagnostics'
- Value: True
+ Value: False
 
 b_test_update:
  Description: 'No physics: number and mass simply trace progenitor count'

@@ -28,12 +28,11 @@ performance:
   Value:        1000
   Units:       'None'
   
-
 # Optional parameters: test for their existence before use
 
 model_switches:
  b_HOD:
   Description: 'Halo occupation description for stars (as primitive test)'
-  Value:        False
+  Value:        True
   Units:       'None'
 

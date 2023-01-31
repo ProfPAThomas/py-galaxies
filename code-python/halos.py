@@ -105,6 +105,7 @@ class C_halo:
          self.star_formation_rate = 0.
       self.inclusive_contribution = 0.       
       self.b_done = False
+      self.b_desc_exists = True  # Needed to prevent trying to pass properties on to non-existent halo!
 
       # Subhalos
       self.n_sub = graph.n_sub_halo[halo_gid]
