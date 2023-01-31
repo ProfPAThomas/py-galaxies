@@ -11,7 +11,9 @@ Welcome to py-galaxies' documentation!
    :caption: Contents:
 
    jb_pygal/intro
-   jb_pygal/mega
+   jb_pygal/usage
+   jb_pygal/users
+   jb_pygal/developers
 .. jb_pygal/galf_primer
 
 Indices and tables

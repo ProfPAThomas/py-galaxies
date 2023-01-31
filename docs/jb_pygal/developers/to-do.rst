@@ -7,9 +7,12 @@ Major structural development
 * Work out how to interface to C-routines
 * Implement MCMC to optimise parameters
 * Implement star formation and metal enrichment histories
+* Write a galaxy formation primer that gradually switches on the astrophysics, one step at a time, and illustrates the effect on the galaxy population.
 
 Minor structural development
 ----------------------------
+
+* Go through routines and document headers in numpy format; create API interface in documentation.
 
 * Implement mini-steps (might be a major development)
 

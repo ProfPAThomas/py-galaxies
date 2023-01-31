@@ -7,8 +7,8 @@ Here lies nitty-gritty information that will be needed by developers.
    :maxdepth: 2
    :caption: Contents:
 
+   developers/to-do
    developers/pygal_data_structures
    developers/book-keeping
    developers/galaxy_formation_model
-   developers/to-do
-.. developers/mega_data_structures
+   developers/mega
