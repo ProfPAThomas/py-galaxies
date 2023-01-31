@@ -1,5 +1,7 @@
 # py-Galaxies
 
+py-galaxies is a semi-analytic galaxy formation model within the L-Galaxies family: https://lgalaxiespublicrelease.github.io.
+
 It features 3 major developments:
 
 * A python front-end to make parameter selection and I/O much easier.
