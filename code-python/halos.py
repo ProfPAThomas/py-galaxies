@@ -67,31 +67,33 @@ class C_halo:
        halo_gid : int
            The halo ID currently being processed, relative to the graph.
        graph : an instance of the class C_graph
-           The graph contianing this halo.
+           The graph containing this halo.
        parameters : an instance of the class C_parameters
            The global parameters for this SAM run.
            
       """
+      # Read in halo properties from graph instance.  These should already be in internal code units.
       self.graph_ID = graph_ID
       self.snap_ID = snap_ID
       self.halo_gid = halo_gid
       # The following could be looked up as required but useful to define them here for quick reference
       # Note that we define links relative to the snap to enable lookup in the halo/subhalo instance lists
       halo_offset = graph.halo_start_gid[snap_ID]
-      #self.n_prog = graph.n_prog[halo_gid]
-      #self.prog_start_gid = graph.prog_start[halo_gid]
-      #self.prog_start_sid = self.prog_start - halo_offset
-      #self.prog_end_gid = self.prog_start_gid + self.n_prog
-      #self.prog_end_sid = self.prog_start_sid + self.n_prog
       self.n_desc = graph.n_desc[halo_gid]
       self.desc_start_gid = graph.desc_start_gid[halo_gid]
       self.desc_end_gid = self.desc_start_gid + self.n_desc
-      part_mass=parameters.part_mass
-      self.mass = graph.n_part[halo_gid]*part_mass
+      self.mass = graph.mass[halo_gid]
       self.pos = graph.mean_pos[halo_gid]
       self.vel = graph.mean_vel[halo_gid]
+      self.half_mass_radius = graph.half_mass_radius[halo_gid]
       self.rms_radius = graph.rms_radius[halo_gid]
       self.rms_speed = graph.rms_speed[halo_gid]
+      # Derived quantities
+      # ************************************************************************************
+      self.temperature = self.mass**(2./3.) # This is a fudge - need a routine to calculate!
+      # Using v^2=GM/r but for half mass
+      self.half_mass_virial_speed = (0.5*parameters.c_G*self.mass/self.half_mass_radius)**(0.5)
+      # ************************************************************************************
       # The following are properties of the SAM
       self.desc_main_sid = parameters.NO_DATA_INT  # Main descendant location in halos_this_snap
       self.mass_baryon = 0.
@@ -118,7 +120,7 @@ class C_halo:
          self.sub_start_sid = self.sub_start_gid-sub_offset
          self.sub_end_gid = self.sub_start_gid+self.n_sub
          self.sub_end_sid = self.sub_start_sid+self.n_sub
-         self.sub_mass = graph.sub_n_part[self.sub_start_gid:self.sub_end_gid]*part_mass
+         self.sub_mass = graph.sub_mass[self.sub_start_gid:self.sub_end_gid]
          self.sub_rel_pos = graph.sub_pos[self.sub_start_gid:self.sub_end_gid]-self.pos  # Assumes not already relative from MEGA
          self.sub_rel_vel = graph.sub_vel[self.sub_start_gid:self.sub_end_gid]-self.vel  #                 --"--
 
@@ -201,6 +203,8 @@ class C_halo_output:
       dtype.append(('pos',np.float32,(3,)))
       dtype.append(('vel',np.float32,(3,)))
       dtype.append(('mass',np.float32))
+      dtype.append(('rms_speed',np.float32))
+      dtype.append(('half_mass_virial_speed',np.float32))
       dtype.append(('mass_baryon',np.float32))
       dtype.append(('mass_hot_gas',np.float32))
       dtype.append(('mass_metals_hot_gas',np.float32))
@@ -247,14 +251,16 @@ class C_halo_output:
          self.io_buffer[self.i_rec]['graph_ID'] = halo.graph_ID
          self.io_buffer[self.i_rec]['snap_ID'] = halo.snap_ID
          self.io_buffer[self.i_rec]['halo_gid'] = halo.halo_gid
-         self.io_buffer[self.i_rec]['pos'] = halo.pos
-         self.io_buffer[self.i_rec]['vel'] = halo.vel
-         self.io_buffer[self.i_rec]['mass'] = halo.mass
-         self.io_buffer[self.i_rec]['mass_baryon']= halo.mass_baryon
-         self.io_buffer[self.i_rec]['mass_hot_gas'] = halo.mass_hot_gas
-         self.io_buffer[self.i_rec]['mass_metals_hot_gas'] = halo.mass_metals_hot_gas
-         self.io_buffer[self.i_rec]['mass_stars'] = halo.mass_stars
-         self.io_buffer[self.i_rec]['mass_metals_stars'] = halo.mass_metals_stars
+         self.io_buffer[self.i_rec]['pos'] = halo.pos * parameters.length_internal_to_output
+         self.io_buffer[self.i_rec]['vel'] = halo.vel * parameters.speed_internal_to_output
+         self.io_buffer[self.i_rec]['mass'] = halo.mass * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['rms_speed'] = halo.rms_speed * parameters.speed_internal_to_output
+         self.io_buffer[self.i_rec]['half_mass_virial_speed'] = halo.half_mass_virial_speed * parameters.speed_internal_to_output
+         self.io_buffer[self.i_rec]['mass_baryon']= halo.mass_baryon  * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_hot_gas'] = halo.mass_hot_gas  * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_metals_hot_gas'] = halo.mass_metals_hot_gas  * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_stars'] = halo.mass_stars  * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_metals_stars'] = halo.mass_metals_stars  * parameters.mass_internal_to_output
          if parameters.b_HOD==True:
             self.io_buffer[self.i_rec]['star_formation_rate'] = halo.star_formation_rate
          self.i_rec+=1

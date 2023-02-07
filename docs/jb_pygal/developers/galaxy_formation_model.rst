@@ -71,3 +71,27 @@ Black hole accretion
 ::::::::::::::::::::
 
 The black hole of the central galaxy will accrete some diffuse gas from the hot gas of the subhalo.  This will result in radio mode feedback of energy that pushes hot gas from the subhalo to the host halo.
+
+Halos
+-----
+
+Properties
+^^^^^^^^^^
+
+In MEGA, galaxies do not come with a virial speed, needed to determine the virial temperature.  However, they have 2 measures that can be used for this purpose:
+
+* 3D_velocity_dispersion, :math:`\sigma_3`
+* mass / half_mass_radius
+
+Consider the simple isothermal sphere (SIS) for which :math:`m=2\sigma^2r/G`, where :math:`m(r)` is the mass within radius :math:`r`, :math:`\sigma` is the (constant) 1-D velocity dispersion, and :math:`G` is the gravitational constant.
+Then :math:`\sigma^2=Gm/2r`, where we can evaluate at any radius.
+
+We then expect :math:`\sigma_3^2=3\sigma^2`.
+
+Here is a plot showing the results of evaluating :math:`\sigma` these two different ways:
+
+.. image:: figs/vdisp.png
+   :width: 600
+   :alt: halo 1-D velocity dispersions versus halo mass
+
+   

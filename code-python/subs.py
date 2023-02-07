@@ -87,10 +87,13 @@ class C_sub:
       self.desc_host_sid = parameters.NO_DATA_INT # main descendant of host halo
 
       # Intrinsic properties
-      part_mass=parameters.part_mass
-      self.mass = graph.sub_n_part[sub_gid]*part_mass
+      self.mass = graph.sub_mass[sub_gid]
       self.pos = graph.sub_pos[sub_gid]
       self.vel = graph.sub_vel[sub_gid]
+      # Derived properties
+      # ************************************************************************************
+      self.temperature = self.mass**(2./3.) # This is a fudge - need a routine to calculate!
+      # ************************************************************************************
       # SAM properties
       #self.mass_stars = 0.
       self.mass_hot_gas = 0.
@@ -167,7 +170,6 @@ class C_sub_output:
       dtype.append(('pos',np.float32,(3,)))
       dtype.append(('vel',np.float32,(3,)))
       dtype.append(('mass',np.float32))
-      #dtype.append(('stars_mass',np.float32))
       dtype.append(('mass_hot_gas',np.float32))
       dtype.append(('mass_metals_hot_gas',np.float32))
       # Create halo io buffer

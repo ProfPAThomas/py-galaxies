@@ -91,13 +91,14 @@ class C_graph:
       """
       self.graph_ID = graph_ID
       graph = open_graph_file[str(graph_ID)]
+      part_mass=parameters.part_mass                          # This is already in internal units
       # Attributes of graph
       self.n_halo = graph.attrs['nhalos_in_graph']            # Total number of halos in the graph
       try:
          self.n_sub = graph.attrs['sub_nhalos_in_graph']      # Total number of subhalos in the graph
       except:
          self.n_sub = 0
-      self.root_mass=graph.attrs['root_mass']
+      self.root_mass=graph.attrs['root_mass'] * part_mass 
       # Properties of graph: halos per snaphot (generation)
       self.snap_ID = graph['generation_id'][:] # Contains no data flag if there are no halos.
       # Note that the following is set to the no data flag, not 0, if there are no halos - need to correct
@@ -106,25 +107,19 @@ class C_graph:
       self.halo_start_gid = graph['generation_start_index'][:]    # First halo in each snapshot
       # Halo properties, fixed length arrays
       self.desc_start_gid = graph['desc_start_index'][:]
-      #self.half_mass_radius = graph['half_mass_radius'][:]
-      #self.half_mass_speed = graph['half_mass_velocity_radius'][:]
-      #self.catalog_halo_ids = graph['halo_catalog_halo_ids'][:]
-      self.mean_pos = graph['mean_pos'][:]
-      self.mean_vel = graph['mean_vel'][:]
+      self.mean_pos = graph['mean_pos'][:] * parameters.length_input_to_internal
+      self.mean_vel = graph['mean_vel'][:] * parameters.speed_input_to_internal
       self.n_desc = graph['ndesc'][:]
-      self.n_part = graph['nparts'][:]
+      self.mass = graph['nparts'][:] * part_mass
       self.n_prog = graph['nprog'][:]
       self.prog_start_gid = graph['prog_start_index'][:]
-      #self.redshifts = graph['redshifts'][:]
-      self.rms_radius = graph['rms_radius'][:]
-      self.rms_speed = graph['3D_velocity_dispersion'][:]
-      #self.snapshots = graph['snapshots'][:]
-      #self.v_max = graph['v_max'][:]
+      self.rms_radius = graph['rms_radius'][:] * parameters.length_input_to_internal
+      self.rms_speed = graph['3D_velocity_dispersion'][:] * parameters.speed_input_to_internal
+      self.half_mass_radius = graph['half_mass_radius'][:] * parameters.length_input_to_internal
       # Halo properties, variable length arrays (because of possible graph branching)
       self.desc_contribution = graph['direct_desc_contribution'][:]
       self.desc_IDs_gid = graph['direct_desc_ids'][:]
-      #self.prog_contribution = graph['direct_prog_contribution'][:]
-      #self.prog_IDs = graph['direct_prog_ids'][:]      
+
       # Subhalos
       if self.n_sub == 0:
          self.n_sub_halo = np.zeros(self.n_halo,dtype=np.int32)
@@ -144,10 +139,10 @@ class C_graph:
          #self.sub_half_mass_radius = graph['sub_half_mass_radius'][:]
          #self.sub_half_mass_speed = graph['sub_half_mass_velocity_radius'][:]
          self.sub_host_gid = graph['host_halos'][:]
-         self.sub_pos = graph['sub_mean_pos'][:]
-         self.sub_vel = graph['sub_mean_vel'][:]
+         self.sub_pos = graph['sub_mean_pos'][:] * parameters.length_input_to_internal
+         self.sub_vel = graph['sub_mean_vel'][:]* parameters.speed_input_to_internal
          self.sub_n_desc = graph['sub_ndesc'][:]
-         self.sub_n_part = graph['sub_nparts'][:]
+         self.sub_mass = graph['sub_nparts'][:] * part_mass
          #self.sub_n_prog = graph['sub_nprog'][:]
          #self.sub_prog_start_gid = graph['sub_prog_start_index'][:]
          #self.sub_redshifts = graph['sub_redshifts'][:]

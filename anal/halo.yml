@@ -8,10 +8,11 @@ cosmo:
  baryonFraction: 0.155
 
 plots:
+ velocityDispersion: True
  baryonFraction: True
- hotGas: True
- stellarHaloMassRatio: True # Only works with HoD model
- starFormationRate: True # Only works with HoD model
+ hotGas: False
+ stellarHaloMassRatio: False # Only works with HoD model
+ starFormationRate: False # Only works with HoD model
 
 graphs:
  graphMin: 0
@@ -21,13 +22,31 @@ snapshots:
  snapMin: 61
  snapMax: 61 # Note - includes last element!
 
-baryonFraction:
- figsize: [12,8]
- xscale: 'log'
- yscale: 'linear'
+velocityDispersion:
+ figsize:  [12,8]
+ xscale:  'log'
+ yscale:  'log'
  markerType: '.'
- xlabel: '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
- ylabel: 'Baryon fraction'
+ xlabel:  '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
+ ylabel:  '1-D Velocity dispersion / km$\,$s$^{-1}$'
+ legend:   True
+ label:   '1-D sigma'
+ save_png: True
+ save_pdf: False
+ name:    'vdisp'
+
+baryonFraction:
+ figsize:  [12,8]
+ xscale:  'log'
+ yscale:  'linear'
+ markerType: '.'
+ xlabel:  '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
+ ylabel:  'Baryon fraction'
+ legend:   False
+ label:   ' '
+ save_png: True
+ save_pdf: False
+ name:    'bfrac'
 
 hotGas:
  figsize: [12,8]
@@ -36,6 +55,8 @@ hotGas:
  markerType: '.'
  xlabel: '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
  ylabel: '$M_\mathrm{hot\ gas}$ / M$_\odot$'
+ legend:  False
+ label:  ' '
 
 stellarHaloMassRatio:
  figsize: [12,8]

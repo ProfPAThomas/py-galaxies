@@ -22,6 +22,12 @@ cosmology:
   Value:        0.155
   Units:       'None'
 
+astrophysics:
+ mumH:
+  Description: 'Mass per particle in the hot gas'
+  Value:        1e-27
+  Units:       'u.kg'
+
 performance:
  n_HDF5_io_rec:
   Description: 'Size of HDF5 io buffer (number of records)'
@@ -35,4 +41,80 @@ model_switches:
   Description: 'Halo occupation description for stars (as primitive test)'
   Value:        True
   Units:       'None'
+ b_lgalaxies:
+  Description: 'Mimic L-galaxies base model as closely as possible'
+  Value:        True
+  Units:       'None'
+  
+astrophysics:
+ cooling:
+  Description: 'Choice of cooling model for hot gas'
+  Value:       'isothermal'   # As in L-galaxies base model and many other SAMs
+  Units:       'None'
+  
 
+# Units expressed in terms that astropy understands
+# The internal units are self-consistent in that, e.g., speed_unit=length_unit/time_unit.
+# This is to keep the equations simple and avoid missing conversion factors.
+# Also, although units are specified, within the code, quantities are stored as values only, for efficiency:
+# I am unsure as to whether using units within numpy will slow things down, so possibly this could be relaxed.
+units:
+ input:    # Units of input data should be attributes of the graph file
+  length:
+   Description: 'Length unit in graph input data (used for positions)'
+   Value:        1
+   Units:       'u.Mpc'  # Should there be a factor of h^{-1}?
+  mass:
+   Description: 'Mass unit in graph input data'
+   Value:        1
+   Units:       'c.M_sun'  # Should there be a factor of h^{-1}?
+  speed:
+   Description: 'Speed unit in graph input data'
+   Value:        1
+   Units:       'u.km/u.s'
+  time:
+   Description: 'Time unit used in input files'
+   Value:        1
+   Units:       'u.yr' 
+  temperature:
+   Description: 'Temperature unit used in input files'
+   Value:        1
+   Units:       'u.K' 
+ internal: # Units chosed to be of order unity for typical galaxy, but rounded to closest factor of 1000.
+  length:
+   Description: 'Length unit used internally in the code'
+   Value:        1
+   Units:       'u.kpc'
+  mass:
+   Description: 'Mass unit used internally in the code'
+   Value:        !!float 1e10
+   Units:       'c.M_sun'
+  temperature:
+   Description: 'Temperature unit used internally in the code'
+   Value:        !!float 1e6
+   Units:       'u.K'  
+  time:
+   Description: 'Time unit used internally in the code'
+   Value:        !!float 1e9
+   Units:       'u.yr' 
+ output:   # Units expressed in simplest astrophysical equivalent
+  length:
+   Description: 'Length unit used in output files'
+   Value:        1
+   Units:       'u.kpc'
+  mass:
+   Description: 'Mass unit used in output files'
+   Value:        1
+   Units:       'c.M_sun'
+  speed:
+   Description: 'Speed unit used in output files'
+   Value:        1
+   Units:       'u.km/u.s'
+  temperature:
+   Description: 'Temperature unit used in output files'
+   Value:        1
+   Units:       'u.K'  
+  time:
+   Description: 'Time unit used in output files'
+   Value:        1
+   Units:       'u.yr' 

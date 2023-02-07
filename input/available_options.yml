@@ -29,3 +29,8 @@ b_test_update:
 b_HOD:
  Description: 'Star formation based on stellar-to-halo mass ratio'
  Value: False
+ 
+b_lgalaxies:
+ Description: 'Mimic L-galaxies base model as closely as possible'
+ Value: True
+  
