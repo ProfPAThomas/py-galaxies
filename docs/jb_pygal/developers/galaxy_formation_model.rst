@@ -94,4 +94,5 @@ Here is a plot showing the results of evaluating :math:`\sigma` these two differ
    :width: 600
    :alt: halo 1-D velocity dispersions versus halo mass
 
-   
+The offset between the two methods is not yet clear: it could be due to the fact that the halos are not isothermal spheres, or it could be due to a bug / misundertanding of the input data.
+The turn-down at small masses is almost certainly due to the finite softening affecting halos with small particle number.
