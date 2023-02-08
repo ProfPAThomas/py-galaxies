@@ -94,13 +94,13 @@ Here is a plot showing the results of evaluating :math:`\sigma` these two differ
    :width: 600
    :alt: halo 1-D velocity dispersions versus halo mass
 
-The turn-down at small masses is almost certainly due to the finite softening affecting halos with small particle number.
+The solid line shows the theoretical relation expected for the SIS model with an overdensity relative to critical of :math:`Delta=100`; given that the halos are almost certainly not SIS and the overdensity captured by the FoF is in the range 90--165 (Section 2.1.1 of MEGA paper) then this is an acceptable agreement.  The turn-down at small masses is almost certainly due to the finite softening affecting halos with small particle number.
 
-The offset between the two methods is not yet clear: it could be due to the fact that the halos are not isothermal spheres, or it could be due to a bug / misunderstanding of the input data.  The degree of offset (a factor of approximately :math:`(3/2)^{1/2}`) corresponds to a density profile of :math:`\rho\propto r^{-1}` within the half mass radius, which seems rather shallow: this could be investigated by taking NFW profiles of different concentrations and solving the Jeans equations.
-
-For now, we park this uncertainty and use the measured velocity dispersion of the halo as an indicator of its virial (ie the hot gas) temperature: :math:`k_\mathrm{B}T/\mu m_\mathrm{H}=\sigma^2`, where :math:`k_\mathrm{B}` is the Boltzmann constant and :math:`\mu m_\mathrm{H}\approx 10^{-27}` kg is the mass per particle in a fully ionised gas of cosmic metallicity.  That then gives:
+The virial temperature (i.e. the hot gas temperature) is given by the relation: :math:`k_\mathrm{B}T/\mu m_\mathrm{H}=\sigma^2`, where :math:`k_\mathrm{B}` is the Boltzmann constant and :math:`\mu m_\mathrm{H}\approx 10^{-27}` kg is the mass per particle in a fully ionised gas of cosmic metallicity.  That then gives:
 
 .. image:: figs/temp.png
    :width: 600
    :alt: virial temperature versus halo mass
+
+Any of the three relations on the above plot could be used to fix the virial temperature of the halo: further testing is required to see which is most robust to mergers.  For now, we use the half mass radius as that seems the most direct measure of the conditions in the dentre of the halo, where cooling will be most effective.
 

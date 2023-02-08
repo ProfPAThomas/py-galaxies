@@ -91,8 +91,10 @@ class C_sub:
       self.pos = graph.sub_pos[sub_gid]
       self.vel = graph.sub_vel[sub_gid]
       rms_speed = graph.rms_speed[sub_gid]
+      half_mass_radius = graph.sub_half_mass_radius[sub_gid]
+      half_mass_virial_speed = (0.5*parameters.c_G*self.mass/half_mass_radius)**(0.5)
       # Derived properties
-      self.temperature = rms_speed**2 * parameters.c_rms_speed_to_temperature
+      self.temperature = half_mass_virial_speed**2 * parameters.c_half_mass_virial_speed_to_temperature
       # SAM properties
       #self.mass_stars = 0.
       self.mass_hot_gas = 0.

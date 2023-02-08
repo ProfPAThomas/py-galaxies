@@ -113,6 +113,9 @@ class C_parameters:
         self.c_rms_speed_to_temperature = (
             self.D_param['astrophysics']['mumH']['Value'] * eval(self.D_param['astrophysics']['mumH']['Units']) *
             self.units_speed_internal**2 / (3. * c.k_B * self.units_temperature_internal ) ).si.value
+        self.c_half_mass_virial_speed_to_temperature = (
+            self.D_param['astrophysics']['mumH']['Value'] * eval(self.D_param['astrophysics']['mumH']['Units']) *
+            self.units_speed_internal**2 / (2. * c.k_B * self.units_temperature_internal ) ).si.value
 
     def __str__(self):
         """ 

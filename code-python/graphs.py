@@ -142,6 +142,7 @@ class C_graph:
          self.sub_n_desc = graph['sub_ndesc'][:]
          self.sub_mass = graph['sub_nparts'][:] * part_mass
          self.sub_rms_speed = graph['sub_3D_velocity_dispersion'][:] * parameters.speed_input_to_internal
+         self.sub_half_mass_radius = graph['sub_half_mass_radius'][:] * parameters.length_input_to_internal
          self.sub_start_halo_gid = graph['subhalo_start_index'][:]      # First subhalo in each halo
          #self.sub_v_max = graph['sub_v_max']
       # Galaxies
