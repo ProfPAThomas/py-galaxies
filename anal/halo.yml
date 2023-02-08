@@ -9,6 +9,7 @@ cosmo:
 
 plots:
  velocityDispersion: True
+ virialTemperature: True
  baryonFraction: True
  hotGas: False
  stellarHaloMassRatio: False # Only works with HoD model
@@ -34,6 +35,19 @@ velocityDispersion:
  save_png: True
  save_pdf: False
  name:    'vdisp'
+
+virialTemperature:
+ figsize:  [12,8]
+ xscale:  'log'
+ yscale:  'log'
+ markerType: '.'
+ xlabel:  '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
+ ylabel:  '$T_\mathrm{vir} / \mathrm{K}$'
+ legend:   True
+ label:   'Virial temperature'
+ save_png: True
+ save_pdf: False
+ name:    'temp'
 
 baryonFraction:
  figsize:  [12,8]

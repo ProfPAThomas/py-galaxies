@@ -90,10 +90,9 @@ class C_sub:
       self.mass = graph.sub_mass[sub_gid]
       self.pos = graph.sub_pos[sub_gid]
       self.vel = graph.sub_vel[sub_gid]
+      rms_speed = graph.rms_speed[sub_gid]
       # Derived properties
-      # ************************************************************************************
-      self.temperature = self.mass**(2./3.) # This is a fudge - need a routine to calculate!
-      # ************************************************************************************
+      self.temperature = rms_speed**2 * parameters.c_rms_speed_to_temperature
       # SAM properties
       #self.mass_stars = 0.
       self.mass_hot_gas = 0.
@@ -170,6 +169,7 @@ class C_sub_output:
       dtype.append(('pos',np.float32,(3,)))
       dtype.append(('vel',np.float32,(3,)))
       dtype.append(('mass',np.float32))
+      dtype.append(('temperature',np.float32))
       dtype.append(('mass_hot_gas',np.float32))
       dtype.append(('mass_metals_hot_gas',np.float32))
       # Create halo io buffer
@@ -212,12 +212,12 @@ class C_sub_output:
          self.io_buffer[self.i_rec]['snap_ID'] = sub.snap_ID
          self.io_buffer[self.i_rec]['host_gid'] = sub.host_gid
          self.io_buffer[self.i_rec]['sub_gid'] = sub.sub_gid
-         self.io_buffer[self.i_rec]['pos'] = sub.pos
-         self.io_buffer[self.i_rec]['vel'] = sub.vel
-         self.io_buffer[self.i_rec]['mass'] = sub.mass
-         #self.io_buffer[self.i_rec]['stars_mass']= sub.stars_mass
-         self.io_buffer[self.i_rec]['mass_hot_gas']= sub.mass_hot_gas
-         self.io_buffer[self.i_rec]['mass_metals_hot_gas']= sub.mass_metals_hot_gas
+         self.io_buffer[self.i_rec]['pos'] = sub.pos * parameters.length_internal_to_output
+         self.io_buffer[self.i_rec]['vel'] = sub.vel * parameters.speed_internal_to_output
+         self.io_buffer[self.i_rec]['mass'] = sub.mass * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['temperature'] = sub.temperature * parameters.temperature_internal_to_output
+         self.io_buffer[self.i_rec]['mass_hot_gas']= sub.mass_hot_gas * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_metals_hot_gas']= sub.mass_metals_hot_gas * parameters.mass_internal_to_output
          self.i_rec+=1
          if self.i_rec == self.n_rec: self.flush()
       return None

@@ -136,18 +136,12 @@ class C_graph:
          self.n_sub_snap = graph['sub_generation_length'][:]       # Number of subhalos in this snapshot
          self.n_sub_snap=np.where(self.n_sub_snap == parameters.NO_DATA_INT, 0, self.n_sub_snap)
          self.sub_start_gid = graph['sub_generation_start_index'][:]   # First subhalo in each snapshot
-         #self.sub_half_mass_radius = graph['sub_half_mass_radius'][:]
-         #self.sub_half_mass_speed = graph['sub_half_mass_velocity_radius'][:]
          self.sub_host_gid = graph['host_halos'][:]
          self.sub_pos = graph['sub_mean_pos'][:] * parameters.length_input_to_internal
          self.sub_vel = graph['sub_mean_vel'][:]* parameters.speed_input_to_internal
          self.sub_n_desc = graph['sub_ndesc'][:]
          self.sub_mass = graph['sub_nparts'][:] * part_mass
-         #self.sub_n_prog = graph['sub_nprog'][:]
-         #self.sub_prog_start_gid = graph['sub_prog_start_index'][:]
-         #self.sub_redshifts = graph['sub_redshifts'][:]
-         #self.sub_rms_radius = graph['sub_rms_radius'][:]
-         #self.sub_snapshots = graph['sub_snapshots'][:]
+         self.sub_rms_speed = graph['sub_3D_velocity_dispersion'][:] * parameters.speed_input_to_internal
          self.sub_start_halo_gid = graph['subhalo_start_index'][:]      # First subhalo in each halo
          #self.sub_v_max = graph['sub_v_max']
       # Galaxies

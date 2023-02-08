@@ -109,6 +109,10 @@ class C_parameters:
         # Dimensionless versions of constants used in the code
         # Gravitational constant: units L^3/T^2M
         self.c_G=(c.G/self.units_length_internal**3*self.units_time_internal**2*self.units_mass_internal).si.value
+        # To convert 3-d rms_speed to virial temperature T=mumH*sigma^2/k_B=mumH*sigma_3D^2/3k_B
+        self.c_rms_speed_to_temperature = (
+            self.D_param['astrophysics']['mumH']['Value'] * eval(self.D_param['astrophysics']['mumH']['Units']) *
+            self.units_speed_internal**2 / (3. * c.k_B * self.units_temperature_internal ) ).si.value
 
     def __str__(self):
         """ 

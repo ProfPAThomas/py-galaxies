@@ -89,11 +89,9 @@ class C_halo:
       self.rms_radius = graph.rms_radius[halo_gid]
       self.rms_speed = graph.rms_speed[halo_gid]
       # Derived quantities
-      # ************************************************************************************
-      self.temperature = self.mass**(2./3.) # This is a fudge - need a routine to calculate!
       # Using v^2=GM/r but for half mass
       self.half_mass_virial_speed = (0.5*parameters.c_G*self.mass/self.half_mass_radius)**(0.5)
-      # ************************************************************************************
+      self.temperature = self.rms_speed**2 * parameters.c_rms_speed_to_temperature
       # The following are properties of the SAM
       self.desc_main_sid = parameters.NO_DATA_INT  # Main descendant location in halos_this_snap
       self.mass_baryon = 0.
@@ -203,6 +201,7 @@ class C_halo_output:
       dtype.append(('pos',np.float32,(3,)))
       dtype.append(('vel',np.float32,(3,)))
       dtype.append(('mass',np.float32))
+      dtype.append(('temperature',np.float32))
       dtype.append(('rms_speed',np.float32))
       dtype.append(('half_mass_virial_speed',np.float32))
       dtype.append(('mass_baryon',np.float32))
@@ -253,7 +252,8 @@ class C_halo_output:
          self.io_buffer[self.i_rec]['halo_gid'] = halo.halo_gid
          self.io_buffer[self.i_rec]['pos'] = halo.pos * parameters.length_internal_to_output
          self.io_buffer[self.i_rec]['vel'] = halo.vel * parameters.speed_internal_to_output
-         self.io_buffer[self.i_rec]['mass'] = halo.mass * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass'] = halo.mass * parameters.mass_internal_to_output      
+         self.io_buffer[self.i_rec]['temperature'] = halo.temperature * parameters.temperature_internal_to_output
          self.io_buffer[self.i_rec]['rms_speed'] = halo.rms_speed * parameters.speed_internal_to_output
          self.io_buffer[self.i_rec]['half_mass_virial_speed'] = halo.half_mass_virial_speed * parameters.speed_internal_to_output
          self.io_buffer[self.i_rec]['mass_baryon']= halo.mass_baryon  * parameters.mass_internal_to_output

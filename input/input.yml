@@ -22,12 +22,6 @@ cosmology:
   Value:        0.155
   Units:       'None'
 
-astrophysics:
- mumH:
-  Description: 'Mass per particle in the hot gas'
-  Value:        1e-27
-  Units:       'u.kg'
-
 performance:
  n_HDF5_io_rec:
   Description: 'Size of HDF5 io buffer (number of records)'
@@ -47,6 +41,10 @@ model_switches:
   Units:       'None'
   
 astrophysics:
+ mumH:
+  Description: 'Mass per particle in the hot gas'
+  Value:        1e-27
+  Units:       'u.kg'
  cooling:
   Description: 'Choice of cooling model for hot gas'
   Value:       'isothermal'   # As in L-galaxies base model and many other SAMs
