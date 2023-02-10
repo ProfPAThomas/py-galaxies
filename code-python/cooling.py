@@ -12,7 +12,7 @@ halo_<cooling_model>(halo,subhalo,dt,parameters):
         Contains all the necessary runtime contants and units conversions
     Outputs:
     There are no explicit outputs but the halo and subhalo instances will be updated appropriately 
-    to reflect the amount of cooling from halo hot_gas to subhalo hot_gas.
+    to reflect the amount of cooling from halo gas_hot to subhalo gas_hot.
 sub_<cooling_model>(subhalo,galaxy,dt,parameters):
     Inputs:
     subhalo: a subhalo instance
@@ -25,7 +25,7 @@ sub_<cooling_model>(subhalo,galaxy,dt,parameters):
         Contains all the necessary runtime contants and units conversions
     Outputs:
     There are no explicit outputs but the subhalo instance and galaxy row will be updated appropriately
-    to reflect the amount of cooling from subhalo hot_gas to galaxy cold_gas.
+    to reflect the amount of cooling from subhalo gas_hot to galaxy cold_gas.
 """
 
 def halo_lgalaxies(halo,subhalo,dt,parameters):
@@ -35,8 +35,9 @@ def halo_lgalaxies(halo,subhalo,dt,parameters):
     So all we do here is give the hot gas to the subhalo, and
     set the virial temperature of the subhalo to equal that of the halo.
     """
-    subhalo.mass_hot_gas += halo.mass_hot_gas
-    halo.mass_hot_gas = 0.
+    subhalo.mass_gas_hot += halo.mass_gas_hot
+    subhalo.mass_baryons += halo.mass_gas_hot
+    halo.mass_gas_hot = 0.
     subhalo.temperature = halo.temperature
     return None
 

@@ -19,10 +19,14 @@ D_gal=[
    ('next_prog_gid',np.int32),
    ('b_exists',np.bool),
    ('b_merger',np.bool),
-   #('pos',np.float32,(3,)),  # Not sure where to set thes in the main program ...
+   #('pos',np.float32,(3,)),  # Not sure where to set this in the main program ...
    #('vel',np.float32,(3,)),  # ... and can be found in halo/subhalo catalogues (apart maybe for orphans)
-   ('mass_stars',np.float32),
-   ('mass_cold_gas',np.float32)
+   ('mass_stars_bulge',np.float32),
+   ('mass_metals_stars_bulge',np.float32),
+   ('mass_stars_disc',np.float32),
+   ('mass_metals_stars_disc',np.float32),
+   ('mass_cold_gas',np.float32),
+   ('mass_metals_cold_gas',np.float32)
 ]
 
 def F_gal_template(parameters):
@@ -45,8 +49,12 @@ def F_gal_template(parameters):
    template['b_merger']=False
    #template['pos']=np.nan
    #template['vel']=np.nan
-   template['mass_stars']=0.
+   template['mass_stars_bulge']=0.
+   template['mass_metals_stars_bulge']=0.
+   template['mass_stars_disc']=0.
+   template['mass_metals_stars_disc']=0.
    template['mass_cold_gas']=0.
+   template['mass_metals_cold_gas']=0.
    return template
 
 class C_gal_output:
@@ -92,8 +100,12 @@ class C_gal_output:
       dtype.append(('b_exists',np.bool))
       #dtype.append(('pos',np.float32,(3,)))
       #dtype.append(('vel',np.float32,(3,)))
-      dtype.append(('mass_stars',np.float32))
+      dtype.append(('mass_stars_bulge',np.float32))
+      dtype.append(('mass_metals_stars_bulge',np.float32))
+      dtype.append(('mass_stars_disc',np.float32))
+      dtype.append(('mass_metals_stars_disc',np.float32))
       dtype.append(('mass_cold_gas',np.float32))
+      dtype.append(('mass_metals_cold_gas',np.float32))
       # Create halo io buffer
       self.io_buffer=np.empty(self.n_rec,dtype=dtype)
       # Create HDF5 dataset
@@ -141,8 +153,12 @@ class C_gal_output:
          self.io_buffer[self.i_rec]['b_exists'] = gals[i_gal]['b_exists']  
          #self.io_buffer[self.i_rec]['pos'] = gals[i_gal]['pos']
          #self.io_buffer[self.i_rec]['vel'] = gals[i_gal]['vel']
-         self.io_buffer[self.i_rec]['mass_stars'] = gals[i_gal]['mass_stars']
+         self.io_buffer[self.i_rec]['mass_stars_bulge'] = gals[i_gal]['mass_stars_bulge']
+         self.io_buffer[self.i_rec]['mass_metals_stars_bulge'] = gals[i_gal]['mass_metals_stars_bulge']
+         self.io_buffer[self.i_rec]['mass_stars_disc'] = gals[i_gal]['mass_stars_disc']
+         self.io_buffer[self.i_rec]['mass_metals_stars_disc'] = gals[i_gal]['mass_metals_stars_disc']
          self.io_buffer[self.i_rec]['mass_cold_gas']= gals[i_gal]['mass_cold_gas']
+         self.io_buffer[self.i_rec]['mass_metals_cold_gas']= gals[i_gal]['mass_metals_cold_gas']
          self.i_rec+=1
          if self.i_rec == self.n_rec: self.flush()
       return None

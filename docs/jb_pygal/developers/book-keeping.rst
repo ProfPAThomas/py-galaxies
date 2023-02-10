@@ -40,7 +40,6 @@ Looping over graphs and snapshots
         del halos_last_snap
         del subs_last_snap
         del gals_last_snap
-        #gc.collect() # garbage collection -- safe but very slow.
 
         # Process the halos
         F_process_halos(halos_this_snap,subs_this_snap,gals_this_snap,graph,parameters)
@@ -78,7 +77,7 @@ Within each snapshot, halos, subhalo and galaxies are stored as python lists.  W
   halos_this_snap = [C_halo(i_graph,i_snap,i_halo,graph,parameters) for i_halo in
                        graph.halo_start_gid[i_snap]+range(graph.n_halo_snap[i_snap])]
 
-During the initialisation, pointers to other related halos and subhalos, that available from the graph, are read in.
+During the initialisation, pointers to other related halos and subhalos, that are available from the graph, are read in.
 
 .. code-block:: python3
    
@@ -88,12 +87,12 @@ During the initialisation, pointers to other related halos and subhalos, that av
                 subs_this_snap = [C_sub(i_graph,i_snap,i_sub,graph,parameters) 
                                      for i_sub in graph.sub_start_gid[i_snap]+range(graph.n_sub_snap[i_snap])]
 
-During the initialisation, pointers the host halo and related subhalos, that available from the graph, are read in.
+During the initialisation, pointers the host halo and related subhalos, that are available from the graph, are read in.
 
 Propagation of information from progenitors
 -------------------------------------------
 
-Note that this also generates the galaxy array
+Note that this also generates the galaxy array:
 
 .. code-block:: python3
    
@@ -101,8 +100,9 @@ Note that this also generates the galaxy array
         gals_this_snap=F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,
                                           subs_this_snap,gals_last_snap,graph,parameters)
 
+Galaxies are stored in halo order.  Within each halo, we first have orphan galaxies (i.e. those who have lost their subhalos) followed by the galaxies associated with each subhalo, in subhalo order).
 
-Need to do a first pass to push halo/subhalo properties and to determine the number of galaxies.  This also sets pointers in the halo and subhalo instances of where the associated galaxy and orphan galaxy counts start.
+We need to do a first pass to push halo/subhalo properties and to determine the number of galaxies.  This also sets pointers in the halo and subhalo instances of where the associated galaxy and orphan galaxy counts start.
 
 The first code block loops over halos, giving mass and hot gas to it's descendants in proportion to their overlap, and all galaxies to the main descendant (the one with the most overlap).  I have omitted some of the lines, for clarity; this just shows the overall structure of the block.
 					  
@@ -115,7 +115,6 @@ The first code block loops over halos, giving mass and hot gas to it's descendan
           desc_start_gid=halo.desc_start_gid
           desc_end_gid=halo.desc_end_gid
           if (halo.n_desc==0): 
-             print('No descendants for halo:',halo,flush=True)
              # For now just skip this halo; might want in future to log these occurrences
              continue
           fractions=graph.desc_contribution[desc_start_gid:desc_end_gid]/ \
@@ -127,11 +126,11 @@ The first code block loops over halos, giving mass and hot gas to it's descendan
           halos_this_snap[desc_main_sid].n_orphan+=halo.n_orphan 
           # Now loop over descendants transferring properties to them:
           for i_desc in range(desc_start_gid,desc_end_gid):
-             desc_halo_gid=graph.desc_IDs_gid[i_desc]
-             desc_halo=halos_this_snap[desc_halo_gid-halo_offset]
-          # Distribute mass to descendants in proportion to fractional contributions
-          i_frac=i_desc-desc_start_gid # fraction index corresponding to descendent index i_desc
-          desc_halo.mass_from_progenitors+=fractions[i_frac]*halo.mass
+             desc_halo=halos_this_snap[graph.desc_IDs_gid[i_desc]-halo_offset]
+             # Distribute mass to descendants in proportion to fractional contributions
+             i_frac=i_desc-desc_start_gid # fraction index corresponding to descendent index i_desc
+             desc_halo.mass_from_progenitors+=fractions[i_frac]*halo.mass
+	     # ... repeat for other baryonic properties ...
 
 Next we loop over subhalos.  For now the main descendent subhalo gets everything.  If there is no descendent then the hot gas and galaxies get given to the descendent of the host halo.
 
@@ -148,6 +147,7 @@ Next we loop over subhalos.  For now the main descendent subhalo gets everything
                 # If no descendant, subhalo components get given to the (main descendant of) the host halo
                 # and gals become orphans of that halo.  So add to relevant orphan count.
                 halos_this_snap[desc_main_sid].n_orphan+=sub.n_gal
+	        # ... add subhalo baryons to the descendent halo ...
             else:
                 # Otherwise the main subhalo descendant gets all the gals and hot gas - 
                 # i.e. assume that subhalos cannot split.
@@ -156,7 +156,7 @@ Next we loop over subhalos.  For now the main descendent subhalo gets everything
                 sub_desc_main_sid=graph.sub_desc_IDs_gid[sub_desc_start_gid+np.argmax(fractions)]-sub_offset
                 sub.desc_main_sid=sub_desc_main_sid
                 subs_this_snap[sub_desc_main_sid].n_gal+=sub.n_gal
-                subs_this_snap[sub_desc_main_sid].mass_hot_gas+=sub.mass_hot_gas
+                # ... add subhalo baryons to the main descendent subhalo ...
 
 Next we count the total number of galaxies and initialise the galaxy numpy array:
 
@@ -192,13 +192,15 @@ Now we do a second pass to populate galaxies with inherited properties:
         if parameters.b_debug: 
             print('Pushing gals',flush=True)
         for halo in halos_last_snap:
+            if halo.b_desc_exists == False: continue
             n_orphan=halo.n_orphan
             if n_orphan > 0:
                 # match up orphans
                 desc_halo=halos_this_snap[halo.desc_main_sid]
+                # The is the location of orphan galaxies in the previous snapshot
                 gal_last_start_sid=halo.orphan_start_sid
                 gal_last_end_sid=gal_last_start_sid+n_orphan
-                # The following line returns the current galaxy counter for orphans in this halo
+                # and in the current snapshot
                 gal_this_start_sid=desc_halo.orphan_count(n_orphan)
                 gal_this_end_sid=gal_this_start_sid+n_orphan
                 # Copy over all properties
@@ -253,7 +255,7 @@ Now we do a second pass to populate galaxies with inherited properties:
                     gals_this_snap[gal_this_start_sid:gal_this_end_sid]['next_prog_gid']=parameters.NO_DATA_INT
     gals_this_snap['graph_ID']=graph.graph_ID
     gals_this_snap['snap_ID']=halos_this_snap[0].snap_ID
-    return gals_this_snap
+
 
 
 

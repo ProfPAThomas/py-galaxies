@@ -79,6 +79,7 @@ class C_sub:
       self.graph_ID = graph_ID
       self.snap_ID = snap_ID
       self.sub_gid = sub_gid
+      self.sub_sid = self.sub_gid - graph.sub_start_gid[snap_ID]
       # The following could be looked up as required but useful to define them here for quick reference
       self.host_gid = graph.sub_host_gid[sub_gid]
       self.n_desc = graph.sub_n_desc[sub_gid]
@@ -96,9 +97,11 @@ class C_sub:
       # Derived properties
       self.temperature = half_mass_virial_speed**2 * parameters.c_half_mass_virial_speed_to_temperature
       # SAM properties
-      #self.mass_stars = 0.
-      self.mass_hot_gas = 0.
-      self.mass_metals_hot_gas = 0.
+      self.mass_baryons =  0. # 1e-10 # Small, non-zero value because no cooling onto subhalos when first formed.
+      self.mass_gas_hot = 0.
+      self.mass_metals_gas_hot = 0.
+      self.mass_stars = 0.
+      self.mass_metals_stars = 0.
       # May be more than 1 galaxy in a subhalo (if progenitor subhalos merge):
       self.n_gal = 0
       self.gal_start_sid = parameters.NO_DATA_INT
@@ -130,7 +133,18 @@ class C_sub:
       self.gal_end_sid = self.gal_start_sid + self.n_gal
       self.gal_next_sid = self.gal_start_sid # Will be used to keep track of galaxies during update_halo phase.
       return self.gal_end_sid
-
+    
+   def sum_mass_baryons(self,gals):
+       """
+       Calculates the total baryonic mass of the subhalo, including galaxies.
+       Returns value rather than setting it because being used as a check on simpler method.
+       """
+       mass_baryons = self.mass_gas_hot + self.mass_stars
+       mass_baryons += np.sum(gals[self.gal_start_sid:self.gal_end_sid]['mass_cold_gas'])
+       mass_baryons += np.sum(gals[self.gal_start_sid:self.gal_end_sid]['mass_stars_bulge'])
+       mass_baryons += np.sum(gals[self.gal_start_sid:self.gal_end_sid]['mass_stars_disc'])
+       return mass_baryons
+        
 class C_sub_output:
    
    """
@@ -172,8 +186,10 @@ class C_sub_output:
       dtype.append(('vel',np.float32,(3,)))
       dtype.append(('mass',np.float32))
       dtype.append(('temperature',np.float32))
-      dtype.append(('mass_hot_gas',np.float32))
-      dtype.append(('mass_metals_hot_gas',np.float32))
+      dtype.append(('mass_gas_hot',np.float32))
+      dtype.append(('mass_metals_gas_hot',np.float32))
+      dtype.append(('mass_stars',np.float32))
+      dtype.append(('mass_metals_stars',np.float32))
       # Create halo io buffer
       print('self.n_rec =',self.n_rec)
       self.io_buffer=np.empty(self.n_rec,dtype=dtype)
@@ -218,8 +234,10 @@ class C_sub_output:
          self.io_buffer[self.i_rec]['vel'] = sub.vel * parameters.speed_internal_to_output
          self.io_buffer[self.i_rec]['mass'] = sub.mass * parameters.mass_internal_to_output
          self.io_buffer[self.i_rec]['temperature'] = sub.temperature * parameters.temperature_internal_to_output
-         self.io_buffer[self.i_rec]['mass_hot_gas']= sub.mass_hot_gas * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_metals_hot_gas']= sub.mass_metals_hot_gas * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_gas_hot']= sub.mass_gas_hot * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_metals_gas_hot']= sub.mass_metals_gas_hot * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_stars']= sub.mass_stars * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_metals_stars']= sub.mass_metals_stars * parameters.mass_internal_to_output
          self.i_rec+=1
          if self.i_rec == self.n_rec: self.flush()
       return None

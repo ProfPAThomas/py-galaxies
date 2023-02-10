@@ -49,8 +49,11 @@ astrophysics:
   Description: 'Choice of cooling model for hot gas'
   Value:       'isothermal'   # As in L-galaxies base model and many other SAMs
   Units:       'None'
+ major_merger_fraction:
+  Description: 'Mass ratio to triger major mergers'
+  Value:        0.3
+  Units:       'None'
   
-
 # Units expressed in terms that astropy understands
 # The internal units are self-consistent in that, e.g., speed_unit=length_unit/time_unit.
 # This is to keep the equations simple and avoid missing conversion factors.

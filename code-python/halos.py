@@ -76,9 +76,7 @@ class C_halo:
       self.graph_ID = graph_ID
       self.snap_ID = snap_ID
       self.halo_gid = halo_gid
-      # The following could be looked up as required but useful to define them here for quick reference
-      # Note that we define links relative to the snap to enable lookup in the halo/subhalo instance lists
-      halo_offset = graph.halo_start_gid[snap_ID]
+      self.halo_sid = self.halo_gid - graph.halo_start_gid[snap_ID]
       self.n_desc = graph.n_desc[halo_gid]
       self.desc_start_gid = graph.desc_start_gid[halo_gid]
       self.desc_end_gid = self.desc_start_gid + self.n_desc
@@ -95,10 +93,11 @@ class C_halo:
       # The following are properties of the SAM
       self.desc_main_sid = parameters.NO_DATA_INT  # Main descendant location in halos_this_snap
       self.mass_baryon = 0.
+      self.mass_baryon_simple = 0.
       self.mass_from_progenitors = 0.
       self.mass_baryon_from_progenitors = 0.
-      self.mass_hot_gas = 0.
-      self.mass_metals_hot_gas = 0.
+      self.mass_gas_hot = 0.
+      self.mass_metals_gas_hot = 0.
       self.mass_stars = 0.
       self.mass_metals_stars = 0.
       if parameters.b_HOD == True:
@@ -160,6 +159,20 @@ class C_halo:
       self.orphan_start_sid = gal_start_sid
       self.orphan_next_sid = self.orphan_start_sid # Will be used to keep track of orphans during update_halo phase
       return gal_start_sid+self.n_orphan
+    
+   def set_mass_baryons(self,subs,gals):
+     """
+     Calculates the total baryonic mass of the subhalo, including galaxies
+     """
+     self.mass_baryons = self.mass_gas_hot + self.mass_stars
+     for i_sub in range(self.n_sub): 
+        self.mass_baryons += subs[self.sub_start_sid+i_sub].mass_baryons
+     # The orphan galaxies are not included in the subhalo baryon count, so add them in here
+     if self.n_orphan >0:
+        self.mass_baryons += np.sum(gals[self.orphan_start_sid:self.orphan_start_sid+self.n_orphan]['mass_cold_gas'])
+        self.mass_baryons += np.sum(gals[self.orphan_start_sid:self.orphan_start_sid+self.n_orphan]['mass_stars_bulge'])
+        self.mass_baryons += np.sum(gals[self.orphan_start_sid:self.orphan_start_sid+self.n_orphan]['mass_stars_disc'])
+     return None
 
 
 class C_halo_output:
@@ -205,8 +218,9 @@ class C_halo_output:
       dtype.append(('rms_speed',np.float32))
       dtype.append(('half_mass_virial_speed',np.float32))
       dtype.append(('mass_baryon',np.float32))
-      dtype.append(('mass_hot_gas',np.float32))
-      dtype.append(('mass_metals_hot_gas',np.float32))
+      dtype.append(('mass_baryon_simple',np.float32))
+      dtype.append(('mass_gas_hot',np.float32))
+      dtype.append(('mass_metals_gas_hot',np.float32))
       dtype.append(('mass_stars',np.float32))
       dtype.append(('mass_metals_stars',np.float32))
       if parameters.b_HOD==True:
@@ -257,8 +271,9 @@ class C_halo_output:
          self.io_buffer[self.i_rec]['rms_speed'] = halo.rms_speed * parameters.speed_internal_to_output
          self.io_buffer[self.i_rec]['half_mass_virial_speed'] = halo.half_mass_virial_speed * parameters.speed_internal_to_output
          self.io_buffer[self.i_rec]['mass_baryon']= halo.mass_baryon  * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_hot_gas'] = halo.mass_hot_gas  * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_metals_hot_gas'] = halo.mass_metals_hot_gas  * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_baryon_simple']= halo.mass_baryon_simple  * parameters.mass_internal_to_output         
+         self.io_buffer[self.i_rec]['mass_gas_hot'] = halo.mass_gas_hot  * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_metals_gas_hot'] = halo.mass_metals_gas_hot  * parameters.mass_internal_to_output
          self.io_buffer[self.i_rec]['mass_stars'] = halo.mass_stars  * parameters.mass_internal_to_output
          self.io_buffer[self.i_rec]['mass_metals_stars'] = halo.mass_metals_stars  * parameters.mass_internal_to_output
          if parameters.b_HOD==True:

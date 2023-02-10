@@ -58,6 +58,7 @@ class C_parameters:
         self.omega_m = self.D_param['cosmology']['omega_m']['Value']
         self.baryon_fraction = self.D_param['cosmology']['baryon_fraction']['Value']
         self.n_HDF5_io_rec = self.D_param['performance']['n_HDF5_io_rec']['Value']
+        self.major_merger_fraction = self.D_param['astrophysics']['major_merger_fraction']['Value']
         #   self.sub_halo = self.D_param['model_switches']['sub_halo']['Value']
 
         # Loop over model switches, creating a boolean flag for each
