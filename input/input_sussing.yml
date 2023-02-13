@@ -33,7 +33,7 @@ performance:
 model_switches:
  b_HOD:
   Description: 'Halo occupation description for stars (as primitive test)'
-  Value:        True
+  Value:        False
   Units:       'None'
  b_lgalaxies:
   Description: 'Mimic L-galaxies base model as closely as possible'
@@ -45,9 +45,9 @@ astrophysics:
   Description: 'Mass per particle in the hot gas'
   Value:        1e-27
   Units:       'u.kg'
- cooling:
+ cooling_model:
   Description: 'Choice of cooling model for hot gas'
-  Value:       'isothermal'   # As in L-galaxies base model and many other SAMs
+  Value:       'SIS'   # As in L-galaxies base model and many other SAMs
   Units:       'None'
  major_merger_fraction:
   Description: 'Mass ratio to triger major mergers'
@@ -119,3 +119,10 @@ units:
    Description: 'Time unit used in output files'
    Value:        1
    Units:       'u.yr' 
+
+# Numerical parameters
+numerics:
+ mass_minimum:
+  Description:   'The minimum mass that is considered larger than 0.'
+  Value:          !!float 1e-10
+  Units:         'Code units'

@@ -140,7 +140,7 @@ class C_sub:
        Returns value rather than setting it because being used as a check on simpler method.
        """
        mass_baryons = self.mass_gas_hot + self.mass_stars
-       mass_baryons += np.sum(gals[self.gal_start_sid:self.gal_end_sid]['mass_cold_gas'])
+       mass_baryons += np.sum(gals[self.gal_start_sid:self.gal_end_sid]['mass_gas_cold'])
        mass_baryons += np.sum(gals[self.gal_start_sid:self.gal_end_sid]['mass_stars_bulge'])
        mass_baryons += np.sum(gals[self.gal_start_sid:self.gal_end_sid]['mass_stars_disc'])
        return mass_baryons

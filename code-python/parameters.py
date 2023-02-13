@@ -58,8 +58,10 @@ class C_parameters:
         self.omega_m = self.D_param['cosmology']['omega_m']['Value']
         self.baryon_fraction = self.D_param['cosmology']['baryon_fraction']['Value']
         self.n_HDF5_io_rec = self.D_param['performance']['n_HDF5_io_rec']['Value']
+        self.cooling_model = self.D_param['astrophysics']['cooling_model']['Value']
         self.major_merger_fraction = self.D_param['astrophysics']['major_merger_fraction']['Value']
         #   self.sub_halo = self.D_param['model_switches']['sub_halo']['Value']
+        self.mass_minimum = self.D_param['numerics']['mass_minimum']['Value']
 
         # Loop over model switches, creating a boolean flag for each
         for key in self.D_param['model_switches']:
@@ -117,6 +119,8 @@ class C_parameters:
         self.c_half_mass_virial_speed_to_temperature = (
             self.D_param['astrophysics']['mumH']['Value'] * eval(self.D_param['astrophysics']['mumH']['Units']) *
             self.units_speed_internal**2 / (2. * c.k_B * self.units_temperature_internal ) ).si.value
+        # Constant used in cooling model as described in cooling.py
+        self.c_cooling = 1.
 
     def __str__(self):
         """ 

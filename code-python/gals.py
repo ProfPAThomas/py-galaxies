@@ -25,8 +25,8 @@ D_gal=[
    ('mass_metals_stars_bulge',np.float32),
    ('mass_stars_disc',np.float32),
    ('mass_metals_stars_disc',np.float32),
-   ('mass_cold_gas',np.float32),
-   ('mass_metals_cold_gas',np.float32)
+   ('mass_gas_cold',np.float32),
+   ('mass_metals_gas_cold',np.float32)
 ]
 
 def F_gal_template(parameters):
@@ -53,8 +53,8 @@ def F_gal_template(parameters):
    template['mass_metals_stars_bulge']=0.
    template['mass_stars_disc']=0.
    template['mass_metals_stars_disc']=0.
-   template['mass_cold_gas']=0.
-   template['mass_metals_cold_gas']=0.
+   template['mass_gas_cold']=0.
+   template['mass_metals_gas_cold']=0.
    return template
 
 class C_gal_output:
@@ -104,8 +104,8 @@ class C_gal_output:
       dtype.append(('mass_metals_stars_bulge',np.float32))
       dtype.append(('mass_stars_disc',np.float32))
       dtype.append(('mass_metals_stars_disc',np.float32))
-      dtype.append(('mass_cold_gas',np.float32))
-      dtype.append(('mass_metals_cold_gas',np.float32))
+      dtype.append(('mass_gas_cold',np.float32))
+      dtype.append(('mass_metals_gas_cold',np.float32))
       # Create halo io buffer
       self.io_buffer=np.empty(self.n_rec,dtype=dtype)
       # Create HDF5 dataset
@@ -157,8 +157,8 @@ class C_gal_output:
          self.io_buffer[self.i_rec]['mass_metals_stars_bulge'] = gals[i_gal]['mass_metals_stars_bulge']
          self.io_buffer[self.i_rec]['mass_stars_disc'] = gals[i_gal]['mass_stars_disc']
          self.io_buffer[self.i_rec]['mass_metals_stars_disc'] = gals[i_gal]['mass_metals_stars_disc']
-         self.io_buffer[self.i_rec]['mass_cold_gas']= gals[i_gal]['mass_cold_gas']
-         self.io_buffer[self.i_rec]['mass_metals_cold_gas']= gals[i_gal]['mass_metals_cold_gas']
+         self.io_buffer[self.i_rec]['mass_gas_cold']= gals[i_gal]['mass_gas_cold']
+         self.io_buffer[self.i_rec]['mass_metals_gas_cold']= gals[i_gal]['mass_metals_gas_cold']
          self.i_rec+=1
          if self.i_rec == self.n_rec: self.flush()
       return None

@@ -128,10 +128,17 @@ class C_halo:
       self.orphan_start_sid = parameters.NO_DATA_INT
 
       # Identify central subhalo.
-      # For now, we will assume that there IS a central subhalo; later we may relax this assumption
+      # For now, we will assume that there IS a central subhalo; later we may relax this assumption.
+      # The appropriate metric for defining distance from the centre of phase-space also needs exploring.
       if self.n_sub>0:
-         metric2 = np.sum((self.sub_rel_pos/self.rms_radius)**2,1)+np.sum((self.sub_rel_vel/self.rms_speed)**2,1)
-         self.sub_central_gid = self.sub_start_gid+np.argmin(metric2)
+         if parameters.b_lgalaxies:
+            # In L-galaxies mode the most massive subhalo is assigned as the central subhalo.
+            metric = self.sub_mass
+            self.sub_central_gid = self.sub_start_gid+np.argmax(metric)
+         else:
+            # For now set equal to the minimum displacement from the phase-space ellipsoid.
+            metric2 = np.sum((self.sub_rel_pos/self.rms_radius)**2,1)+np.sum((self.sub_rel_vel/self.rms_speed)**2,1)
+            self.sub_central_gid = self.sub_start_gid+np.argmin(metric2)
          self.sub_central_sid = self.sub_central_gid - sub_offset
       else:
          self.sub_central_gid = parameters.NO_DATA_INT
@@ -169,7 +176,7 @@ class C_halo:
         self.mass_baryons += subs[self.sub_start_sid+i_sub].mass_baryons
      # The orphan galaxies are not included in the subhalo baryon count, so add them in here
      if self.n_orphan >0:
-        self.mass_baryons += np.sum(gals[self.orphan_start_sid:self.orphan_start_sid+self.n_orphan]['mass_cold_gas'])
+        self.mass_baryons += np.sum(gals[self.orphan_start_sid:self.orphan_start_sid+self.n_orphan]['mass_gas_cold'])
         self.mass_baryons += np.sum(gals[self.orphan_start_sid:self.orphan_start_sid+self.n_orphan]['mass_stars_bulge'])
         self.mass_baryons += np.sum(gals[self.orphan_start_sid:self.orphan_start_sid+self.n_orphan]['mass_stars_disc'])
      return None

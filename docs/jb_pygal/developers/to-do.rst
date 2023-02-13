@@ -26,6 +26,10 @@ Minor structural development
   
 * Option to alter structure to mimic L-Galaxies as closely as possible (might be a major development).
 
+* Code to locate the central subhalo (if any) in a halo.
+
+* (Probably) code to add a dummy subhalo if running in L-Galaxies model (or even if not, might allow higher resolution).
+
 Galaxy physics modules to import from L-galaxies
 ------------------------------------------------
 
@@ -33,7 +37,7 @@ Galaxy physics modules to import from L-galaxies
   - decide whether we need an **Ejected** phase for halos; I suspect that we do.
   - let reincorporation of gas onto central subhalo from halo follow usual cooling
 
-* Galaxy cooling
+* Hot gas cooling onto galaxy
   - differs from standard SAMs in that we cool onto subhalos and then again onto galaxies
   - also, will implement a beta model for the hot gas distribution (with option for SIS)
   
