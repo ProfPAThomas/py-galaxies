@@ -131,36 +131,46 @@ The L-Galaxies model estimates a cooling rate and sets the cooled mass to be :ma
 
 An explanation of the isothermal model and derivation of the expression for the amount of gas cooled can be found in :download:`this draft paper <../../docs/Cooling.pdf>` (that will never see the light of day).
 
+The workings in that paper show that the cooling has two regimes; one in which the cooling radius lies inside the virial radius of the halo, and a second where it lies outside (then, as the gas cools and is deposited from the hot gas, the cooling radius will move to fall inside the halo).  The behaviour is determined by the dynamical and cooling timescales, where we use :math:`\tau` rather than :math:`t` to indicate that the timescales don't vary over the duration of the cooling:
+
+.. math::
+
+   \tau_\mathrm{dyn} = {r_{200c}\over v_{200c}} \approx {2r_\mathrm{half}\over \surd{2}\sigma}.
+
+   \tau_\mathrm{cool} = {9\mu m_\mathrm{H}k_\mathrm{B} \Delta T\over 400\rho_c\Lambda}.
+
+In these expressions the subscript :math:`c` refers to the critical density, with :math:`\rho_c` being the critical density; :math:`r_\mathrm{half}` is the half mass radius (equal to one half of the outer, 'virial' radius in the SIS model); and :math:`\Lambda(T,Z)` is the cooling function -- the cooling rate per unit density of electrons and ions, a function of both temperature and metallicity, :math:`Z`.  There is one minor variation from the expression in the paper in that we use :math:`\Delta T` rather than :math:`T`: that is because we are considering cooling from the halo onto the subhalo for which the temperature difference may be small compared to the halo temperature.
+
+Let's also define :math:`f_{g0}` and :math:`f_g` to be the initial and final gas fractions, respectively, :math:`\tau_\mathrm{ratio}= \tau_\mathrm{dyn}f_{g0}/\tau_\mathrm{cool}`, and :math:`\tau_\mathrm{eq}=\tau_\mathrm{dyn}\ln\tau_\mathrm{ratio}`.
+
 As well as varying with the overall gas density, the cooling rate also depends upon the density profile of the hot gas.  We have currently implemented two different models:
 
 * SIS -- singular isothermal sphere.
   The gas profile is assumed to be that of a singular isothermal sphere (as is that of the dark matter).  The SIS has a uniform temperature, :math:`T`, the virial temperature, with :math:`k_\mathrm{B}T/\mu m_\mathrm{H}=\sigma^2`, where :math:`k_\mathrm{B}` is the Boltzmann constant, :math:`\mu m_\mathrm{H}\approx 10^{-27}` kg is the mass per particle in an ionised gas of cosmic composition, and :math:`\sigma` is the 1-D velocity dispersion, as mentioned above.
   
-  It is understood that this is a poor approximation to the gas profile in the central regions of any halo, but that does not matter, except in the largest halos, because the cooling time, :math:`t_\mathrm{cool}`, in the central regions will anyway be less than the dynamical time, :math:`t_\mathrm{dyn}`, in the halos.  The model assumes that gas for which :math:`t_\mathrm{cool}<t_\mathrm{dyn}` will cool, whereas other gas will not.  This may seem like a crude approximation, but in fact it performs reasonably well compared to a more sophisticated beta model (see below), as evidenced in the paper linked to above.
+  It is understood that this is a poor approximation to the gas profile in the central regions of any halo, but that does not matter, except in the largest halos, because the cooling time, :math:`\tau_\mathrm{cool}`, in the central regions will anyway be less than the dynamical time, :math:`\tau_\mathrm{dyn}`, in the halos.  The model assumes that gas for which :math:`\tau_\mathrm{cool}<\tau_\mathrm{dyn}` will cool, whereas other gas will not.  This may seem like a crude approximation, but in fact it performs reasonably well compared to a more sophisticated beta model (see below), as evidenced in the paper linked to above.
 
-  The workings in that paper show that
+  The two cooling regimes then result in the following expressions for the total amount of gas cooled.  For :math:`\tau_\mathrm{ratio}<1` then
+
+  .. math::
+
+     f_g = f_{g0} \left( 1 + {\tau_\mathrm{ratio}^{1/2}\Delta t\over 2\tau_\mathrm{dyn}} \right)^{-2}
+
+  whereas for :math:`\tau_\mathrm{ratio}>1`
 
   .. math::
 
       f_g =
          \begin{cases} 
-           f_{g0} e^{-\Delta t/\tau_\mathrm{dyn}},& \Delta t\leq t_\mathrm{eq};\\
-           {\tau_\mathrm{cool}\over\tau_\mathrm{dyn}}\left(1+{\Delta t-t_\mathrm{eq}\over2\tau_\mathrm{dyn}}\right)^{-2},&  \Delta t>t_\mathrm{eq};
+           f_{g0} e^{-\Delta t/\tau_\mathrm{dyn}},& \Delta t\leq \tau_\mathrm{eq};\\
+           {\tau_\mathrm{cool}\over\tau_\mathrm{dyn}}\left(1+{\Delta t-\tau_\mathrm{eq}\over2\tau_\mathrm{dyn}}\right)^{-2},&  \Delta t>\tau_\mathrm{eq};
          \end{cases}
 
-  Here :math:`f_{g0}` and :math:`f_g` are the initial and final gas fractions, respectively, and :math:`t_\mathrm{eq}=\tau_\mathrm{dyn}\ln(\tau_\mathrm{dyn}f_{g0}/\tau_\mathrm{cool})`.
-
-  .. math::
-
-     t_\mathrm{dyn} = {r_{200c}\over v_{200c}} \approx {2r_\mathrm{half}\over \surd{2}\sigma}.
-
-     t_\mathrm{cool} = {9\mu m_\mathrm{H}k_\mathrm{B} T\over 400\rho_c\Lambda}.
-
-  In these expressions the subscript :math:`c` refers to the critical density, with :math:`\rho_c` being the critical density; :math:`r_\mathrm{half}` is the half mass radius (equal to one half of the outer, 'virial' radius in the SIS model); and :math:`\Lambda(T,Z)` is the cooling function -- the cooling rate per unit density of electrons and ions, a function of both temperature and metallicity, :math:`Z`.
-
+  Note that the absence of an explicit factor :math:`f_{g0}` in the lower expression is not a typo!
 
 * beta -- a beta profile, with :math:`\beta={2\over3}`.
   The density profile of the gas is assumed to follow a beta profile with :math:`\beta={2\over3}`, :math:`\rho\propto(1+y^2)^{-1}`, where :math:`y=r/a` and :math:`a` is the core radius.  At large radii, this reverts to the SIS and we assume that the gas temperature is isothermal as for that model; for small radii, the temperature would deviate slightly from isothermal, but we continue to treat it as isothermal.  
+
   Not yet implemented.
 
 Note that the underlying density profile will be an NFW profile `Navarro, Frenk & White <https://en.wikipedia.org/wiki/Navarro–Frenk–White_profile>`_ so the whole situation is rather more complicated than we have assumed, but implementing the increased complexity would almost certainly make very little difference to the results and would slow down the code.

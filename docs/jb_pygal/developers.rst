@@ -4,7 +4,7 @@ Developers
 Here lies nitty-gritty information that will be needed by developers.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
    developers/to-do
