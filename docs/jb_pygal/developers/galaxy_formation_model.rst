@@ -160,13 +160,11 @@ As well as varying with the overall gas density, the cooling rate also depends u
 
   .. math::
 
-      f_g =
+      f_g = f_{g0}
          \begin{cases} 
-           f_{g0} e^{-\Delta t/\tau_\mathrm{dyn}},& \Delta t\leq \tau_\mathrm{eq};\\
-           {\tau_\mathrm{cool}\over\tau_\mathrm{dyn}}\left(1+{\Delta t-\tau_\mathrm{eq}\over2\tau_\mathrm{dyn}}\right)^{-2},&  \Delta t>\tau_\mathrm{eq};
+           e^{-\Delta t/\tau_\mathrm{dyn}},& \Delta t\leq \tau_\mathrm{eq};\\
+           \tau_\mathrm{ratio}^{-1}\left(1+{\Delta t-\tau_\mathrm{eq}\over2\tau_\mathrm{dyn}}\right)^{-2},&  \Delta t>\tau_\mathrm{eq};
          \end{cases}
-
-  Note that the absence of an explicit factor :math:`f_{g0}` in the lower expression is not a typo!
 
 * beta -- a beta profile, with :math:`\beta={2\over3}`.
   The density profile of the gas is assumed to follow a beta profile with :math:`\beta={2\over3}`, :math:`\rho\propto(1+y^2)^{-1}`, where :math:`y=r/a` and :math:`a` is the core radius.  At large radii, this reverts to the SIS and we assume that the gas temperature is isothermal as for that model; for small radii, the temperature would deviate slightly from isothermal, but we continue to treat it as isothermal.  

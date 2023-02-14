@@ -81,11 +81,53 @@ def F_sub(sub,gal,dt,parameters):
         raise valueError('cooling.F_sub: cooling model '+parameters.cooling_model+' not implemented.')
     return None
 
-def F_cooling_SIS(mass_gas,mass_metals_gas,temp_start,temp_end,dt,c_cooling):
+def F_cooling_SIS(mass_halo,tau_dyn,mass_gas,mass_metals_gas,temp_start,temp_end,dt):
     """
     Implements the isothermal cooling model as used in L-Galaxies and many other SAMs.
     """
-    mass_cooled = 1.
-    return mass_cooled
+    # Not sure if subhalo virial temperature can ever exceed that of the halo that it is in.
+    # If it can, trap out before call to this subroutine, so raise error here
+    assert temp_end <= temp_start
+    
+    # Determine cooling function
+    logZ = np.max(-10.,np.log10(mass_metals_gas/mass_gas))
+    # Cooling rate per unit density of electrons & ions
+    lambda = F_get_metaldependent_cooling_rate(np.log10(temp_start),logZ)
+    tau_cool = (temp_start-temp_end)/lambda
+    
+    # Cooling at constant temperature, but allowing density to vary: see documentation.
+    fg0 = mass_gas/mass_halo;
+    dt_ratio=dt/tau_dyn;
+    tau_ratio=tau_dyn*fg0/tau_cool;
+    if tau_ratio <=1:
+	  fg=fg0/(1+0.5*np.sqrt(tau_ratio)*dt_ratio)**2
+      else:
+	  teq_ratio=np.log(tau_ratio)
+	  if dt_ratio <= teq_ratio:
+	      fg=fg0*np.exp(-dt_ratio)
+	  else:
+	      fg=fg0/(tau_ratio*(1+0.5*(dt_ratio-teq_ratio))**2)
+    
+    return fg*mass_halo
 
+def F_get_metaldependent_cooling_rate(logT,logZ):
+    """
+    Returns the cooling function, ie the cooling rate per unit density of electrons and ions.
+    Assumes that the cooling function is tabulated in code units.
+    """
+    # Needs to read in/know cooling function
+    # Needs to read in/know table limits
+    # Fix tables so that cannot fall outside range to save checks here
+    # The following indices are at the bottom end of the range
+    i_T=np.argmax(np.where(logT>logT_table))
+    fracT=(logT-logT_table[i_T])/(logT_table[i_T+1]-logT_table[i_T})
+    assert: 0 <= frac <=1
+    i_Z=np.argmax(np.where(logZ>logZ_table))
+    fracZ=(logZ-logZ_table[i_Z])/(logZ_table[i_Z+1]-logZ_table[i_Z})
+    # Interpolate in 2-d
+    lambda0 = fractT*lambda_table[i_T+1,i_Z]+(1-fracT)*lambda_table[i_T,i_Z]
+    lambda1 = fractT*lambda_table[i_T+1,i_Z+1]+(1-fracT)*lambda_table[i_T,i_Z+1]
+    lambda = fracZ*lambda1+(1-fracZ)*lambda0
+    return lambda
 
+    

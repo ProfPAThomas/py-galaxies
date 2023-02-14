@@ -90,6 +90,7 @@ class C_halo:
       # Using v^2=GM/r but for half mass
       self.half_mass_virial_speed = (0.5*parameters.c_G*self.mass/self.half_mass_radius)**(0.5)
       self.temperature = self.half_mass_virial_speed**2 * parameters.c_half_mass_virial_speed_to_temperature
+      self.tdyn = 2.*self.half_mass_radius/self.half_mass_virial_speed
       # The following are properties of the SAM
       self.desc_main_sid = parameters.NO_DATA_INT  # Main descendant location in halos_this_snap
       self.mass_baryon = 0.
