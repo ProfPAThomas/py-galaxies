@@ -141,7 +141,17 @@ The workings in that paper show that the cooling has two regimes; one in which t
 
 In these expressions the subscript :math:`c` refers to the critical density, with :math:`\rho_c` being the critical density; :math:`r_\mathrm{half}` is the half mass radius (equal to one half of the outer, 'virial' radius in the SIS model); and :math:`\Lambda(T,Z)` is the cooling function -- the cooling rate per unit density of electrons and ions, a function of both temperature and metallicity, :math:`Z`.  There is one minor variation from the expression in the paper in that we use :math:`\Delta T` rather than :math:`T`: that is because we are considering cooling from the halo onto the subhalo for which the temperature difference may be small compared to the halo temperature.
 
-Let's also define :math:`f_{g0}` and :math:`f_g` to be the initial and final gas fractions, respectively, :math:`\tau_\mathrm{ratio}= \tau_\mathrm{dyn}f_{g0}/\tau_\mathrm{cool}`, and :math:`\tau_\mathrm{eq}=\tau_\mathrm{dyn}\ln\tau_\mathrm{ratio}`.
+The combination :math:`200\rho_c` is the mean density of the halo and is appropriate when halos are defined as spherical overdensities enclosing 200 times the virial radius.  For the case of MEGA halos, it can be replaced with :math:`\bar\rho=3M/32\pi r_\mathrm{half}^3`, where :math:`M` is the total halo mass and :math:`r_\mathrm{half}` is the half-mass radius, i.e.  the radius enclosing half the total mass.
+
+It is also unclear as to whether we should use the specific enthalpy :math:`5k_\mathrm{B}T/\mu m_\mathrm{H}`, or specific entropy :math:`3k_\mathrm{B}T/\mu m_\mathrm{H}`: the former is more appropriate for cooling on a timescale that is greater than the dynamical time as the gas will then have work done on it as it flows into the centre of the halo potential: that then changes the factor in the numerator of the above equation from 9 to 15.
+
+With both these changes then we obtain a revised expression
+
+.. math::
+
+   \tau_\mathrm{cool} = {80\pi\mu m_\mathrm{H}k_\mathrm{B}r_\mathrm{half}^3 \Delta T\over M\Lambda}.
+
+Take :math:`f_{g0}` and :math:`f_g` to be the initial and final gas fractions, respectively.  Then the following combinations also turn out to be useful in the expressions below for :math:`f_g(f_{g0},\Delta t)`: :math:`\tau_\mathrm{ratio}= \tau_\mathrm{dyn}f_{g0}/\tau_\mathrm{cool}`, and :math:`\tau_\mathrm{eq}=\tau_\mathrm{dyn}\ln\tau_\mathrm{ratio}`.
 
 As well as varying with the overall gas density, the cooling rate also depends upon the density profile of the hot gas.  We have currently implemented two different models:
 

@@ -90,7 +90,7 @@ class C_halo:
       # Using v^2=GM/r but for half mass
       self.half_mass_virial_speed = (0.5*parameters.c_G*self.mass/self.half_mass_radius)**(0.5)
       self.temperature = self.half_mass_virial_speed**2 * parameters.c_half_mass_virial_speed_to_temperature
-      self.tdyn = 2.*self.half_mass_radius/self.half_mass_virial_speed
+      self.tau_dyn = 2.*self.half_mass_radius/self.half_mass_virial_speed
       # The following are properties of the SAM
       self.desc_main_sid = parameters.NO_DATA_INT  # Main descendant location in halos_this_snap
       self.mass_baryon = 0.
@@ -168,18 +168,18 @@ class C_halo:
       self.orphan_next_sid = self.orphan_start_sid # Will be used to keep track of orphans during update_halo phase
       return gal_start_sid+self.n_orphan
     
-   def set_mass_baryons(self,subs,gals):
+   def set_mass_baryon(self,subs,gals):
      """
      Calculates the total baryonic mass of the subhalo, including galaxies
      """
-     self.mass_baryons = self.mass_gas_hot + self.mass_stars
+     self.mass_baryon = self.mass_gas_hot + self.mass_stars
      for i_sub in range(self.n_sub): 
-        self.mass_baryons += subs[self.sub_start_sid+i_sub].mass_baryons
+        self.mass_baryon += subs[self.sub_start_sid+i_sub].mass_baryon
      # The orphan galaxies are not included in the subhalo baryon count, so add them in here
      if self.n_orphan >0:
-        self.mass_baryons += np.sum(gals[self.orphan_start_sid:self.orphan_start_sid+self.n_orphan]['mass_gas_cold'])
-        self.mass_baryons += np.sum(gals[self.orphan_start_sid:self.orphan_start_sid+self.n_orphan]['mass_stars_bulge'])
-        self.mass_baryons += np.sum(gals[self.orphan_start_sid:self.orphan_start_sid+self.n_orphan]['mass_stars_disc'])
+        self.mass_baryon += np.sum(gals[self.orphan_start_sid:self.orphan_start_sid+self.n_orphan]['mass_gas_cold'])
+        self.mass_baryon += np.sum(gals[self.orphan_start_sid:self.orphan_start_sid+self.n_orphan]['mass_stars_bulge'])
+        self.mass_baryon += np.sum(gals[self.orphan_start_sid:self.orphan_start_sid+self.n_orphan]['mass_stars_disc'])
      return None
 
 

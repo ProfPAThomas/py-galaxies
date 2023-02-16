@@ -10,23 +10,35 @@ output_files:
  halo_file:    'output/SMT13HaloOutput.hdf5'
  subhalo_file: 'output/SMT13SubhaloOutput.hdf5'
  galaxy_file:  'output/SMT13GalaxyOutput.hdf5'
+ 
+auxiliary_files:
+ cooling_function_file: 'aux_files/Lambda_table.npz'
 
 # Should be attributes in the graph input file
 cosmology:
  omega_m:        
   Description: 'Matter density parameter'
   Value:        0.30
-  Units:       'None'
+ H0:
+  Description: 'Hubble parameter at z=0'
+  Value:        70.
+  Units:       'u.km/(u.s*u.Mpc)'
  baryon_fraction:
   Description: 'Baryon fraction'
   Value:        0.155
-  Units:       'None'
+  
+halo_model:
+ type:
+  Description: 'Spherical overdensity (SO) or MEGA'
+  Value:       'MEGA'
+ overdensity:  
+  Description: 'Halo overdensity relative to the critical density (not relevant for MEGA)'
+  Value:        200
 
 performance:
  n_HDF5_io_rec:
   Description: 'Size of HDF5 io buffer (number of records)'
   Value:        1000
-  Units:       'None'
   
 # Optional parameters: test for their existence before use
 
@@ -34,25 +46,32 @@ model_switches:
  b_HOD:
   Description: 'Halo occupation description for stars (as primitive test)'
   Value:        False
-  Units:       'None'
  b_lgalaxies:
   Description: 'Mimic L-galaxies base model as closely as possible'
   Value:        True
-  Units:       'None'
   
 astrophysics:
+# mu m_H and mu_ratio are really functions of metallicity.  However, that would mean that we had to keep track
+# of energy rather than temperature in the hot gas, and make the cooling rate constant vary halo by halo,
+# introducing an extra calculation every time.
+# In practice they are very slow functions of metallicity, so we just use a fixed value.
  mumH:
   Description: 'Mass per particle in the hot gas'
-  Value:        1e-27
+  Value:        !!float 1e-27
   Units:       'u.kg'
+ lambda_ratio:
+  Description: 'n_e n_i / n_t^2 - for use with the cooling function Lambda'
+  Value:       0.25
+ base_metallicity:
+  Description: 'Metallicity of gas accreted onto halos; needs to be greater than minimum  value in cooling tables'
+  Value:        !!float 1e-4
+  Units:       'None'
  cooling_model:
   Description: 'Choice of cooling model for hot gas'
   Value:       'SIS'   # As in L-galaxies base model and many other SAMs
-  Units:       'None'
  major_merger_fraction:
   Description: 'Mass ratio to triger major mergers'
   Value:        0.3
-  Units:       'None'
   
 # Units expressed in terms that astropy understands
 # The internal units are self-consistent in that, e.g., speed_unit=length_unit/time_unit.

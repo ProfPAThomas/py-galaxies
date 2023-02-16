@@ -91,13 +91,14 @@ class C_sub:
       self.mass = graph.sub_mass[sub_gid]
       self.pos = graph.sub_pos[sub_gid]
       self.vel = graph.sub_vel[sub_gid]
-      rms_speed = graph.rms_speed[sub_gid]
+      self.rms_speed = graph.rms_speed[sub_gid]
       half_mass_radius = graph.sub_half_mass_radius[sub_gid]
-      half_mass_virial_speed = (0.5*parameters.c_G*self.mass/half_mass_radius)**(0.5)
+      self.half_mass_virial_speed = (0.5*parameters.c_G*self.mass/half_mass_radius)**(0.5)
       # Derived properties
-      self.temperature = half_mass_virial_speed**2 * parameters.c_half_mass_virial_speed_to_temperature
+      self.temperature = self.half_mass_virial_speed**2 * parameters.c_half_mass_virial_speed_to_temperature
+      self.tau_dyn = 2.*half_mass_radius/self.half_mass_virial_speed
       # SAM properties
-      self.mass_baryons =  0. # 1e-10 # Small, non-zero value because no cooling onto subhalos when first formed.
+      self.mass_baryon =  0. # 1e-10 # Small, non-zero value because no cooling onto subhalos when first formed.
       self.mass_gas_hot = 0.
       self.mass_metals_gas_hot = 0.
       self.mass_stars = 0.
@@ -134,16 +135,16 @@ class C_sub:
       self.gal_next_sid = self.gal_start_sid # Will be used to keep track of galaxies during update_halo phase.
       return self.gal_end_sid
     
-   def sum_mass_baryons(self,gals):
+   def sum_mass_baryon(self,gals):
        """
        Calculates the total baryonic mass of the subhalo, including galaxies.
        Returns value rather than setting it because being used as a check on simpler method.
        """
-       mass_baryons = self.mass_gas_hot + self.mass_stars
-       mass_baryons += np.sum(gals[self.gal_start_sid:self.gal_end_sid]['mass_gas_cold'])
-       mass_baryons += np.sum(gals[self.gal_start_sid:self.gal_end_sid]['mass_stars_bulge'])
-       mass_baryons += np.sum(gals[self.gal_start_sid:self.gal_end_sid]['mass_stars_disc'])
-       return mass_baryons
+       mass_baryon = self.mass_gas_hot + self.mass_stars
+       mass_baryon += np.sum(gals[self.gal_start_sid:self.gal_end_sid]['mass_gas_cold'])
+       mass_baryon += np.sum(gals[self.gal_start_sid:self.gal_end_sid]['mass_stars_bulge'])
+       mass_baryon += np.sum(gals[self.gal_start_sid:self.gal_end_sid]['mass_stars_disc'])
+       return mass_baryon
         
 class C_sub_output:
    
@@ -185,6 +186,8 @@ class C_sub_output:
       dtype.append(('pos',np.float32,(3,)))
       dtype.append(('vel',np.float32,(3,)))
       dtype.append(('mass',np.float32))
+      dtype.append(('rms_speed',np.float32))
+      dtype.append(('half_mass_virial_speed',np.float32))
       dtype.append(('temperature',np.float32))
       dtype.append(('mass_gas_hot',np.float32))
       dtype.append(('mass_metals_gas_hot',np.float32))
@@ -222,7 +225,7 @@ class C_sub_output:
       flushing if required.
       Parameters
       ----------
-         halos - list of C_halo objects to be output
+         subs - list of C_sub objects to be output
          parameters - C_parameters class file containing the global run parameters
       """
       for sub in subs:
@@ -233,6 +236,8 @@ class C_sub_output:
          self.io_buffer[self.i_rec]['pos'] = sub.pos * parameters.length_internal_to_output
          self.io_buffer[self.i_rec]['vel'] = sub.vel * parameters.speed_internal_to_output
          self.io_buffer[self.i_rec]['mass'] = sub.mass * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['rms_speed'] = sub.rms_speed * parameters.speed_internal_to_output
+         self.io_buffer[self.i_rec]['half_mass_virial_speed'] = sub.half_mass_virial_speed * parameters.speed_internal_to_output
          self.io_buffer[self.i_rec]['temperature'] = sub.temperature * parameters.temperature_internal_to_output
          self.io_buffer[self.i_rec]['mass_gas_hot']= sub.mass_gas_hot * parameters.mass_internal_to_output
          self.io_buffer[self.i_rec]['mass_metals_gas_hot']= sub.mass_metals_gas_hot * parameters.mass_internal_to_output

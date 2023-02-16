@@ -1,7 +1,7 @@
-# Halo plot parameters
+# Subhalo plot parameters
 
 inputFiles:
- haloFile: 'data/SMT13HaloOutput.hdf5'
+ subhaloFile: 'data/SMT13SubhaloOutput.hdf5'
  
 # The following should really be attributes of the data
 cosmo:
@@ -10,7 +10,6 @@ cosmo:
 plots:
  velocityDispersion: False
  virialTemperature: False
- baryonFraction: True
  hotGas: True
  hotGasMetallicity: True
  stellarHaloMassRatio: False # Only works with HoD model
@@ -50,19 +49,6 @@ virialTemperature:
  save_pdf: False
  name:    'temp'
 
-baryonFraction:
- figsize:  [12,8]
- xscale:  'log'
- yscale:  'linear'
- markerType: '.'
- xlabel:  '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
- ylabel:  'Baryon fraction'
- legend:   False
- label:   ' '
- save_png: True
- save_pdf: False
- name:    'bfrac'
-
 hotGas:
  figsize: [12,8]
  xscale: 'log'
@@ -74,7 +60,7 @@ hotGas:
  label:  ' '
  save_png: True
  save_pdf: False
- name:    'halo_hotgas'
+ name:    'subhalo_hotgas'
 
 hotGasMetallicity:
  figsize: [12,8]
@@ -87,7 +73,7 @@ hotGasMetallicity:
  label:  ' '
  save_png: True
  save_pdf: False
- name:    'halo_Z'
+ name:    'subhalo_Z'
 
 stellarHaloMassRatio:
  figsize: [12,8]
