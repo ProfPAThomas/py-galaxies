@@ -6,6 +6,7 @@ Major structural development
 
 * Work out how to interface to C-routines
 * Implement MCMC to optimise parameters
+* Implement resolved discs
 * Implement star formation and metal enrichment histories
 * Write a galaxy formation primer that gradually switches on the astrophysics, one step at a time, and illustrates the effect on the galaxy population.
 
