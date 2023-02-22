@@ -92,11 +92,11 @@ class C_sub:
       self.pos = graph.sub_pos[sub_gid]
       self.vel = graph.sub_vel[sub_gid]
       self.rms_speed = graph.rms_speed[sub_gid]
-      half_mass_radius = graph.sub_half_mass_radius[sub_gid]
-      self.half_mass_virial_speed = (0.5*parameters.c_G*self.mass/half_mass_radius)**(0.5)
+      self.half_mass_radius = graph.sub_half_mass_radius[sub_gid]
+      self.half_mass_virial_speed = (0.5*parameters.c_G*self.mass/self.half_mass_radius)**(0.5)
       # Derived properties
       self.temperature = self.half_mass_virial_speed**2 * parameters.c_half_mass_virial_speed_to_temperature
-      self.tau_dyn = 2.*half_mass_radius/self.half_mass_virial_speed
+      self.tau_dyn = 2.*self.half_mass_radius/self.half_mass_virial_speed
       # SAM properties
       self.mass_baryon =  0. # 1e-10 # Small, non-zero value because no cooling onto subhalos when first formed.
       self.mass_gas_hot = 0.

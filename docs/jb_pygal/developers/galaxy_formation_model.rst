@@ -137,9 +137,9 @@ The workings in that paper show that the cooling has two regimes; one in which t
 
    \tau_\mathrm{dyn} = {r_{200c}\over v_{200c}} \approx {2r_\mathrm{half}\over \surd{2}\sigma}.
 
-   \tau_\mathrm{cool} = {9\mu m_\mathrm{H}k_\mathrm{B} \Delta T\over 400\rho_c\Lambda}.
+   \tau_\mathrm{cool} = {9\mu m_\mathrm{H} (n_t^2/n_e n_i) k_\mathrm{B} \Delta T\over 400\rho_c\Lambda}.
 
-In these expressions the subscript :math:`c` refers to the critical density, with :math:`\rho_c` being the critical density; :math:`r_\mathrm{half}` is the half mass radius (equal to one half of the outer, 'virial' radius in the SIS model); and :math:`\Lambda(T,Z)` is the cooling function -- the cooling rate per unit density of electrons and ions, a function of both temperature and metallicity, :math:`Z`.  There is one minor variation from the expression in the paper in that we use :math:`\Delta T` rather than :math:`T`: that is because we are considering cooling from the halo onto the subhalo for which the temperature difference may be small compared to the halo temperature.
+In these expressions the subscript :math:`c` refers to the critical density, with :math:`\rho_c` being the critical density; :math:`r_\mathrm{half}` is the half mass radius (equal to one half of the outer, 'virial' radius in the SIS model); and :math:`\Lambda(T,Z)` is the cooling function -- the cooling rate per unit density of electrons and ions, a function of both temperature and metallicity, :math:`Z`.  The combination :math:`n_t^2/n_e n_i\approx` converts the densities used to define :math:`Lambda` into total particle density rather than that of the electrons and ions separately.  There is one minor variation from the expression in the paper in that we use :math:`\Delta T` rather than :math:`T`: that is because we are considering cooling from the halo onto the subhalo for which the temperature difference may be small compared to the halo temperature.
 
 The combination :math:`200\rho_c` is the mean density of the halo and is appropriate when halos are defined as spherical overdensities enclosing 200 times the virial radius.  For the case of MEGA halos, it can be replaced with :math:`\bar\rho=3M/32\pi r_\mathrm{half}^3`, where :math:`M` is the total halo mass and :math:`r_\mathrm{half}` is the half-mass radius, i.e.  the radius enclosing half the total mass.
 
@@ -149,7 +149,7 @@ With both these changes then we obtain a revised expression
 
 .. math::
 
-   \tau_\mathrm{cool} = {80\pi\mu m_\mathrm{H}k_\mathrm{B}r_\mathrm{half}^3 \Delta T\over M\Lambda}.
+   \tau_\mathrm{cool} = {80\pi\mu m_\mathrm{H}k_\mathrm{B} (n_t^2/n_e n_i)r_\mathrm{half}^3 \Delta T\over M\Lambda}.
 
 Take :math:`f_{g0}` and :math:`f_g` to be the initial and final gas fractions, respectively.  Then the following combinations also turn out to be useful in the expressions below for :math:`f_g(f_{g0},\Delta t)`: :math:`\tau_\mathrm{ratio}= \tau_\mathrm{dyn}f_{g0}/\tau_\mathrm{cool}`, and :math:`\tau_\mathrm{eq}=\tau_\mathrm{dyn}\ln\tau_\mathrm{ratio}`.
 

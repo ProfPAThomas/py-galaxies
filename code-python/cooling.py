@@ -1,4 +1,5 @@
 import numpy as np
+import astropy.units as u
 """
 Functions to cool gas from halos onto the central subhalo, and from the central subhalo onto the galaxy
 Calling sequences:
@@ -58,6 +59,8 @@ class C_cooling:
             u.erg*u.cm**3*parameters.units_time_internal / \
             (u.s*parameters.units_energy_internal*parameters.units_length_internal**3) ) - \
             np.log10(parameters.c_cooling)
+        print('C_cooling verbosity =',parameters.verbosity)
+        if parameters.verbosity >=4: print('log10_Lambda_table =',self.log10_Lambda_table)
 
 def F_halo(halo,sub,dt,cooling_table,parameters):
     """
@@ -73,11 +76,11 @@ def F_halo(halo,sub,dt,cooling_table,parameters):
         sub.mass_gas_hot += halo.mass_gas_hot
         sub.mass_metals_gas_hot += halo.mass_metals_gas_hot
         sub.mass_baryon += halo.mass_gas_hot
-        halo.mass_gas_hot = 0.
-        halo.mass_metals_gas_hot = 0.
+        halo.mass_gas_hot = parameters.mass_minimum # Just so it appears in the plots as a non-zero value.
+        halo.mass_metals_gas_hot = parameters.mass_minimum*parameters.base_metallicity
         sub.temperature = halo.temperature
     elif parameters.cooling_model == 'SIS':
-        mass_cooled=F_cooling_SIS(halo.mass,halo.tau_dyn,halo.mass_gas_hot,halo.mass_metals_gas_hot,
+        mass_cooled=F_cooling_SIS(halo.mass,halo.tau_dyn,halo.half_mass_radius,halo.mass_gas_hot,halo.mass_metals_gas_hot,
                                   halo.temperature,sub.temperature,dt,cooling_table)
         mass_metals_cooled  = (mass_cooled/halo.mass_gas_hot) * halo.mass_metals_gas_hot
         halo.mass_gas_hot -= mass_cooled
@@ -95,8 +98,8 @@ def F_sub(sub,gal,dt,cooling_table,parameters):
     if sub.mass_gas_hot <= parameters.mass_minimum:
         return None
     if parameters.cooling_model == 'SIS':
-        gal_temperature=1e4  # Cool down to 1e4 K
-        mass_cooled=F_cooling_SIS(sub.mass,sub.tau_dyn,sub.mass_gas_hot,sub.mass_metals_gas_hot,
+        gal_temperature=1e4*u.K/parameters.units_temperature_internal  # Cool down to 1e4 K
+        mass_cooled=F_cooling_SIS(sub.mass,sub.tau_dyn,sub.half_mass_radius,sub.mass_gas_hot,sub.mass_metals_gas_hot,
                                   sub.temperature,gal_temperature,dt,cooling_table)
         mass_metals_cooled  = (mass_cooled/sub.mass_gas_hot) * sub.mass_metals_gas_hot
         sub.mass_gas_hot -= mass_cooled
@@ -107,25 +110,25 @@ def F_sub(sub,gal,dt,cooling_table,parameters):
         raise valueError('cooling.F_sub: cooling model '+parameters.cooling_model+' not implemented.')
     return None
 
-def F_cooling_SIS(mass_halo,tau_dyn,mass_gas,mass_metals_gas,temp_start,temp_end,dt,cooling_table):
+def F_cooling_SIS(mass,tau_dyn,half_mass_radius,mass_gas,mass_metals_gas,temp_start,temp_end,dt,cooling_table):
     """
     Implements the isothermal cooling model as used in L-Galaxies and many other SAMs.
     """
     # Not sure if subhalo virial temperature can ever exceed that of the halo that it is in.
     # If it can, trap out before call to this subroutine, so raise error here
-    if temp_end <= temp_start:
-        print('cooling:F_cooling_SIS: mass_halo, temp_start, temp_end =',mass_halo,temp_start,temp_end)
+    if temp_end >= temp_start:
+        print('cooling:F_cooling_SIS: mass, temp_start, temp_end =',mass,temp_start,temp_end)
         return mass_gas
     
     # Determine cooling function
     log10_Z = max(-10.,np.log10(mass_metals_gas/mass_gas))
     # Cooling rate per unit density of electrons & ions
     Lambda = F_get_metaldependent_cooling_rate(np.log10(temp_start),log10_Z,cooling_table)
-    tau_cool = (temp_start-temp_end)/Lambda
+    tau_cool = half_mass_radius**3*(temp_start-temp_end)/(mass*Lambda)
     
     # Cooling at constant temperature, but allowing density to vary: see documentation.
-    # The gas fraction here is relative to the mass within 200 times the mean density
-    fg0 = mass_gas/mass_halo;
+    # The gas fraction here is relative to the halo mass (= 200 times the critical density in Millennium/SIS)
+    fg0 = mass_gas/mass;
     dt_ratio=dt/tau_dyn;
     tau_ratio=tau_dyn*fg0/tau_cool;
     if tau_ratio <=1:
@@ -136,8 +139,10 @@ def F_cooling_SIS(mass_halo,tau_dyn,mass_gas,mass_metals_gas,temp_start,temp_end
             fg=fg0*np.exp(-dt_ratio)
         else:
             fg=fg0/(tau_ratio*(1+0.5*(dt_ratio-teq_ratio))**2)
+    #if 100<mass<110.: print('cooling:F_cooling_SIS: temp_start, tau_dyn, tau_cool, dt_ratio, fg0, fg =',
+    #      temp_start,tau_dyn,tau_cool,dt_ratio,fg0,fg)
     
-    return fg*mass_halo
+    return fg*mass
 
 def F_get_metaldependent_cooling_rate(log10_T,log10_Z,cooling_table):
     """

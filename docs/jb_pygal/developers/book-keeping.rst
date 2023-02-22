@@ -77,8 +77,6 @@ Within each snapshot, halos, subhalo and galaxies are stored as python lists.  W
   halos_this_snap = [C_halo(i_graph,i_snap,i_halo,graph,parameters) for i_halo in
                        graph.halo_start_gid[i_snap]+range(graph.n_halo_snap[i_snap])]
 
-During the initialisation, pointers to other related halos and subhalos, that are available from the graph, are read in.
-
 .. code-block:: python3
    
         subs_this_snap = None
@@ -257,6 +255,93 @@ Now we do a second pass to populate galaxies with inherited properties:
     gals_this_snap['snap_ID']=halos_this_snap[0].snap_ID
 
 
+Structure of the output files
+-----------------------------
 
+Information is stored in separate HDF5 files each containing a numpy structured array for halos, subhalos and galaxies.
+Note that the units of quantities are those specified in the input.yml file.
 
+Halos
+^^^^^
 
+This dataset is labelled "Halos".
+
+========================  ================  =======================================================================
+   Name                     Type                  Description
+========================  ================  =======================================================================
+graph_ID                    int32            The graph in which this halo resides
+snap_ID                     int32            The snapshot in which this halo resides
+halo_gid                    int32            The number/location of the halo within the graph
+pos                        (float32,(3,))    The location of the halo
+vel                        (float32,(3,))    The mean velocity of the halo
+mass                        float32          The dark matter mass of the halo
+temperature                 float32          The temperature of the halo assuming an SIS halo model
+rms_speed                   float32          The 3-D rms speed of DM particles in the halo
+half_mass_virial_speed      float32          The circular speed at the half mass radius assuming an SIS halo model
+mass_baryon                 float32          The baryon mass in the halo, including all subhalos and galaxies
+mass_gas_hot                float32          The hot gas mass in the halo, excluding subhalos
+mass_metals_gas_hot         float32          The hot gas metal mass in the halo, excluding subhalos
+mass_stars                  float32          The (initial) stellar mass in the halo, excluding subhalos
+mass_metals_stars           float32          The (initial) stellar metals mass in the halo, excluding subhalos
+========================  ================  =======================================================================
+
+Subhalos
+^^^^^^^^
+
+This dataset is labelled "Halos"
+
+========================  ================  =======================================================================
+   Name                     Type                  Description
+========================  ================  =======================================================================
+graph_ID                    int32            The graph in which this halo resides
+snap_ID                     int32            The snapshot in which this halo resides
+halo_gid                    int32            The number/location of the host halo within the graph
+sub_gid                     int32            The number/location of the subhalo within the graph
+pos                        (float32,(3,))    The location of the halo
+vel                        (float32,(3,))    The mean velocity of the halo
+mass                        float32          The dark matter mass of the halo
+temperature                 float32          The temperature of the halo assuming an SIS halo model
+rms_speed                   float32          The 3-D rms speed of DM particles in the halo
+half_mass_virial_speed      float32          The circular speed at the half mass radius assuming an SIS halo model
+mass_gas_hot                float32          The hot gas mass in the halo, excluding subhalos
+mass_metals_gas_hot         float32          The hot gas metal mass in the halo, excluding subhalos
+mass_stars                  float32          The (initial) stellar mass in the halo, excluding subhalos
+mass_metals_stars           float32          The (initial) stellar metals mass in the halo, excluding subhalos
+========================  ================  =======================================================================
+
+Galaxies
+^^^^^^^^
+
+This dataset is labelled "Galaxies"
+
+.. Comments don't work in the table :-(
+
+========================  ================  =======================================================================
+   Name                     Type                  Description
+========================  ================  =======================================================================
+graph_ID                    int32            The graph in which this halo resides
+snap_ID                     int32            The snapshot in which this halo resides
+halo_gid                    int32            The number/location of the host halo within the graph
+sub_gid                     int32            The number/location of the host subhalo within the graph
+gal_gid                     int32            The number/location of the galaxy within the graph
+desc_gid                    int32            The number/location of the descendant galaxy within the graph
+first_prog_gid              int32            The number/location of the first progenitor galaxy within the graph
+next_prog_gid               int32            If looping over progenitors, this is a pointer to the next one
+b_exists                    bool             Galaxy exists (otherwise has merged and should be ignored
+#pos                        (float32,(3,))    The location of the galaxy
+#vel                        (float32,(3,))    The mean velocity of the galaxy
+mass_stars_bulge            float32          The (initial) stellar mass in the bulge
+mass_metals_stars_bulge     float32          The (initial) stellar metal mass in the bulge
+mass_stars_disc             float32          The (initial) stellar mass in the disc
+mass_metals_stars_disc      float32          The (initial) stellar metals mass in the disc
+mass_gas_cold               float32          The mass in the cold gas (ie ISM)
+mass_metals_gas_cold        float32          The metals mass in the cold gas (ie ISM)
+========================  ================  =======================================================================
+
+The pointers to locations in the galaxy table refer to the current graph.  Therefore we also need a record of where each graph starts.  The relevant dataset is labelled "Graph_start_locations"; it is a 1-D numpy array.
+
+========================  ================  =======================================================================
+   Name                     Type                  Description
+========================  ================  =======================================================================
+<None>                      int32            The location within the Galaxies dataset where each graph starts
+========================  ================  =======================================================================

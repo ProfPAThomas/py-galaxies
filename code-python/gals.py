@@ -153,12 +153,12 @@ class C_gal_output:
          self.io_buffer[self.i_rec]['b_exists'] = gals[i_gal]['b_exists']  
          #self.io_buffer[self.i_rec]['pos'] = gals[i_gal]['pos']
          #self.io_buffer[self.i_rec]['vel'] = gals[i_gal]['vel']
-         self.io_buffer[self.i_rec]['mass_stars_bulge'] = gals[i_gal]['mass_stars_bulge']
-         self.io_buffer[self.i_rec]['mass_metals_stars_bulge'] = gals[i_gal]['mass_metals_stars_bulge']
-         self.io_buffer[self.i_rec]['mass_stars_disc'] = gals[i_gal]['mass_stars_disc']
-         self.io_buffer[self.i_rec]['mass_metals_stars_disc'] = gals[i_gal]['mass_metals_stars_disc']
-         self.io_buffer[self.i_rec]['mass_gas_cold']= gals[i_gal]['mass_gas_cold']
-         self.io_buffer[self.i_rec]['mass_metals_gas_cold']= gals[i_gal]['mass_metals_gas_cold']
+         self.io_buffer[self.i_rec]['mass_stars_bulge'] = gals[i_gal]['mass_stars_bulge'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_metals_stars_bulge'] = gals[i_gal]['mass_metals_stars_bulge'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_stars_disc'] = gals[i_gal]['mass_stars_disc'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_metals_stars_disc'] = gals[i_gal]['mass_metals_stars_disc'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_gas_cold']= gals[i_gal]['mass_gas_cold'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_metals_gas_cold']= gals[i_gal]['mass_metals_gas_cold'] * parameters.mass_internal_to_output
          self.i_rec+=1
          if self.i_rec == self.n_rec: self.flush()
       return None
