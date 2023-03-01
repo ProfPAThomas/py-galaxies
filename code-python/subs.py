@@ -107,8 +107,8 @@ class C_sub:
       self.n_gal = 0
       self.gal_start_sid = parameters.NO_DATA_INT
       self.gal_end_sid = parameters.NO_DATA_INT
-      # Has this subhalo been processed or not
-      self.b_done = False
+      self.b_done = False # Has this subhalo been fully processed or not
+      self.n_dt = 0 # Number of times that this halo has been processed
 
    def __str__(self):
       print('graph_ID =',self.graph_ID,',',end=' ')

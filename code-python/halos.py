@@ -104,7 +104,8 @@ class C_halo:
       if parameters.b_HOD == True:
          self.star_formation_rate = 0.
       self.inclusive_contribution = 0.       
-      self.b_done = False
+      self.n_dt = 0 # Number of times that this halo has been processed
+      self.b_done = False # Has this halo been fully processed or not.
       self.b_desc_exists = True  # Needed to prevent trying to pass properties on to non-existent halo!
 
       # Subhalos

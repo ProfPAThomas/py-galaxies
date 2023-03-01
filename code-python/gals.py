@@ -26,7 +26,8 @@ D_gal=[
    ('mass_stars_disc',np.float32),
    ('mass_metals_stars_disc',np.float32),
    ('mass_gas_cold',np.float32),
-   ('mass_metals_gas_cold',np.float32)
+   ('mass_metals_gas_cold',np.float32),
+   ('radius_gas_cold',np.float32)  # Exponential disc radius
 ]
 
 def F_gal_template(parameters):
@@ -55,6 +56,7 @@ def F_gal_template(parameters):
    template['mass_metals_stars_disc']=0.
    template['mass_gas_cold']=0.
    template['mass_metals_gas_cold']=0.
+   template['radius_gas_cold']=0.
    return template
 
 class C_gal_output:
@@ -106,6 +108,7 @@ class C_gal_output:
       dtype.append(('mass_metals_stars_disc',np.float32))
       dtype.append(('mass_gas_cold',np.float32))
       dtype.append(('mass_metals_gas_cold',np.float32))
+      dtype.append(('radius_gas_cold',np.float32))
       # Create halo io buffer
       self.io_buffer=np.empty(self.n_rec,dtype=dtype)
       # Create HDF5 dataset
@@ -159,6 +162,7 @@ class C_gal_output:
          self.io_buffer[self.i_rec]['mass_metals_stars_disc'] = gals[i_gal]['mass_metals_stars_disc'] * parameters.mass_internal_to_output
          self.io_buffer[self.i_rec]['mass_gas_cold']= gals[i_gal]['mass_gas_cold'] * parameters.mass_internal_to_output
          self.io_buffer[self.i_rec]['mass_metals_gas_cold']= gals[i_gal]['mass_metals_gas_cold'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['radius_gas_cold']= gals[i_gal]['radius_gas_cold'] * parameters.length_internal_to_output
          self.i_rec+=1
          if self.i_rec == self.n_rec: self.flush()
       return None

@@ -139,7 +139,7 @@ The workings in that paper show that the cooling has two regimes; one in which t
 
    \tau_\mathrm{cool} = {9\mu m_\mathrm{H} (n_t^2/n_e n_i) k_\mathrm{B} \Delta T\over 400\rho_c\Lambda}.
 
-In these expressions the subscript :math:`c` refers to the critical density, with :math:`\rho_c` being the critical density; :math:`r_\mathrm{half}` is the half mass radius (equal to one half of the outer, 'virial' radius in the SIS model); and :math:`\Lambda(T,Z)` is the cooling function -- the cooling rate per unit density of electrons and ions, a function of both temperature and metallicity, :math:`Z`.  The combination :math:`n_t^2/n_e n_i\approx` converts the densities used to define :math:`Lambda` into total particle density rather than that of the electrons and ions separately.  There is one minor variation from the expression in the paper in that we use :math:`\Delta T` rather than :math:`T`: that is because we are considering cooling from the halo onto the subhalo for which the temperature difference may be small compared to the halo temperature.
+In these expressions the subscript :math:`c` refers to the critical density, with :math:`\rho_c` being the critical density; :math:`r_\mathrm{half}` is the half mass radius (equal to one half of the outer, 'virial' radius in the SIS model); and :math:`\Lambda(T,Z)` is the cooling function -- the cooling rate per unit density of electrons and ions, a function of both temperature and metallicity, :math:`Z`.  The combination :math:`n_t^2/n_e n_i\approx` converts the densities used to define :math:`\Lambda` into total particle density rather than that of the electrons and ions separately.  There is one minor variation from the expression in the paper in that we use :math:`\Delta T` rather than :math:`T`: that is because we are considering cooling from the halo onto the subhalo for which the temperature difference may be small compared to the halo temperature.
 
 The combination :math:`200\rho_c` is the mean density of the halo and is appropriate when halos are defined as spherical overdensities enclosing 200 times the critical density.  For the case of MEGA halos, it can be replaced with :math:`\bar\rho=3M/32\pi r_\mathrm{half}^3`, where :math:`M` is the total halo mass and :math:`r_\mathrm{half}` is the half-mass radius, i.e.  the radius enclosing half the total mass.
 
@@ -176,9 +176,40 @@ As well as varying with the overall gas density, the cooling rate also depends u
            \tau_\mathrm{ratio}^{-1}\left(1+{\Delta t-\tau_\mathrm{eq}\over2\tau_\mathrm{dyn}}\right)^{-2},&  \Delta t>\tau_\mathrm{eq};
          \end{cases}
 
+It is hard to test the implementation of the cooling, but here at least is a plot comparing the analytic solution with one obtained by integrating multiple times using the py-galaxies cooling routines, for a long cooling time:
+
+.. image:: figs/cooling_test_iso_long.png
+   :width: 600
+   :alt: gas fraction versus time for slow cooling times
+	 
 * beta -- a beta profile, with :math:`\beta={2\over3}`.
   The density profile of the gas is assumed to follow a beta profile with :math:`\beta={2\over3}`, :math:`\rho\propto(1+y^2)^{-1}`, where :math:`y=r/a` and :math:`a` is the core radius.  At large radii, this reverts to the SIS and we assume that the gas temperature is isothermal as for that model; for small radii, the temperature would deviate slightly from isothermal, but we continue to treat it as isothermal.  
 
   Not yet implemented.
 
 Note that the underlying density profile will be an NFW profile `Navarro, Frenk & White <https://en.wikipedia.org/wiki/Navarro–Frenk–White_profile>`_ so the whole situation is rather more complicated than we have assumed, but implementing the increased complexity would almost certainly make very little difference to the results and would slow down the code.
+
+Gas disc radius
+---------------
+
+For an exponential disc of mass :math:`M` and scale-length :math:`R_\mathrm{d}` embedded within a halo that maintains a constant rotation speed, :math:`v`, the angular momentum is :math:`J=2MvR_\mathrm{d}`.  We can thus determine :math:`R_\mathrm{d}` if we know :math:`J`.
+
+The equivalent relation for a singular isothermal sphere (SIS) is :math:`J={1\over2}MvR=MvR_\mathrm{half}`, where :math:`R_\mathrm{half}={1\over2}R` is the half mass radius.
+
+There are two models to determine the angular momentum of newly cooled gas:
+
+* If the input data does not include the angular momentum of the halo then we assume that cooling gas transfers and angular momentum value :math:`J=\lambda \Delta M vR_\mathrm{half}` where :math:`\lambda` is a parameter of the model that gives the angular momentum as a fraction of that expected for an SIS halo rotating at the virial speed, :math:`\Delta M` is the amount of gas cooled and :math:`R_\mathrm{half}` is the half mass radius of the halo.  The angular momentum is presumed to align with that of the gas disc.
+  
+* More generally, if we know the (vector) angular momentum of the halo, then the accreted gas is presumed to have the same specific angular momentum as that and we do a vector sum to determine the angular momentum of the gas disc after accretion.
+
+In each case the cold gas disc will expand or contract according to its new specific angular momentum: :math:`R_\mathrm{d}=J/(2Mv)`.  The following figure shows an example relation using :math:`\lambda=0.06`: note that there is no star formation and feedback included in the model that generates this plot.
+
+.. image:: figs/gal_coldgas_radius.png
+   :width: 600
+   :alt: cold gas disc radius versus subhalo mass
+	 
+
+Star formation
+--------------
+
+For molecular gas, `Sun etal 2023 <https://arxiv.org/abs/2302.12267>`_ give :math:`\dot{M}_\mathrm{star}=M_\mathrm{mol}/\tau_\mathrm{SFR}` where :math:`\tau_\mathrm{SFR}=10^{9.4}\,` yr for nearby galaxies.  There is some residual scatter which could, presumably, correlate with different local environment, such as dynamical time of the disc.

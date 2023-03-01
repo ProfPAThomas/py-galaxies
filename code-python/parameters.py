@@ -65,9 +65,14 @@ class C_parameters:
         self.halo_model = self.D_param['halo_model']['type']['Value']
         self.halo_overdensity = self.D_param['halo_model']['overdensity']['Value']
         self.n_HDF5_io_rec = self.D_param['performance']['n_HDF5_io_rec']['Value']
+        timestep_halo = self.D_param['model_parameters']['timestep_halo']['Value'] * \
+          eval(self.D_param['model_parameters']['timestep_halo']['Units']) # Normalised to code units below
+        timestep_gal = self.D_param['model_parameters']['timestep_galaxies']['Value'] * \
+          eval(self.D_param['model_parameters']['timestep_galaxies']['Units']) # Normalised to code units below
         self.cooling_model = self.D_param['astrophysics']['cooling_model']['Value']
         self.base_metallicity = self.D_param['astrophysics']['base_metallicity']['Value']
         self.major_merger_fraction = self.D_param['astrophysics']['major_merger_fraction']['Value']
+        self.halo_angular_momentum = self.D_param['astrophysics']['halo_angular_momentum']['Value']
         #   self.sub_halo = self.D_param['model_switches']['sub_halo']['Value']
         self.mass_minimum = self.D_param['numerics']['mass_minimum']['Value']
 
@@ -119,8 +124,12 @@ class C_parameters:
         # Other unit combinations used in the code
         self.units_energy_internal = self.units_mass_internal*self.units_speed_internal**2
         self.units_density_internal = self.units_mass_internal/self.units_length_internal**3
+        self.units_lambda_internal = self.units_energy_internal * self.units_length_internal**3 / self.units_time_internal
         
         # Dimensionless versions of constants used in the code.
+        # This is the minimum allowable timestep for mini-steps
+        self.timestep_halo = (timestep_halo / self.units_time_internal).value
+        self.timestep_gal = (timestep_gal / self.units_time_internal).value
         # mu m_H as needed in the following expressions is really a function of metallicity.  However, that would
         # mean that we had to keep track of energy rather than temperature in the hot gas, and make the cooling rate
         # constant vary halo by halo, introducing an extra calculation every time.  In practice mu is only a very slow
@@ -137,13 +146,12 @@ class C_parameters:
         # Constant used in cooling model as described in cooling.py.  Should be dimensionless.
         # If halo model is MEGA use 80 pi mumH k_B L_unit**3 T_unit / (M_unit Lambda_ratio Lambda_unit t_unit)
         # In L-Galaxies mode, replace 80 with 3/5 * 80 = 48 (energy rather than enthalpy).
-        units_lambda_internal = self.units_energy_internal * self.units_length_internal**3 / self.units_time_internal
         if self.b_lgalaxies:
             const = 48.
         else:
             const = 80.
         self.c_cooling = const * np.pi * mumH * c.k_B * self.units_temperature_internal / \
-                          (self.units_density_internal * lambda_ratio * units_lambda_internal * self.units_time_internal)
+                          (self.units_density_internal * lambda_ratio * self.units_lambda_internal * self.units_time_internal)
         print('c_cooling =',self.c_cooling.si)
 
     def __str__(self):

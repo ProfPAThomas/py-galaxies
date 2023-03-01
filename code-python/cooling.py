@@ -56,13 +56,12 @@ class C_cooling:
         # The first correction term converts to code units, and the second provides a dimensionless factor to reduce the cooling time
         # formula to dt=T/Lambda
         self.log10_Lambda_table=data['log10_Lambda'] + np.log10(
-            u.erg*u.cm**3*parameters.units_time_internal / \
-            (u.s*parameters.units_energy_internal*parameters.units_length_internal**3) ) - \
+            (u.erg*u.cm**3 / (u.s*parameters.units_lambda_internal)).si.value ) - \
             np.log10(parameters.c_cooling)
         print('C_cooling verbosity =',parameters.verbosity)
         if parameters.verbosity >=4: print('log10_Lambda_table =',self.log10_Lambda_table)
 
-def F_halo(halo,sub,dt,cooling_table,parameters):
+def F_halo(halo,sub,cooling_table,parameters):
     """
     Cooling of halo onto subhalo.
     """
@@ -81,7 +80,7 @@ def F_halo(halo,sub,dt,cooling_table,parameters):
         sub.temperature = halo.temperature
     elif parameters.cooling_model == 'SIS':
         mass_cooled=F_cooling_SIS(halo.mass,halo.tau_dyn,halo.half_mass_radius,halo.mass_gas_hot,halo.mass_metals_gas_hot,
-                                  halo.temperature,sub.temperature,dt,cooling_table)
+                                  halo.temperature,sub.temperature,parameters.dt,cooling_table)
         mass_metals_cooled  = (mass_cooled/halo.mass_gas_hot) * halo.mass_metals_gas_hot
         halo.mass_gas_hot -= mass_cooled
         halo.mass_metals_hot -= mass_metals_cooled
@@ -91,16 +90,25 @@ def F_halo(halo,sub,dt,cooling_table,parameters):
         raise valueError('cooling.F_halo: cooling model '+parameters.cooling_model+' not implemented.')
     return None
 
-def F_sub(sub,gal,dt,cooling_table,parameters):
+def F_sub(sub,gal,cooling_table,parameters):
     """
-    Cooling of subhalo onto galaxy
+    Cooling of subhalo onto galaxy.
+    Also sets the radius of the disc.
     """
+    mass_gas_cold=gal['mass_gas_cold']
+    v_vir=sub.half_mass_virial_speed
+    r_half=sub.half_mass_radius
+    
+    # Angular momentum assuming exponential disc is 2vR_dM where R_d is the exponential disk radius
+    ang_mom_gas_cold = 2. * mass_gas_cold * v_vir * gal['radius_gas_cold']
+    
+    # Mass cooling
     if sub.mass_gas_hot <= parameters.mass_minimum:
         return None
     if parameters.cooling_model == 'SIS':
         gal_temperature=1e4*u.K/parameters.units_temperature_internal  # Cool down to 1e4 K
         mass_cooled=F_cooling_SIS(sub.mass,sub.tau_dyn,sub.half_mass_radius,sub.mass_gas_hot,sub.mass_metals_gas_hot,
-                                  sub.temperature,gal_temperature,dt,cooling_table)
+                                  sub.temperature,gal_temperature,parameters.dt,cooling_table)
         mass_metals_cooled  = (mass_cooled/sub.mass_gas_hot) * sub.mass_metals_gas_hot
         sub.mass_gas_hot -= mass_cooled
         sub.mass_metals_gas_hot -= mass_metals_cooled
@@ -108,6 +116,12 @@ def F_sub(sub,gal,dt,cooling_table,parameters):
         gal['mass_metals_gas_cold'] += mass_metals_cooled
     else:
         raise valueError('cooling.F_sub: cooling model '+parameters.cooling_model+' not implemented.')
+        
+    # Disc radius (assuming exponential disc for cold gas and SIS for halo gas)
+    # Accreted angular momentum for SIS is (1/2)RVM*lambda where lambda=parameters.halo_angular_momentum
+    ang_mom_gas_cold += mass_cooled * v_vir * r_half * parameters.halo_angular_momentum
+    gal['radius_gas_cold'] = ang_mom_gas_cold / (2 * gal['mass_gas_cold'] * v_vir)
+    
     return None
 
 def F_cooling_SIS(mass,tau_dyn,half_mass_radius,mass_gas,mass_metals_gas,temp_start,temp_end,dt,cooling_table):
@@ -124,6 +138,8 @@ def F_cooling_SIS(mass,tau_dyn,half_mass_radius,mass_gas,mass_metals_gas,temp_st
     log10_Z = max(-10.,np.log10(mass_metals_gas/mass_gas))
     # Cooling rate per unit density of electrons & ions
     Lambda = F_get_metaldependent_cooling_rate(np.log10(temp_start),log10_Z,cooling_table)
+    # Could save a little time in defining a conversion factor for half_mass_radius**3/mass in halos/subhalos.
+    # (Because we execute the cooling every mini-step).
     tau_cool = half_mass_radius**3*(temp_start-temp_end)/(mass*Lambda)
     
     # Cooling at constant temperature, but allowing density to vary: see documentation.

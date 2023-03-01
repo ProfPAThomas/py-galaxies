@@ -33,4 +33,7 @@ b_HOD:
 b_lgalaxies:
  Description: 'Mimic L-galaxies base model as closely as possible'
  Value: True
-  
+
+b_halo_angmom:
+ Description: 'Do the halo catalogues contain amgular momentum?'
+ Value: False

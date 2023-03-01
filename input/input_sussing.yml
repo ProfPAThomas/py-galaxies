@@ -49,7 +49,20 @@ model_switches:
  b_lgalaxies:
   Description: 'Mimic L-galaxies base model as closely as possible'
   Value:        True
+ b_halo_angmom:
+  Description: 'Do the halo catalogues contain amgular momentum?'
+  Value:        False
   
+model_parameters:
+ timestep_halo:
+  Description: 'Minimum timestep size for halo/subhalo operations'
+  Value:        !!float 1e8
+  Units:       'u.yr'
+ timestep_galaxies:
+  Description: 'Minimum timestep size for galaxy operations'
+  Value:        !!float 3e7
+  Units:       'u.yr'
+ 
 astrophysics:
 # mu m_H and mu_ratio are really functions of metallicity.  However, that would mean that we had to keep track
 # of energy rather than temperature in the hot gas, and make the cooling rate constant vary halo by halo,
@@ -70,8 +83,12 @@ astrophysics:
   Description: 'Choice of cooling model for hot gas'
   Value:       'SIS'   # As in L-galaxies base model and many other SAMs
  major_merger_fraction:
-  Description: 'Mass ratio to triger major mergers'
+  Description: 'Mass ratio to trigger major mergers'
   Value:        0.3
+ halo_angular_momentum:
+  Description: 'Specific angular momentum of halos if not explicit in catalogues = collapse factor; only used if !b_halo_angmom'
+  Value:        0.06
+  Units:       'None'
   
 # Units expressed in terms that astropy understands
 # The internal units are self-consistent in that, e.g., speed_unit=length_unit/time_unit.

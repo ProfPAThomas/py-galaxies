@@ -20,7 +20,9 @@ Minor structural development
   - Where galaxies have no subhlao, it is because they are orphans.
   - Where galaxies have no halo, it is because the are orphans for which no descendant halo exists.
 
-* Implement mini-steps (might be a major development)
+* Implement mini-steps
+
+  - Done for halos; might need to do for galaxies also
 
 * Pre-processing merger graph to:
   
@@ -47,9 +49,8 @@ Galaxy physics modules to import from L-galaxies
   - decide whether we need an **Ejected** phase for halos; I suspect that we do.
 
 * Hot gas cooling onto galaxy:
-  Basic SIS version completed but not tested.
+  Basic SIS version completed and tested.
   
-  - check that cooling rates have been correctly modelled - this will involve generating a test halo.
   - implement a beta model for the hot gas distribution.
   - add resolved galactic discs
   
