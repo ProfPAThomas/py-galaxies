@@ -73,6 +73,10 @@ class C_parameters:
         self.base_metallicity = self.D_param['astrophysics']['base_metallicity']['Value']
         self.major_merger_fraction = self.D_param['astrophysics']['major_merger_fraction']['Value']
         self.halo_angular_momentum = self.D_param['astrophysics']['halo_angular_momentum']['Value']
+        self.sfr_model = self.D_param['astrophysics']['sfr_model']['Value']
+        self.sfr_efficiency = self.D_param['astrophysics']['sfr_efficiency']['Value']
+        sfr_Mcrit0 = self.D_param['astrophysics']['sfr_Mcrit0']['Value'] * \
+          eval(self.D_param['astrophysics']['sfr_Mcrit0']['Units']) # Normalised to code units below
         #   self.sub_halo = self.D_param['model_switches']['sub_halo']['Value']
         self.mass_minimum = self.D_param['numerics']['mass_minimum']['Value']
 
@@ -152,7 +156,15 @@ class C_parameters:
             const = 80.
         self.c_cooling = const * np.pi * mumH * c.k_B * self.units_temperature_internal / \
                           (self.units_density_internal * lambda_ratio * self.units_lambda_internal * self.units_time_internal)
-        print('c_cooling =',self.c_cooling.si)
+        print('c_cooling = {:.3g}'.format(self.c_cooling.si))
+        self.c_cooling = self.c_cooling.si.value
+        # Star formation rate model from from Hen15 (arXiv:1410.0365) S1.6.
+        # This constant should be dimensionless.
+        self.c_sfr_Mcrit = (sfr_Mcrit0 / self.units_mass_internal) * (self.units_speed_internal * u.s / (200. *u.km)) * \
+                          (self.units_length_internal / (10. * u.kpc))
+        print('c_sfr_Mcrit = {:.3g}'.format(self.c_sfr_Mcrit.si))
+        self.c_sfr_Mcrit = self.c_sfr_Mcrit.si.value
+
 
     def __str__(self):
         """ 

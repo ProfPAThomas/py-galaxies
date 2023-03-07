@@ -2,7 +2,8 @@
 
 inputFiles:
  subhaloFile: 'data/SMT13SubhaloOutput.hdf5'
- 
+ galaxyFile:  'data/SMT13GalaxyOutput.hdf5'
+  
 # The following should really be attributes of the data
 cosmo:
  baryonFraction: 0.155
@@ -10,6 +11,7 @@ cosmo:
 plots:
  velocityDispersion: False
  virialTemperature: False
+ baryonFraction: False # Not yet included in output file
  hotGas: True
  hotGasMetallicity: True
  stellarHaloMassRatio: False # Only works with HoD model

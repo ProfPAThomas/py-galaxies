@@ -21,6 +21,7 @@ D_gal=[
    ('b_merger',np.bool),
    #('pos',np.float32,(3,)),  # Not sure where to set this in the main program ...
    #('vel',np.float32,(3,)),  # ... and can be found in halo/subhalo catalogues (apart maybe for orphans)
+   ('v_vir',np.float32),      # Virial speed of host halo
    ('mass_stars_bulge',np.float32),
    ('mass_metals_stars_bulge',np.float32),
    ('mass_stars_disc',np.float32),
@@ -46,10 +47,11 @@ def F_gal_template(parameters):
    template['desc_gid']=NDI
    template['first_prog_gid']=NDI
    template['next_prog_gid']=NDI
-   template['b_exists']=True
+   template['b_exists']=False
    template['b_merger']=False
    #template['pos']=np.nan
    #template['vel']=np.nan
+   template['v_vir']=0.
    template['mass_stars_bulge']=0.
    template['mass_metals_stars_bulge']=0.
    template['mass_stars_disc']=0.

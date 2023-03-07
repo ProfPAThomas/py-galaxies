@@ -212,4 +212,121 @@ In each case the cold gas disc will expand or contract according to its new spec
 Star formation
 --------------
 
-For molecular gas, `Sun etal 2023 <https://arxiv.org/abs/2302.12267>`_ give :math:`\dot{M}_\mathrm{star}=M_\mathrm{mol}/\tau_\mathrm{SFR}` where :math:`\tau_\mathrm{SFR}=10^{9.4}\,` yr for nearby galaxies.  There is some residual scatter which could, presumably, correlate with different local environment, such as dynamical time of the disc.
+..  For molecular gas, `Sun etal 2023 <https://arxiv.org/abs/2302.12267>`_ give :math:`\dot{M}_\mathrm{star}=M_\mathrm{mol}/\tau_\mathrm{SFR}` where :math:`\tau_\mathrm{SFR}=10^{9.4}\,` yr for nearby galaxies.  There is some residual scatter which could, presumably, correlate with different local environment, such as dynamical time of the disc.
+
+In general the star formation rate is based on a formula of the kind
+
+.. math::
+	\dot{M}_\mathrm{star}\propto{(M_\mathrm{SFgas}-M_\mathrm{crit})\over t_\mathrm{dyn}},
+
+where :math:`M_\mathrm{SFgas}` is the mass of star forming gas, :math:`M_\mathrm{crit}` ia a star forming threshold (that may be zero) and :math:`t_\mathrm{dyn}` is the dynamical time.
+
+Depending upon the model, :math:`M_\mathrm{SFgas}` may be the total mass of the cold disc, or the mass of molecular gas, and may or may not be split up into annular rings.
+
+Simple model
+^^^^^^^^^^^^
+
+The simplest model, used in `L-Galaxies 2015 <https://arxiv.org/abs/1410.0365>`_, takes
+
+.. math::
+	\dot{M}_\mathrm{star}=\alpha_\mathrm{SFR}{(M_\mathrm{cold\,gas}-M_\mathrm{crit})\over t_\mathrm{dyn}},
+
+where :math:`t_\mathrm{dyn}=R_\mathrm{d}/v` is the dynamical time at a radius equal to the cold gas disc scale length, :math:`R_\mathrm{d}`.
+
+Here
+
+.. math::
+   M_\mathrm{crit}=M_\mathrm{crit,0}\left(v\over200\mathrm{km}\,\mathrm{s}^{-1}\right)\left(R_\mathrm{d}\over10\,\mathrm{kpc}\right).
+
+Both :math:`\alpha_\mathrm{SFR}` and :math:`M_\mathrm{crit,0}` are taken to be free parameters of the model, with typical values:
+
+* :math:`\alpha_\mathrm{SFR}=0.025`;
+* :math:`M_\mathrm{crit,0}=2.4\times10^9\mathrm{M}_\odot`.
+
+The model assumes that the disc scale length is unaffected by star formation, whereas in practice we might expect stars to form mainly from the central regions where the molecular gas fraction is higher and the local dynamical time is shorter.
+
+Stellar feedback
+----------------
+
+Stellar feedback is presumed to be prompt and mostly from radiation pressure around young star-forming regions and Type II supernovae -- there will also be later feedback from AGB winds and Type Ia supernovae, but this will be more isolated and sporadic and it is assumed that the heated gas will quickly cool back onto the cold gas disk (ISM).
+
+The energy available from supernovae, :math:`\Delta E_\mathrm{SNR}` will be proportional to the mass of stars produced, :math:`\Delta M_*`,
+
+.. math::
+
+   \Delta E_\mathrm{SNR}={1\over2}\Delta M_*v_\mathrm{SNR}^2,
+
+where :math:`v_\mathrm{SNR}` is a parameter of the model.
+
+We assume that this energy gets injected into an amount of gas, :math:`\Delta_\mathrm{heat}`, that is directly proportional to :math:`\Delta M_*`,
+
+.. math::
+
+   \Delta M_\mathrm{heat}=F_\mathrm{heat}\Delta M_*,
+
+where :math:`F_\mathrm{heat}` is a fixed parameter.
+
+Of this energy, some will be used up in heating gas that then rapidly cools down and is reassimilated into the cold gas disc (ISM); some will heat gas high enough that it joins the corona (i.e. subhalo hot gas) and some will heat gas to a high enough temperature that it escapes the subhalo altogether (ie ejected gas).  To keep the model simple, we place this gas not in the halo (from where it could escape still further) but into an **Ejected** phase that is loosely bound to the halo but not within the virial radius.  That gas will become available for re-accretion onto the halo once its (mean) entropy drops below that of the halo gas.  We write
+
+.. math::
+
+   \Delta E_\mathrm{SNR}=\Delta E_\mathrm{disc}+\Delta E_\mathrm{halo}+\Delta E_\mathrm{eject} =\Delta E_\mathrm{SNR}(\epsilon_\mathrm{disc}+\epsilon_\mathrm{halo}+\epsilon_\mathrm{eject}),
+
+where :math:`\epsilon_\mathrm{disc}+\epsilon_\mathrm{halo}+\epsilon_\mathrm{eject}=1`.  For consistency with previous nomenclature, we write :math:`\epsilon_\mathrm{reheat}=\epsilon_\mathrm{halo}+\epsilon_\mathrm{eject}`.
+
+Similarly
+
+.. math::
+
+   \Delta M_\mathrm{heat}=\Delta M_\mathrm{disc}+\Delta M_\mathrm{halo}+\Delta M_\mathrm{eject} =\Delta M_\mathrm{heat}(\mu_\mathrm{disc}+\mu_\mathrm{halo}+\mu_\mathrm{eject}),
+
+where :math:`\mu_\mathrm{disc}+\mu_\mathrm{halo}+\mu_\mathrm{eject}\equiv\mu_\mathrm{disc}+\mu_\mathrm{reheat}=1`.
+
+In low mass halos for which the virial speed of the halo is such that :math:`v_\mathrm{vir}\ll v_\mathrm{SNR}`, then most mass will be ejected; on the other hand, if :math:`v_\mathrm{vir}\gg v_\mathrm{SNR}` then almost all gas will fail to heat up to the virial temperature of the subhalo.  It is not unreasonable then to treat the :math:`\epsilon` s and :math:`\mu` s as decreasing functions of :math:`v_\mathrm{vir}/v_\mathrm{SNR}`.
+
+In our model it is the energy injected into the ISM that determines the degree of reheating; therefore we treat :math:`\epsilon_\mathrm{reheat}` as a fundamental parameter.  We take it to vary as
+
+.. math::
+
+   \epsilon_\mathrm{reheat}={1\over 1+\left(v_\mathrm{vir}\over v_\mathrm{reheat}\right)^\eta},
+
+where :math:`\eta>0` and :math:`v_\mathrm{reheat}` are (constant) parameters of the model.
+
+If all the energy were evenly distributed between the three phases, then the :math:`\mu` s would equal the :math:`\epsilon` s.  However, the gas that falls back onto the disc will get less energy than average and that which is ejected will get more; hence we expect :math:`\mu_\mathrm{disc}>\epsilon_\mathrm{disc}` and :math:`\mu_\mathrm{eject}<\epsilon_\mathrm{eject}`.  However, we also have to ensure that the total energy is sufficient to reheat the desired amount of gas.
+
+We assume that the average specific energy of gas that ends up in the corona is  :math:`\mathcal{E}_\mathrm{halo}={3\over4}v_\mathrm{vir}^2`, which is the energy required to raise gas to the virial temperature of the subhalo assuming that no work is done against pressure forces.  Hence the maximum possible value of :math:`\mu_\mathrm{reheat}` is
+
+.. math::
+
+   \mu_\mathrm{reheat,max}=\mathcal{S}_\mathrm{heat}\epsilon_\mathrm{reheat},\ \ \mathrm{where}\ \mathcal{S}_\mathrm{heat}={2 v_\mathrm{SNR}^2\over3 F_\mathrm{heat} v_\mathrm{vir}^2}
+
+This then motivates the following:
+
+* :math:`\mu_\mathrm{reheat,max}\leq1`:
+  Insufficient energy to reheat all the gas up to the virial temperature of the subhalo.  As an approximation, assume no ejected gas.  Then:
+  
+  - :math:`\mu_\mathrm{disc}=1-\mu_\mathrm{reheat,max}`, :math:`\epsilon_\mathrm{disc}=1-\epsilon_\mathrm{reheat}`;
+  - :math:`\mu_\mathrm{halo}=\mu_\mathrm{reheat,max}`, :math:`\epsilon_\mathrm{halo}=\epsilon_\mathrm{reheat}`;
+  - :math:`\mu_\mathrm{eject}=0`, :math:`\epsilon_\mathrm{eject}=0`.
+
+* :math:`\mu_\mathrm{reheat,max}>1`:
+  More than enough energy to raise all the heated gas up to the virial temperature.  As an approximation, assume that negligible mass in contained in the gas that cools back down onto the disc (this assumption could be relaxed).  We then need to decide what fraction of the mass goes into halo and ejected gas, for which we use a functional form similar to that given above:
+
+  - :math:`\mu_\mathrm{disc}=0`, :math:`\epsilon_\mathrm{disc}=1-\epsilon_\mathrm{reheat}`;
+  - :math:`\mu_\mathrm{halo}=1-\mu_\mathrm{eject}`, :math:`\epsilon_\mathrm{halo}=\mu_\mathrm{halo}/\mathcal{S}_\mathrm{heat}`;
+  - .. math::
+
+     \mu_\mathrm{eject}={1\over 1+\left(v_\mathrm{vir}\over v_\mathrm{eject}\right)^\eta},
+
+     \epsilon_\mathrm{eject}=\epsilon_\mathrm{reheat}-\mu_\mathrm{halo}/\mathcal{S}_\mathrm{heat}.
+
+  Finally, to determine the entropy of ejected gas, we need to know its specific energy, :math:`\mathcal{E}_\mathrm{eject}`:
+
+  .. math::
+
+     \mathcal{E}_\mathrm{eject}={\epsilon_\mathrm{eject}\over\mu_\mathrm{eject}}\mathcal{S}_\mathrm{heat}\mathcal{E}_\mathrm{halo}.
+   
+  In order that :math:`\mathcal{E}_\mathrm{eject}>\mathcal{E}_\mathrm{halo}` we require that :math:`\epsilon_\mathrm{reheat}\mathcal{S}_\mathrm{heat}\equiv\mu_\mathrm{reheat,max}>1`, which is guaranteed by our model.
+
+The ratio :math:`f_\mathrm{reheat}=\Delta M_\mathrm{reheat}/\Delta M_*=F_\mathrm{heat}\mu_\mathrm{reheat}` is known as the *loading factor* and is highly uncertain observationally but is typically of order a few for Milky Way sized halos.
+

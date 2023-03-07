@@ -89,6 +89,18 @@ astrophysics:
   Description: 'Specific angular momentum of halos if not explicit in catalogues = collapse factor; only used if !b_halo_angmom'
   Value:        0.06
   Units:       'None'
+ sfr_model:
+  Description: 'The star formation model'
+  Value:       'Unresolved'  # Unresolved, Resolved_cold, Resolved_H2
+  Units:       'None'
+ sfr_efficiency:
+  Description: 'Star formation efficiency, alpha_{SFR}'
+  Value:        0.025
+  Units:       'None'
+ sfr_Mcrit0:
+  Description: 'Star formation M_{crit0}, from Hen15 star formation model'
+  Value:        !!float 2.4e9
+  Units:       'c.M_sun'
   
 # Units expressed in terms that astropy understands
 # The internal units are self-consistent in that, e.g., speed_unit=length_unit/time_unit.
