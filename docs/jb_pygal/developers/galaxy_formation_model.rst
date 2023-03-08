@@ -314,7 +314,7 @@ This then motivates the following:
 
   .. math::
 
-      \mu_\mathrm{eject}={\mu_\mathrm{reheat,max}-1\over\mu_\mathrm{reheat,max}}. {1\over 1+\left(v_\mathrm{vir}\over v_\mathrm{eject}\right)^\eta},
+      \mu_\mathrm{eject}={\mu_\mathrm{reheat,max}^2-1\over\mu_\mathrm{reheat,max}^2}. {1\over 1+\left(v_\mathrm{vir}\over v_\mathrm{eject}\right)^\eta},
   
 
   - :math:`\mu_\mathrm{disc}=0`, :math:`\epsilon_\mathrm{disc}=1-\epsilon_\mathrm{reheat}`;
@@ -333,15 +333,21 @@ The following figures show how the mass and energy fractions in the three phases
 
 :math:`\mu_\mathrm{eject,max}=0.3`
 
-.. image:: figs/mu_mu_eject=0.3.png
+.. image:: figs/mu_epsilon_eject=0.3.png
    :width: 600
    :alt: mass and energy reheating fractions for mu_eject,max=0.3
 
 :math:`\mu_\mathrm{eject,max}=1.0`
 
-.. image:: figs/mu_mu_eject=1.0.png
+.. image:: figs/mu_epsilon_eject=1.0.png
    :width: 600
    :alt: mass and energy reheating fractions for mu_eject,max=1.0
 
+This plot shows the variation in halo and ejected fractions as the halo mass is increased for a fixed :math:`S_\mathrm{heat}=3`.  It also shows the specific energy of ejected gas relative to that in the halo gas (i.e. coronal gas).  I think that I have plotted it correctly but I am not absolutely certain.
+
+.. image:: figs/mu_epsilon_vratio=3.png
+   :width: 600
+   :alt: mass and energy heating fractions as the halo virial speed is increased.
+	 
 The ratio :math:`f_\mathrm{reheat}=\Delta M_\mathrm{reheat}/\Delta M_*=F_\mathrm{heat}\mu_\mathrm{reheat}` is known as the *loading factor* and is highly uncertain observationally but is typically of order a few for Milky Way sized halos.
 
