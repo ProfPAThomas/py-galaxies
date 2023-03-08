@@ -310,15 +310,16 @@ This then motivates the following:
   - :math:`\mu_\mathrm{eject}=0`, :math:`\epsilon_\mathrm{eject}=0`.
 
 * :math:`\mu_\mathrm{reheat,max}>1`:
-  More than enough energy to raise all the heated gas up to the virial temperature.  As an approximation, assume that negligible mass in contained in the gas that cools back down onto the disc (this assumption could be relaxed).  We then need to decide what fraction of the mass goes into halo and ejected gas, for which we use a functional form similar to that given above:
+  More than enough energy to raise all the heated gas up to the virial temperature.  As an approximation, assume that negligible mass in contained in the gas that cools back down onto the disc (this assumption could be relaxed).  We then need to decide what fraction of the mass goes into halo and ejected gas, for which we use a functional form similar to that given above.  The extra factor involving :math:`\mu_\mathrm{reheat,max}` is to give a smooth transition as :math:`\epsilon_\mathrm{reheat}` increases; it is not crucial to the model and could be omitted.
+
+  .. math::
+
+      \mu_\mathrm{eject}={\mu_\mathrm{reheat,max}-1\over\mu_\mathrm{reheat,max}}. {1\over 1+\left(v_\mathrm{vir}\over v_\mathrm{eject}\right)^\eta},
+  
 
   - :math:`\mu_\mathrm{disc}=0`, :math:`\epsilon_\mathrm{disc}=1-\epsilon_\mathrm{reheat}`;
   - :math:`\mu_\mathrm{halo}=1-\mu_\mathrm{eject}`, :math:`\epsilon_\mathrm{halo}=\mu_\mathrm{halo}/\mathcal{S}_\mathrm{heat}`;
-  - .. math::
-
-     \mu_\mathrm{eject}={1\over 1+\left(v_\mathrm{vir}\over v_\mathrm{eject}\right)^\eta},
-
-     \epsilon_\mathrm{eject}=\epsilon_\mathrm{reheat}-\mu_\mathrm{halo}/\mathcal{S}_\mathrm{heat}.
+  - :math:`\mu_\mathrm{eject}=` above formula, :math:`\epsilon_\mathrm{eject}=\epsilon_\mathrm{reheat}-\mu_\mathrm{halo}/\mathcal{S}_\mathrm{heat}`.
 
   Finally, to determine the entropy of ejected gas, we need to know its specific energy, :math:`\mathcal{E}_\mathrm{eject}`:
 
@@ -327,6 +328,20 @@ This then motivates the following:
      \mathcal{E}_\mathrm{eject}={\epsilon_\mathrm{eject}\over\mu_\mathrm{eject}}\mathcal{S}_\mathrm{heat}\mathcal{E}_\mathrm{halo}.
    
   In order that :math:`\mathcal{E}_\mathrm{eject}>\mathcal{E}_\mathrm{halo}` we require that :math:`\epsilon_\mathrm{reheat}\mathcal{S}_\mathrm{heat}\equiv\mu_\mathrm{reheat,max}>1`, which is guaranteed by our model.
+
+The following figures show how the mass and energy fractions in the three phases vary as a function of the reheating fraction, for two different values of :math:`\mu_\mathrm{eject,max}` (i.e. the maximum value of :math:`\mu_\mathrm{eject}`, as :math:`\mu_\mathrm{eject,max}\mapsto\infty`).
+
+:math:`\mu_\mathrm{eject,max}=0.3`
+
+.. image:: figs/mu_mu_eject=0.3.png
+   :width: 600
+   :alt: mass and energy reheating fractions for mu_eject,max=0.3
+
+:math:`\mu_\mathrm{eject,max}=1.0`
+
+.. image:: figs/mu_mu_eject=1.0.png
+   :width: 600
+   :alt: mass and energy reheating fractions for mu_eject,max=1.0
 
 The ratio :math:`f_\mathrm{reheat}=\Delta M_\mathrm{reheat}/\Delta M_*=F_\mathrm{heat}\mu_\mathrm{reheat}` is known as the *loading factor* and is highly uncertain observationally but is typically of order a few for Milky Way sized halos.
 
