@@ -264,7 +264,13 @@ We assume that this energy gets injected into an amount of gas, :math:`\Delta_\m
 
    \Delta M_\mathrm{heat}=F_\mathrm{heat}\Delta M_*,
 
-where :math:`F_\mathrm{heat}` is a fixed parameter.
+where :math:`F_\mathrm{heat}` is a fixed parameter.  We can write
+
+.. math::
+
+   \Delta E_\mathrm{SNR}=\mathcal{E}_\mathrm{SNR}\Delta M_\mathrm{heat},\ \ \mathrm{where}\ \ \mathcal{E}_\mathrm{SNR}={v_\mathrm{SNR}^2\over2F_\mathrm{heat}}
+
+is the effective specific energy that SNR inject into the surrounding gas.
 
 Of this energy, some will be used up in heating gas that then rapidly cools down and is reassimilated into the cold gas disc (ISM); some will heat gas high enough that it joins the corona (i.e. subhalo hot gas) and some will heat gas to a high enough temperature that it escapes the subhalo altogether (ie ejected gas).  To keep the model simple, we place this gas not in the halo (from where it could escape still further) but into an **Ejected** phase that is loosely bound to the halo but not within the virial radius.  That gas will become available for re-accretion onto the halo once its (mean) entropy drops below that of the halo gas.  We write
 
@@ -298,7 +304,7 @@ We assume that the average specific energy of gas that ends up in the corona is 
 
 .. math::
 
-   \mu_\mathrm{reheat,max}=\mathcal{S}_\mathrm{heat}\epsilon_\mathrm{reheat},\ \ \mathrm{where}\ \mathcal{S}_\mathrm{heat}={2 v_\mathrm{SNR}^2\over3 F_\mathrm{heat} v_\mathrm{vir}^2}
+   \mu_\mathrm{reheat,max}=\mathcal{S}_\mathrm{heat}\epsilon_\mathrm{reheat},\ \ \mathrm{where}\ \mathcal{S}_\mathrm{heat}={\mathcal{E}_\mathrm{SNR}\over\mathcal{E}_\mathrm{halo}}={2 v_\mathrm{SNR}^2\over3 F_\mathrm{heat} v_\mathrm{vir}^2}
 
 This then motivates the following:
 
@@ -329,25 +335,24 @@ This then motivates the following:
    
   In order that :math:`\mathcal{E}_\mathrm{eject}>\mathcal{E}_\mathrm{halo}` we require that :math:`\epsilon_\mathrm{reheat}\mathcal{S}_\mathrm{heat}\equiv\mu_\mathrm{reheat,max}>1`, which is guaranteed by our model.
 
-The following figures show how the mass and energy fractions in the three phases vary as a function of the reheating fraction, for two different values of :math:`\mu_\mathrm{eject,max}` (i.e. the maximum value of :math:`\mu_\mathrm{eject}`, as :math:`\mu_\mathrm{eject,max}\mapsto\infty`).
+The model has five free parameters: :math:`F_\mathrm{heat},\ \nu,\ v_\mathrm{SNR},\ v_\mathrm{reheat},\ \&\ v_\mathrm{eject}` (although we note that L-Galaxies fixes :math:`v_\mathrm{SNR}=630\,\mathrm{km}\,\mathrm{s}^{-1}`). That makes it difficult to show plots covering the variation of all parameters.  
+For the purposes of illustration here, we fix :math:`\nu=1` and :math:`F_\mathrm{heat}=3`.  The ratio :math:`f_\mathrm{reheat}=\Delta M_\mathrm{reheat}/\Delta M_*=F_\mathrm{heat}\mu_\mathrm{reheat}` is known as the *loading factor* and is highly uncertain observationally but is typically of order a few for Milky Way sized halos; our model therefore limits the loading factor to be less than or equal to :math:`F_\mathrm{heat}`.  The reheating mass and energy fractions then depend upon the ratios :math:`r_\mathrm{reheat}=v_\mathrm{reheat}/v_\mathrm{SNR}` and :math:`r_\mathrm{eject}=v_\mathrm{eject}/v_\mathrm{SNR}`.
 
-:math:`\mu_\mathrm{eject,max}=0.3`
+The following plot shows the variation of mass and ejection fractions as a function of :math:`\epsilon_\mathrm{reheat}` for :math:`\mu_\mathrm{eject,max}=0.3`
 
 .. image:: figs/mu_epsilon_eject=0.3.png
    :width: 600
-   :alt: mass and energy reheating fractions for mu_eject,max=0.3
+   :alt: mass and energy reheating fractions, for mu_eject_max=0.3
 
-:math:`\mu_\mathrm{eject,max}=1.0`
+and for :math:`\mu_\mathrm{eject,max}=1.0`
 
 .. image:: figs/mu_epsilon_eject=1.0.png
    :width: 600
-   :alt: mass and energy reheating fractions for mu_eject,max=1.0
+   :alt: mass and energy reheating fractions, for mu_eject_max=1.0
 
-This plot shows the variation in halo and ejected fractions as the halo mass is increased for a fixed :math:`S_\mathrm{heat}=3`.  It also shows the specific energy of ejected gas relative to that in the halo gas (i.e. coronal gas).  I think that I have plotted it correctly but I am not absolutely certain.
+The following plots show inthe top row the variation of mass and ejection fractions as a function of the ratio of :math:`v_\mathrm{vir}/v_\mathrm{SNR}`: in columns, from left to right, :math:`r_\mathrm{reheat}=0.76`, :math:`r_\mathrm{eject}=0.16` (this seems most similar to the parameters in Hen15); :math:`r_\mathrm{reheat}=0.76`, :math:`r_\mathrm{eject}=0.76`; :math:`r_\mathrm{reheat}=3.8`, :math:`r_\mathrm{eject}=0.76`.  The bottom row shows the mass loading factor and the ratio of the specific energy in the ejected gas relative to that of the halo: this latter is always greater than unity, as required.  I am not entirely convinced that last plot is correct, but can't find anything wrong with it.
 
-.. image:: figs/mu_epsilon_vratio=3.png
+.. image:: figs/mu_epsilon_vvir.png
    :width: 600
    :alt: mass and energy heating fractions as the halo virial speed is increased.
 	 
-The ratio :math:`f_\mathrm{reheat}=\Delta M_\mathrm{reheat}/\Delta M_*=F_\mathrm{heat}\mu_\mathrm{reheat}` is known as the *loading factor* and is highly uncertain observationally but is typically of order a few for Milky Way sized halos.
-
