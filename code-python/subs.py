@@ -173,7 +173,7 @@ class C_sub_output:
          Contains the global run paramters.
       """
       # Open file for output
-      self.sub_file = h5py.File(parameters.subhalo_output_file,'w')
+      self.sub_file = h5py.File(parameters.subhalo_file,'w')
       # Counter for and max number of records in io buffer
       self.i_rec = 0
       self.n_rec = parameters.D_param['performance']['n_HDF5_io_rec']['Value']

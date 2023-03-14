@@ -211,7 +211,7 @@ class C_halo_output:
          Contains the gloabal run paramters.
       """
       # Open file for output
-      self.halo_file = h5py.File(parameters.halo_output_file,'w')
+      self.halo_file = h5py.File(parameters.halo_file,'w')
       # Counter for and max number of records in io buffer
       self.i_rec = 0
       self.n_rec = parameters.D_param['performance']['n_HDF5_io_rec']['Value']

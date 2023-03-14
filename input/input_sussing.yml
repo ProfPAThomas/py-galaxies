@@ -1,24 +1,32 @@
 # L-Galaxies input file
+#=======================
+
+# Note that this is not robust to repeated entries (subheadings, or in the case of io_files, subsubheadings) under different headings: I should probably rewrite the code to make it so, but that would be a pain as variable names would get very long.
 
 # Compulsory parameters: presence may be relied upon
+#---------------------------------------------------
 
-input_files:
- graph_file:   'MergerGraphs/mega_graph_micro_09-11.hdf5'
- snap_file:    'MergerGraphs/snaplist.txt' # Should ideally be stored in graph_file
-
-output_files:
- halo_file:    'output/SMT13HaloOutput.hdf5'
- subhalo_file: 'output/SMT13SubhaloOutput.hdf5'
- galaxy_file:  'output/SMT13GalaxyOutput.hdf5'
- 
-auxiliary_files:
- cooling_function_file: 'aux_files/Lambda_table.npz'
+io_files:
+ input_files:
+  graph_file:   'MergerGraphs/mega_graph_micro_09-11.hdf5'
+  snap_file:    'MergerGraphs/snaplist.txt' # Should ideally be stored in graph_file
+# output_files:
+#  halo_file:    'output/SMT13HaloOutput.hdf5'
+#  subhalo_file: 'output/SMT13SubhaloOutput.hdf5'
+#  galaxy_file:  'output/SMT13GalaxyOutput.hdf5'
+ output_files:
+  halo_file:    'output/testHaloOutput.hdf5'
+  subhalo_file: 'output/testSubhaloOutput.hdf5'
+  galaxy_file:  'output/testGalaxyOutput.hdf5'
+ auxiliary_files:
+  cooling_function_file: 'aux_files/Lambda_table.npz'
 
 # Should be attributes in the graph input file
 cosmology:
  omega_m:        
   Description: 'Matter density parameter'
   Value:        0.30
+  Units:       'None'
  H0:
   Description: 'Hubble parameter at z=0'
   Value:        70.
@@ -26,12 +34,13 @@ cosmology:
  baryon_fraction:
   Description: 'Baryon fraction'
   Value:        0.155
+  Units:       'None'
   
 halo_model:
- type:
+ halo_type:
   Description: 'Spherical overdensity (SO) or MEGA'
   Value:       'MEGA'
- overdensity:  
+ halo_overdensity:  
   Description: 'Halo overdensity relative to the critical density (not relevant for MEGA)'
   Value:        200
 
@@ -39,69 +48,7 @@ performance:
  n_HDF5_io_rec:
   Description: 'Size of HDF5 io buffer (number of records)'
   Value:        1000
-  
-# Optional parameters: test for their existence before use
 
-model_switches:
- b_HOD:
-  Description: 'Halo occupation description for stars (as primitive test)'
-  Value:        False
- b_lgalaxies:
-  Description: 'Mimic L-galaxies base model as closely as possible'
-  Value:        True
- b_halo_angmom:
-  Description: 'Do the halo catalogues contain amgular momentum?'
-  Value:        False
-  
-model_parameters:
- timestep_halo:
-  Description: 'Minimum timestep size for halo/subhalo operations'
-  Value:        !!float 1e8
-  Units:       'u.yr'
- timestep_galaxies:
-  Description: 'Minimum timestep size for galaxy operations'
-  Value:        !!float 3e7
-  Units:       'u.yr'
- 
-astrophysics:
-# mu m_H and mu_ratio are really functions of metallicity.  However, that would mean that we had to keep track
-# of energy rather than temperature in the hot gas, and make the cooling rate constant vary halo by halo,
-# introducing an extra calculation every time.
-# In practice they are very slow functions of metallicity, so we just use a fixed value.
- mumH:
-  Description: 'Mass per particle in the hot gas'
-  Value:        !!float 1e-27
-  Units:       'u.kg'
- lambda_ratio:
-  Description: 'n_e n_i / n_t^2 - for use with the cooling function Lambda'
-  Value:       0.25
- base_metallicity:
-  Description: 'Metallicity of gas accreted onto halos; needs to be greater than minimum  value in cooling tables'
-  Value:        !!float 1e-4
-  Units:       'None'
- cooling_model:
-  Description: 'Choice of cooling model for hot gas'
-  Value:       'SIS'   # As in L-galaxies base model and many other SAMs
- major_merger_fraction:
-  Description: 'Mass ratio to trigger major mergers'
-  Value:        0.3
- halo_angular_momentum:
-  Description: 'Specific angular momentum of halos if not explicit in catalogues = collapse factor; only used if !b_halo_angmom'
-  Value:        0.06
-  Units:       'None'
- sfr_model:
-  Description: 'The star formation model'
-  Value:       'Unresolved'  # Unresolved, Resolved_cold, Resolved_H2
-  Units:       'None'
- sfr_efficiency:
-  Description: 'Star formation efficiency, alpha_{SFR}'
-  Value:        0.025
-  Units:       'None'
- sfr_Mcrit0:
-  Description: 'Star formation M_{crit0}, from Hen15 star formation model'
-  Value:        !!float 2.4e9
-  Units:       'c.M_sun'
-  
 # Units expressed in terms that astropy understands
 # The internal units are self-consistent in that, e.g., speed_unit=length_unit/time_unit.
 # This is to keep the equations simple and avoid missing conversion factors.
@@ -129,7 +76,7 @@ units:
    Description: 'Temperature unit used in input files'
    Value:        1
    Units:       'u.K' 
- internal: # Units chosed to be of order unity for typical galaxy, but rounded to closest factor of 1000.
+ internal: # Units chosen to be of order unity for typical galaxy, but rounded to closest factor of 1000.
   length:
    Description: 'Length unit used internally in the code'
    Value:        1
@@ -167,10 +114,102 @@ units:
    Description: 'Time unit used in output files'
    Value:        1
    Units:       'u.yr' 
+  
+# Optional parameters: test for their existence before use
+#---------------------------------------------------------
 
-# Numerical parameters
-numerics:
+model_switches:
+ b_HOD:
+  Description: 'Halo occupation description for stars (as primitive test)'
+  Value:        False
+ b_lgalaxies:
+  Description: 'Mimic L-galaxies base model as closely as possible'
+  Value:        True
+ b_halo_angmom:
+  Description: 'Do the halo catalogues contain amgular momentum?'
+  Value:        False
+  
+model_parameters:
+ timestep_halo:
+  Description: 'Minimum timestep size for halo/subhalo operations'
+  Value:        !!float 1e8
+  Units:       'u.yr'
+ timestep_galaxies:
+  Description: 'Minimum timestep size for galaxy operations'
+  Value:        !!float 3e7
+  Units:       'u.yr'
  mass_minimum:
-  Description:   'The minimum mass that is considered larger than 0.'
-  Value:          !!float 1e-10
-  Units:         'Code units'
+  Description: 'The minimum mass that is considered larger than 0.'
+  Value:        1.
+  Units:       'c.M_sun'
+ 
+astrophysics:
+# mu m_H and mu_ratio are really functions of metallicity.  However, that would mean that we had to keep track
+# of energy rather than temperature in the hot gas, and make the cooling rate constant vary halo by halo,
+# introducing an extra calculation every time.
+# In practice they are very slow functions of metallicity, so we just use a fixed value.
+ mumH:
+  Description: 'Mass per particle in the hot gas'
+  Value:        !!float 1e-27
+  Units:       'u.kg'
+ mu_ratio:
+  Description: 'Mass per particle in the hot gas'
+  Value:        0.25
+  Units:       'None'
+ lambda_ratio:
+  Description: 'n_e n_i / n_t^2 - for use with the cooling function Lambda'
+  Value:        0.25
+  Units:       'None'
+ base_metallicity:
+  Description: 'Metallicity of gas accreted onto halos; needs to be greater than minimum  value in cooling tables'
+  Value:        !!float 1e-4
+  Units:       'None'
+ cooling_model:
+  Description: 'Choice of cooling model for hot gas'
+  Value:       'SIS'   # As in L-galaxies base model and many other SAMs
+  Units:       'None'
+ major_merger_fraction:
+  Description: 'Mass ratio to trigger major mergers'
+  Value:        0.3
+  Units:       'None'
+ halo_angular_momentum:
+  Description: 'Specific angular momentum of halos if not explicit in catalogues = collapse factor; only used if !b_halo_angmom'
+  Value:        0.06
+  Units:       'None'
+ sfr_model:
+  Description: 'The star formation model'
+  Value:       'Unresolved'  # Unresolved, Resolved_cold, Resolved_H2
+  Units:       'None'
+ sfr_efficiency:
+  Description: 'Star formation efficiency, alpha_{SFR}'
+  Value:        0.025
+  Units:       'None'
+ sfr_Mcrit0:
+  Description: 'Star formation M_{crit0}, from Hen15 star formation model'
+  Value:        !!float 2.4e9
+  Units:       'c.M_sun'
+ Hen15_eta:
+  Description: 'Reheating efficiency; Hen15 S17'
+  Value:        0.62
+  Units:       'None'
+ Hen15_veject:
+  Description: 'Reheating SN ejection scale (ie virial speed cutoff); Hen15 S17'
+  Value:        100.
+  Units:       'u.km/u.s'
+ Hen15_beta2:
+  Description: 'Reheating SN ejection slope; Hen15 S17'
+  Value:        0.80
+  Units:       'None'
+ Hen15_epsilon:
+  Description: 'Mass-loading efficiency; Hen15 S19'
+  Value:        2.6
+  Units:       'None'
+ Hen15_vreheat:
+  Description: 'Reheating mass loading scale scale (ie virial speed cutoff); Hen15 S19'
+  Value:        480.
+  Units:       'u.km/u.s'
+ Hen15_beta1:
+  Description: 'Reheating mass loading slope; Hen15 S19'
+  Value:        0.72
+  Units:       'None'
+  
