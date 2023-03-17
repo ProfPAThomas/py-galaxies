@@ -1,9 +1,10 @@
 # Subhalo plot parameters
 
 inputFiles:
- subhaloFile: 'data/SMT13SubhaloOutput.hdf5'
- galaxyFile:  'data/SMT13GalaxyOutput.hdf5'
-  
+ subhaloFile: 'data/nofeedSubhaloOutput.hdf5'
+ galaxyFile:  'data/nofeedGalaxyOutput.hdf5'
+save_prefix: 'nofeed_sub_'
+
 # The following should really be attributes of the data
 cosmo:
  baryonFraction: 0.155
@@ -62,7 +63,7 @@ hotGas:
  label:  ' '
  save_png: True
  save_pdf: False
- name:    'subhalo_hotgas'
+ name:    'hotgas'
 
 hotGasMetallicity:
  figsize: [12,8]
@@ -75,7 +76,7 @@ hotGasMetallicity:
  label:  ' '
  save_png: True
  save_pdf: False
- name:    'subhalo_Z'
+ name:    'hotgas_Z'
 
 stellarHaloMassRatio:
  figsize: [12,8]

@@ -1,14 +1,10 @@
 # Galaxy plot parameters
 
-# inputFiles:
-#   haloFile: 'data/SMT13HaloOutput.hdf5'
-#   subhaloFile: 'data/SMT13SubhaloOutput.hdf5'
-#   galaxyFile: 'data/SMT13GalaxyOutput.hdf5'
 inputFiles:
   haloFile: 'data/testHaloOutput.hdf5'
   subhaloFile: 'data/testSubhaloOutput.hdf5'
   galaxyFile: 'data/testGalaxyOutput.hdf5'
-
+save_prefix: 'test_gal_'
  
 # The following should really be attributes of the data
 cosmo:
@@ -52,7 +48,7 @@ coldGas_halo:
  label:   'SAM galaxies'
  save_png: True
  save_pdf: False
- name:    'gal_coldgas_halo'
+ name:    'coldgas_halo'
 
 coldGas_subhalo:
  figsize: [12,8]
@@ -65,7 +61,7 @@ coldGas_subhalo:
  label:   'SAM galaxies'
  save_png: True
  save_pdf: False
- name:    'gal_coldgas_subhalo'
+ name:    'coldgas_subhalo'
 
 coldGasRadius:
  figsize: [12,8]
@@ -78,7 +74,7 @@ coldGasRadius:
  label:   'SAM galaxies'
  save_png: True
  save_pdf: False
- name:    'gal_coldgas_radius'
+ name:    'coldgas_radius'
 
 stellarMass_halo:
  figsize: [12,8]
@@ -91,7 +87,7 @@ stellarMass_halo:
  label:   'SAM galaxies'
  save_png: True
  save_pdf: False
- name:    'gal_stars_halo'
+ name:    'stars_halo'
 
 stellarMass_subhalo:
  figsize: [12,8]
@@ -104,7 +100,7 @@ stellarMass_subhalo:
  label:   'SAM galaxies'
  save_png: True
  save_pdf: False
- name:    'gal_stars_sub'
+ name:    'stars_sub'
 
 stellarHaloMassRatio:
  figsize: [12,8]
@@ -117,7 +113,7 @@ stellarHaloMassRatio:
  label:   'SAM galaxies'
  save_png: True
  save_pdf: False
- name:    'gal_stars_halo_ratio'
+ name:    'stars_halo_ratio'
 
 stellarSubhaloMassRatio:
  figsize: [12,8]
@@ -130,7 +126,7 @@ stellarSubhaloMassRatio:
  label:   'SAM galaxies'
  save_png: True
  save_pdf: False
- name:    'gal_stars_sub_ratio'
+ name:    'stars_sub_ratio'
 
 starFormationRate:
  figsize: [12,8]

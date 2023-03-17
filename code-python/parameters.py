@@ -143,10 +143,18 @@ class C_parameters:
         self.units_lambda_internal = self.units_energy_internal * self.units_length_internal**3 / self.units_time_internal
         
         # Dimensionless versions of constants used in the code.
-        # This is the minimum allowable timestep for mini-steps
-        self.timestep_halo = (self.timestep_halo / self.units_time_internal).si.value
-        self.timestep_gal = (self.timestep_galaxies / self.units_time_internal).si.value
-        self.mass_minimum = (self.mass_minimum/self.units_mass_internal).si.value
+        # Should really label these as _internal, but that makes the names too long.
+        # Also, parameters that are not read in do not have the internal label.
+        # However, it feels wrong to redefine input variables, so will stick with adding _internal label to input parameters.
+        # This should only arise for quantities in the parameter class instance.
+        # These are the minimum allowable timesteps for mini-steps
+        self.timestep_halo_internal = (self.timestep_halo / self.units_time_internal).si.value
+        self.timestep_gal_internal = (self.timestep_galaxies / self.units_time_internal).si.value
+        # The minimum mass (values below this are regarded as equivalent to zero mass)
+        self.mass_minimum_internal = (self.mass_minimum/self.units_mass_internal).si.value
+        # Quantities that need to be in internal code units for use in functions
+        self.Hen15_v_eject_internal = (self.Hen15_v_eject/self.units_speed_internal).si.value
+        self.Hen15_v_reheat_internal = (self.Hen15_v_reheat/self.units_speed_internal).si.value
 
         # Gravitational constant: units L^3/T^2M
         self.c_G=(c.G/self.units_length_internal**3*self.units_time_internal**2*self.units_mass_internal).si.value
@@ -172,6 +180,10 @@ class C_parameters:
                           (self.units_length_internal / (10. * u.kpc))
         print('c_sfr_Mcrit = {:.3g}'.format(self.c_sfr_Mcrit.si))
         self.c_sfr_Mcrit = self.c_sfr_Mcrit.si.value
+        # Heating energy from Hen15 (arXiv:1410.0365) equation S16.
+        self.c_Hen15_S16 = self.units_mass_internal*self.Hen15_v_snr**2/(2.*self.units_energy_internal)
+        print('c_Hen15_S16 = {:.3g}'.format(self.c_Hen15_S16.si))
+        self.c_Hen15_S16 = self.c_Hen15_S16.si.value
 
 
     def __str__(self):

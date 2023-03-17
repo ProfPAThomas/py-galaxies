@@ -78,14 +78,14 @@ class C_sub:
       """
       self.graph_ID = graph_ID
       self.snap_ID = snap_ID
+      self.halo_gid = graph.sub_host_gid[sub_gid]
+      self.halo_sid = self.halo_gid - graph.halo_start_gid[snap_ID]
       self.sub_gid = sub_gid
       self.sub_sid = self.sub_gid - graph.sub_start_gid[snap_ID]
-      # The following could be looked up as required but useful to define them here for quick reference
-      self.host_gid = graph.sub_host_gid[sub_gid]
       self.n_desc = graph.sub_n_desc[sub_gid]
       self.desc_start_gid = graph.sub_desc_start_gid[sub_gid]
       self.desc_end_gid = self.desc_start_gid+self.n_desc
-      self.desc_host_sid = parameters.NO_DATA_INT # main descendant of host halo
+      self.desc_halo_sid = parameters.NO_DATA_INT # main descendant of host halo
 
       # Intrinsic properties
       self.mass = graph.sub_mass[sub_gid]
@@ -107,8 +107,9 @@ class C_sub:
       self.n_gal = 0
       self.gal_start_sid = parameters.NO_DATA_INT
       self.gal_end_sid = parameters.NO_DATA_INT
+      self.gal_central_sid = parameters.NO_DATA_INT
       self.b_done = False # Has this subhalo been fully processed or not
-      self.n_dt = 0 # Number of times that this halo has been processed
+      self.n_dt = 0 # Number of times that this subhalo has been processed
 
    def __str__(self):
       print('graph_ID =',self.graph_ID,',',end=' ')
@@ -181,7 +182,7 @@ class C_sub_output:
       dtype=[]
       dtype.append(('graph_ID',np.int32))
       dtype.append(('snap_ID',np.int32))
-      dtype.append(('host_gid',np.int32))
+      dtype.append(('halo_gid',np.int32))
       dtype.append(('sub_gid',np.int32))
       dtype.append(('pos',np.float32,(3,)))
       dtype.append(('vel',np.float32,(3,)))
@@ -231,7 +232,7 @@ class C_sub_output:
       for sub in subs:
          self.io_buffer[self.i_rec]['graph_ID'] = sub.graph_ID
          self.io_buffer[self.i_rec]['snap_ID'] = sub.snap_ID
-         self.io_buffer[self.i_rec]['host_gid'] = sub.host_gid
+         self.io_buffer[self.i_rec]['halo_gid'] = sub.halo_gid
          self.io_buffer[self.i_rec]['sub_gid'] = sub.sub_gid
          self.io_buffer[self.i_rec]['pos'] = sub.pos * parameters.length_internal_to_output
          self.io_buffer[self.i_rec]['vel'] = sub.vel * parameters.speed_internal_to_output

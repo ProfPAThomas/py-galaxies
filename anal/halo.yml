@@ -1,7 +1,8 @@
 # Halo plot parameters
 
 inputFiles:
- haloFile: 'data/SMT13HaloOutput.hdf5'
+ haloFile: 'data/SNRfeedHaloOutput.hdf5'
+save_prefix: 'SNRfeed_halo_'
  
 # The following should really be attributes of the data
 cosmo:
@@ -13,6 +14,8 @@ plots:
  baryonFraction: True
  hotGas: True
  hotGasMetallicity: True
+ ejectedGas: True
+ ejectedGasMetallicity: False
  stellarHaloMassRatio: False # Only works with HoD model
  starFormationRate: False # Only works with HoD model
 
@@ -74,7 +77,7 @@ hotGas:
  label:  ' '
  save_png: True
  save_pdf: False
- name:    'halo_hotgas'
+ name:    'hotgas'
 
 hotGasMetallicity:
  figsize: [12,8]
@@ -87,7 +90,33 @@ hotGasMetallicity:
  label:  ' '
  save_png: True
  save_pdf: False
- name:    'halo_Z'
+ name:    'hotgas_Z'
+
+ejectedGas:
+ figsize: [12,8]
+ xscale: 'log'
+ yscale: 'log'
+ markerType: '.'
+ xlabel: '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
+ ylabel: '$M_\mathrm{ejected\ gas}$ / M$_\odot$'
+ legend:  False
+ label:  ' '
+ save_png: True
+ save_pdf: False
+ name:    'ejectedgas'
+
+hotGasMetallicity:
+ figsize: [12,8]
+ xscale: 'log'
+ yscale: 'linear'
+ markerType: '.'
+ xlabel: '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
+ ylabel: '$Z_\mathrm{ejected\ gas}$'
+ legend:  False
+ label:  ' '
+ save_png: True
+ save_pdf: False
+ name:    'ejectedgas_Z'
 
 stellarHaloMassRatio:
  figsize: [12,8]

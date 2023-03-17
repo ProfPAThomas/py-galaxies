@@ -99,6 +99,8 @@ class C_halo:
       self.mass_baryon_from_progenitors = 0.
       self.mass_gas_hot = 0.
       self.mass_metals_gas_hot = 0.
+      self.mass_gas_eject = 0.
+      self.mass_metals_gas_eject = 0.
       self.mass_stars = 0.
       self.mass_metals_stars = 0.
       if parameters.b_HOD == True:
@@ -173,7 +175,7 @@ class C_halo:
      """
      Calculates the total baryonic mass of the subhalo, including galaxies
      """
-     self.mass_baryon = self.mass_gas_hot + self.mass_stars
+     self.mass_baryon = self.mass_gas_hot + self.mass_gas_eject + self.mass_stars
      for i_sub in range(self.n_sub): 
         self.mass_baryon += subs[self.sub_start_sid+i_sub].mass_baryon
      # The orphan galaxies are not included in the subhalo baryon count, so add them in here
@@ -230,6 +232,8 @@ class C_halo_output:
       dtype.append(('mass_baryon_simple',np.float32))
       dtype.append(('mass_gas_hot',np.float32))
       dtype.append(('mass_metals_gas_hot',np.float32))
+      dtype.append(('mass_gas_eject',np.float32))
+      dtype.append(('mass_metals_gas_eject',np.float32))
       dtype.append(('mass_stars',np.float32))
       dtype.append(('mass_metals_stars',np.float32))
       if parameters.b_HOD==True:
@@ -283,6 +287,8 @@ class C_halo_output:
          self.io_buffer[self.i_rec]['mass_baryon_simple']= halo.mass_baryon_simple  * parameters.mass_internal_to_output         
          self.io_buffer[self.i_rec]['mass_gas_hot'] = halo.mass_gas_hot  * parameters.mass_internal_to_output
          self.io_buffer[self.i_rec]['mass_metals_gas_hot'] = halo.mass_metals_gas_hot  * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_gas_eject'] = halo.mass_gas_eject  * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_metals_gas_eject'] = halo.mass_metals_gas_eject  * parameters.mass_internal_to_output
          self.io_buffer[self.i_rec]['mass_stars'] = halo.mass_stars  * parameters.mass_internal_to_output
          self.io_buffer[self.i_rec]['mass_metals_stars'] = halo.mass_metals_stars  * parameters.mass_internal_to_output
          if parameters.b_HOD==True:

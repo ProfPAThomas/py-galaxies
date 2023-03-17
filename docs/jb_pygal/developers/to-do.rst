@@ -4,6 +4,7 @@ To-do
 Major structural development
 ----------------------------
 
+* Add in performance monitoring & test timing.
 * Work out how to interface to C-routines
 * Implement MCMC to optimise parameters
 * Implement resolved discs
@@ -14,11 +15,6 @@ Minor structural development
 ----------------------------
 
 * Go through routines and document headers in numpy format; create API interface in documentation.
-
-* Test that:
-  
-  - Where galaxies have no subhlao, it is because they are orphans.
-  - Where galaxies have no halo, it is because the are orphans for which no descendant halo exists.
 
 * Implement mini-steps
 
@@ -46,7 +42,7 @@ Galaxy physics modules to import from L-galaxies
 * Reincorporate gas onto halos:
   Basic version completed
   
-  - decide whether we need an **Ejected** phase for halos; I suspect that we do.
+  - implement infall from Ejected phase.
 
 * Hot gas cooling onto galaxy:
   Basic SIS version completed and tested.
@@ -56,7 +52,13 @@ Galaxy physics modules to import from L-galaxies
   
 * Star formation and feedback:
   
-  - implement a version with no resolved discs
+  - implement a version with no resolved discs:
+
+    + basic implementation done
+    + need to add yields
+    + need to add SFR extraction
+    + need to test (star formation seems very strong at the moment)
+    
   - add resolved galactic discs with inflow of gas
 
 * AGN accretion and feedback:

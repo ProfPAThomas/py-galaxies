@@ -10,10 +10,6 @@ io_files:
  input_files:
   graph_file:   'MergerGraphs/mega_graph_micro_09-11.hdf5'
   snap_file:    'MergerGraphs/snaplist.txt' # Should ideally be stored in graph_file
-# output_files:
-#  halo_file:    'output/SMT13HaloOutput.hdf5'
-#  subhalo_file: 'output/SMT13SubhaloOutput.hdf5'
-#  galaxy_file:  'output/SMT13GalaxyOutput.hdf5'
  output_files:
   halo_file:    'output/testHaloOutput.hdf5'
   subhalo_file: 'output/testSubhaloOutput.hdf5'
@@ -188,11 +184,23 @@ astrophysics:
   Description: 'Star formation M_{crit0}, from Hen15 star formation model'
   Value:        !!float 2.4e9
   Units:       'c.M_sun'
+ sfr_recycle_fraction:
+  Description: 'Fraction of mass of stars formed that is returned if instantaneous recycling'
+  Value:        0.43
+  Units:       'None'  
+ snr_model:
+  Description: 'The SNR feedback formation model'
+  Value:       'Hen15'  # Hen15, ...
+  Units:       'None' 
+ Hen15_v_snr:
+  Description: 'Reheating efficiency; Hen15 S17'
+  Value:        630
+  Units:       'u.km/u.s'
  Hen15_eta:
   Description: 'Reheating efficiency; Hen15 S17'
   Value:        0.62
   Units:       'None'
- Hen15_veject:
+ Hen15_v_eject:
   Description: 'Reheating SN ejection scale (ie virial speed cutoff); Hen15 S17'
   Value:        100.
   Units:       'u.km/u.s'
@@ -204,7 +212,7 @@ astrophysics:
   Description: 'Mass-loading efficiency; Hen15 S19'
   Value:        2.6
   Units:       'None'
- Hen15_vreheat:
+ Hen15_v_reheat:
   Description: 'Reheating mass loading scale scale (ie virial speed cutoff); Hen15 S19'
   Value:        480.
   Units:       'u.km/u.s'

@@ -70,14 +70,17 @@ def F_halo(halo,sub,cooling_table,parameters):
         Simple model to mimic that of L-Galaxies.  
         The hot gas in halos and subhalos is regarded as a single entity with temperature equal to that of the halo.
         So all we do here is give the hot gas to the subhalo, and
-        set the virial temperature of the subhalo to equal that of the halo.
+        set the virial speed and temperature of the subhalo to equal that of the halo.
+        We will also need to update the virial speed of the galaxies upon return from this function.
         """
         sub.mass_gas_hot += halo.mass_gas_hot
         sub.mass_metals_gas_hot += halo.mass_metals_gas_hot
         sub.mass_baryon += halo.mass_gas_hot
-        halo.mass_gas_hot = parameters.mass_minimum # Just so it appears in the plots as a non-zero value.
-        halo.mass_metals_gas_hot = parameters.mass_minimum*parameters.base_metallicity
+        halo.mass_gas_hot = parameters.mass_minimum_internal # Just so it appears in the plots as a non-zero value.
+        halo.mass_metals_gas_hot = parameters.mass_minimum_internal*parameters.base_metallicity
+        # Set subhalo properties to match that of the halo
         sub.temperature = halo.temperature
+        sub.half_mass_virial_speed = halo.half_mass_virial_speed
     elif parameters.cooling_model == 'SIS':
         mass_cooled=F_cooling_SIS(halo.mass,halo.tau_dyn,halo.half_mass_radius,halo.mass_gas_hot,halo.mass_metals_gas_hot,
                                   halo.temperature,sub.temperature,parameters.dt,cooling_table)
@@ -86,6 +89,7 @@ def F_halo(halo,sub,cooling_table,parameters):
         halo.mass_metals_hot -= mass_metals_cooled
         sub.mass_gas_hot += mass_cooled
         sub.mass_metals_gas_hot += mass_metals_cooled
+        sub.mass_baryon += mass_cooled
     else:
         raise valueError('cooling.F_halo: cooling model '+parameters.cooling_model+' not implemented.')
     return None
@@ -96,14 +100,14 @@ def F_sub(sub,gal,cooling_table,parameters):
     Also sets the radius of the disc.
     """
     mass_gas_cold=gal['mass_gas_cold']
-    v_vir=sub.half_mass_virial_speed
     r_half=sub.half_mass_radius
+    v_vir=sub.half_mass_virial_speed
     
     # Angular momentum assuming exponential disc is 2vR_dM where R_d is the exponential disk radius
     ang_mom_gas_cold = 2. * mass_gas_cold * v_vir * gal['radius_gas_cold']
     
     # Mass cooling
-    if sub.mass_gas_hot <= parameters.mass_minimum:
+    if sub.mass_gas_hot <= parameters.mass_minimum_internal:
         return None
     if parameters.cooling_model == 'SIS':
         gal_temperature=1e4*u.K/parameters.units_temperature_internal  # Cool down to 1e4 K
@@ -120,7 +124,7 @@ def F_sub(sub,gal,cooling_table,parameters):
     # Disc radius (assuming exponential disc for cold gas and SIS for halo gas)
     # Accreted angular momentum for SIS is (1/2)RVM*lambda where lambda=parameters.halo_angular_momentum
     ang_mom_gas_cold += mass_cooled * v_vir * r_half * parameters.halo_angular_momentum
-    gal['radius_gas_cold'] = ang_mom_gas_cold / (2 * gal['mass_gas_cold'] * v_vir)
+    gal['radius_gas_cold'] = ang_mom_gas_cold / (2 * gal['mass_gas_cold'] * v_vir)      
     
     return None
 
@@ -135,7 +139,8 @@ def F_cooling_SIS(mass,tau_dyn,half_mass_radius,mass_gas,mass_metals_gas,temp_st
         return mass_gas
     
     # Determine cooling function
-    log10_Z = max(-10.,np.log10(mass_metals_gas/mass_gas))
+    log10_Z = np.log10(mass_metals_gas/mass_gas)
+    assert log10_Z>cooling_table.log10_Z_table[1],'mass_gas, mass_metals_gas = '+str(mass_gas)+', '+str(mass_metals_gas)
     # Cooling rate per unit density of electrons & ions
     Lambda = F_get_metaldependent_cooling_rate(np.log10(temp_start),log10_Z,cooling_table)
     # Could save a little time in defining a conversion factor for half_mass_radius**3/mass in halos/subhalos.
@@ -170,12 +175,12 @@ def F_get_metaldependent_cooling_rate(log10_T,log10_Z,cooling_table):
     # Fix tables so that cannot fall outside range to save checks here
     # The following indices are at the bottom end of the range
     log10_T_table = cooling_table.log10_T_table
-    i_T=np.argmax(np.where(log10_T>log10_T_table))
-    fracT=(log10_T-log10_T_table[i_T])/(log10_T_table[i_T+1]-log10_T_table[i_T])
+    i_T=np.where(log10_T_table>log10_T)[0][0]
+    fracT=(log10_T-log10_T_table[i_T-1])/(log10_T_table[i_T]-log10_T_table[i_T-1])
     assert 0 <= fracT <=1
     log10_Z_table = cooling_table.log10_Z_table
-    i_Z=np.argmax(np.where(log10_Z>log10_Z_table))
-    fracZ=(log10_Z-log10_Z_table[i_Z])/(log10_Z_table[i_Z+1]-log10_Z_table[i_Z])
+    i_Z=np.where(log10_Z_table>log10_Z)[0][0]
+    fracZ=(log10_Z-log10_Z_table[i_Z-1])/(log10_Z_table[i_Z]-log10_Z_table[i_Z-1])
     if not 0 <= fracZ <=1:
         print('log10_Z_table =',log10_Z_table)
         print('log10_Z =',log10_Z)
@@ -183,8 +188,8 @@ def F_get_metaldependent_cooling_rate(log10_T,log10_Z,cooling_table):
     assert 0 <= fracZ <=1, 'base_metallicity below minimum of cooling tables'
     # Interpolate in 2-d
     log10_Lambda_table = cooling_table.log10_Lambda_table
-    log10_Lambda0 = fracT*log10_Lambda_table[i_Z,i_T+1]+(1-fracT)*log10_Lambda_table[i_Z,i_T]
-    log10_Lambda1 = fracT*log10_Lambda_table[i_Z+1,i_T+1]+(1-fracT)*log10_Lambda_table[i_Z+1,i_T]
+    log10_Lambda0 = fracT*log10_Lambda_table[i_Z-1,i_T]+(1-fracT)*log10_Lambda_table[i_Z-1,i_T-1]
+    log10_Lambda1 = fracT*log10_Lambda_table[i_Z,i_T]+(1-fracT)*log10_Lambda_table[i_Z,i_T-1]
     log10_Lambda = fracZ*log10_Lambda1+(1-fracZ)*log10_Lambda0
     return 10.**log10_Lambda
 
