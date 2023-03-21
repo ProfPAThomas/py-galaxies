@@ -8,12 +8,17 @@ def F_gal_form_stars(gal,parameters):
    """
    Creates stars from gas in the cold gas disc.
    """
+   # We will need this later to set the new disc scale length
+   ang_mom_stars_disc = 2. * gal['mass_stars_disc'] * gal['v_vir'] * gal['radius_stars_disc']
+
+   # Determine the mass of stars formed before (mass_stars_imf) and after (mass_stars) prompt recycling
    sfr_model=parameters.sfr_model
    if sfr_model == "Unresolved":
       mass_stars_imf=F_star_formation_unresolved(gal['mass_gas_cold'],gal['radius_gas_cold'],gal['v_vir'], \
-                                             parameters.dt,parameters.sfr_efficiency,parameters.c_sfr_Mcrit)
+                                             parameters.dt_gal,parameters.sfr_efficiency,parameters.c_sfr_Mcrit)
    else:
       raise valueError('sfr model '+sfr_model+' not yet implemented')
+   if mass_stars_imf < parameters.mass_minimum_internal: return 0.
    # For now assume instantaneous recycling back into the cold gas
    # Then the mass stored in stars is that AFTER recycling, not the initial mass
    mass_stars=(1.-parameters.sfr_recycle_fraction)*mass_stars_imf
@@ -24,7 +29,18 @@ def F_gal_form_stars(gal,parameters):
    gal['mass_metals_gas_cold'] -= mass_metals_stars
    gal['mass_stars_disc'] += mass_stars
    gal['mass_metals_stars_disc'] += mass_metals_stars
-   
+
+   # Now we enrich our surroundings with prompt metals returned from the newly formed stars
+   # To begin with we will assume that all metal enrichment is prompt and everything goes to cold gas.
+   # (The return of gas mass to the cold gas has been handled by the recycling fraction above.)
+   gal['mass_metals_gas_cold'] += parameters.sfr_yield * mass_stars_imf
+   if gal['mass_metals_gas_cold']>gal['mass_gas_cold']*0.1:
+        print('Warning, high Z for cold gas: mass, Z =',gal['mass_gas_cold'],gal['mass_metals_gas_cold']/gal['mass_gas_cold'])
+
+   # We want to model the size of the stellar disc.  We do this using angular momentum (assuming exponential in shape)
+   ang_mom_stars_disc += mass_stars * gal['v_vir'] * gal['radius_gas_cold']
+   gal['radius_stars_disc'] = ang_mom_stars_disc / (2 * gal['mass_stars_disc'] * gal['v_vir'])      
+
    return mass_stars
 
 def F_star_formation_unresolved(mass_gas,R_d,v_vir,dt,sfr_efficiency,c_sfr_Mcrit):
@@ -37,10 +53,10 @@ def F_star_formation_unresolved(mass_gas,R_d,v_vir,dt,sfr_efficiency,c_sfr_Mcrit
    mass_excess = mass_gas-sfr_Mcrit
    # L-Galaxies assumes that dt/t_dyn <= 1 here.
    # It seems more correct to take an exponential decline (requires an exp but saves a check to see if mass goes negative)
-   if mass_gas>1.:
-       print('mass_excess/mass_gas = {:.3g}'.format(mass_excess/mass_gas))
-       print('dt, t_dyn, dt/t_dyn = {:.3g}, {:.3g}, {:.3g}'.format(dt,t_dyn,dt/t_dyn))
-       print('R_d, v_vir, t_dyn = {:.3g}, {:.3g}, {:.3g}'.format(R_d,v_vir,t_dyn))
+#    if mass_gas>10.:
+#        print('mass_excess/mass_gas = {:.3g}'.format(mass_excess/mass_gas))
+#        print('dt, t_dyn, dt/t_dyn = {:.3g}, {:.3g}, {:.3g}'.format(dt,t_dyn,dt/t_dyn))
+#        print('R_d, v_vir, t_dyn, SFE = {:.3g}, {:.3g}, {:.3g}, {:.3g}'.format(R_d,v_vir,t_dyn,(1.-np.exp(-sfr_efficiency*dt/t_dyn))))
    if mass_excess>0.:
       mass_stars = mass_excess * (1.-np.exp(-sfr_efficiency*dt/t_dyn))
    else:
@@ -61,6 +77,7 @@ def F_gal_SNR_feedback(mass_stars,gal,sub,halo,parameters):
    else:
       raise valueError('snr model '+snr_model+' not yet implemented')
    mass_reheat = mass_halo + mass_eject
+   #print('mass_halo, mass_eject =',mass_halo,mass_eject)
 
    # Need generic routine (as in L-Galaxies) to do these mass transfers, especially when get many components
    Zmet = gal['mass_metals_gas_cold'] / gal['mass_gas_cold']

@@ -14,11 +14,14 @@ plots:
  baryonFraction: False
  coldGas_halo: False
  coldGas_subhalo: False
- coldGasRadius: False
- stellarMass_halo: True
+ stellarMass_halo: False
  stellarMass_subhalo: True
- stellarHaloMassRatio: True
- stellarSubhaloMassRatio: True
+ stellarHaloMassRatio: False
+ stellarSubhaloMassRatio: False
+ coldGasRadius: True
+ stellarDiscRadius: True
+ coldGasMetallicity: True
+ stellarDiscMetallicity: True
  starFormationRate: False
 
 graphs:
@@ -68,13 +71,26 @@ coldGasRadius:
  xscale: 'log'
  yscale: 'log'
  markerType: '.'
- xlabel: '$M_\mathrm{subhalo}$ / M$_\odot$' # Units should really be an attribute of the data
+ xlabel: '$M_*$ / M$_\odot$'
  ylabel: '$R_\mathrm{d,cold gas}$ / kpc'
- legend:   True
+ legend:   False
  label:   'SAM galaxies'
  save_png: True
  save_pdf: False
- name:    'coldgas_radius'
+ name:    'gas_disc_radius'
+
+stellarDiscRadius:
+ figsize: [12,8]
+ xscale: 'log'
+ yscale: 'log'
+ markerType: '.'
+ xlabel: '$M_*$ / M$_\odot$' # Units should really be an attribute of the data
+ ylabel: '$R_\mathrm{d,stellar disc}$ / kpc'
+ legend:   False
+ label:   'SAM galaxies'
+ save_png: True
+ save_pdf: False
+ name:    'stellar_disc_radius'
 
 stellarMass_halo:
  figsize: [12,8]
@@ -127,6 +143,32 @@ stellarSubhaloMassRatio:
  save_png: True
  save_pdf: False
  name:    'stars_sub_ratio'
+
+coldGasMetallicity:
+ figsize: [12,8]
+ xscale: 'log'
+ yscale: 'linear'
+ markerType: '.'
+ xlabel: '$M_*$ / M$_\odot$' # Units should really be an attribute of the data
+ ylabel: '$Z_\mathrm{cold gas}$'
+ legend:   False
+ label:   'SAM galaxies'
+ save_png: True
+ save_pdf: False
+ name:    'gas_disc_Z'
+
+stellarDiscMetallicity:
+ figsize: [12,8]
+ xscale: 'log'
+ yscale: 'linear'
+ markerType: '.'
+ xlabel: '$M_*$ / M$_\odot$' # Units should really be an attribute of the data
+ ylabel: '$Z_\mathrm{stellar disc}$'
+ legend:   False
+ label:   'SAM galaxies'
+ save_png: True
+ save_pdf: False
+ name:    'stellar_disc_Z'
 
 starFormationRate:
  figsize: [12,8]

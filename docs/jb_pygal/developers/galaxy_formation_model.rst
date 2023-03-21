@@ -16,6 +16,16 @@ Accretion
 
 On each timestep, the baryonic content of each halo is checked and, if less than the global mean, it is topped up to that value.
 
+Reincorporation
+:::::::::::::::
+
+Gas that has been ejected from the halo may be reincorporated into the hot gas phase of the halo.
+
+Stripping
+:::::::::
+
+Satellite subhalos may have hot gas removed and transferred to the host halo either by tidal or ram pressure stripping.  Similarly, stars may be stripped from non-central galaxies and/or whole satellite galaxies disrupted and transferred to the stellar component of the host halo.
+
 Cooling
 :::::::
   
@@ -35,20 +45,11 @@ Galaxy merging
 
 At the beginning of each timestep, check for merging of satellite galaxies onto the central galaxy.  This will trigger a rearrangement of both stars and cold gas within the central galaxy, dependent upon the change in angular momentum.  It may or may not require imposition of an explicit starburst phase, or that may arise naturally from the compression of cold gas -- to be determined.  The black hole of the satellite will merge onto that of the central galaxy.
 
-Stripping
-:::::::::
-
-Satellite subhalos may have hot gas removed and transferred to the host halo either by tidal or ram pressure stripping.  Similarly, stars may be stripped from the central galaxy and/or whole satellite galaxies disrupted and transferred to the stellar component of the host halo.
-
-Accretion
-:::::::::
-
-The subhalo, if it is a central subhalo, may have accreted hot gas from the host halo.
 
 Cooling
 :::::::
 
-Hot gas will cool onto the central galaxy.
+Hot gas will cool onto the central galaxy, if that exists.
 
 Galaxies
 ^^^^^^^^
@@ -122,6 +123,29 @@ The following image shows a typical baryon fraction distribution.  Small halos c
    :width: 600
    :alt: baryon fraction versus halo mass
 
+The accreted gas is assumed to have some minimum, base metallicity due to the action of unresolved star formation (Population III and dwarf galaxies).
+
+
+Reincorporation of ejected gas
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The plan is eventually to move to a physically-motivated scheme whereby ejected gas is reincorporated when its entropy falls below that of gas at the edge of the halo (or in practice, if we assume that the density at the outer edge of the halo scales in the same way for the ICM and ejected gas, its virial temperature, scaled by the expansion factor, falls below that of the halo).
+
+For now however, we adopt the simpler scheme outlined in Hen15 whereby the reincorporation timescale scales inversely with the mass of the halo:
+
+.. math::
+
+   \dot{M}_\mathrm{eject}=-{M_\mathrm{eject}\over t_\mathrm{reinc}},\ \ \mathrm{where}\ \ t_\mathrm{reinc}=\gamma_\mathrm{reinc}{10^{10}\mathrm{M}_\odot\over M_{200c}}.
+   
+Note that Hen15 use the symbol :math:`\gamma'` in place of :math:`\gamma_\mathrm{reinc}` but we adopt the latter as being more explicit.
+
+
+Stripping
+^^^^^^^^^
+
+Not yet implemented.
+
+
 Cooling
 ^^^^^^^
 
@@ -189,8 +213,52 @@ It is hard to test the implementation of the cooling, but here at least is a plo
 
 Note that the underlying density profile will be an NFW profile `Navarro, Frenk & White <https://en.wikipedia.org/wiki/Navarro–Frenk–White_profile>`_ so the whole situation is rather more complicated than we have assumed, but implementing the increased complexity would almost certainly make very little difference to the results and would slow down the code.
 
+
+Subhalos
+--------
+
+
+Properties
+^^^^^^^^^^
+
+The properties of subhalos mirror those of halos.
+
+The following figure shows the range of virial speeds of subhalos compared to that of their host halos:
+
+.. image:: figs/sub_vvir_halo.png
+   :width: 600
+   :alt: virial speed of subhalos compared to that of host halo
+
+It can be seen that in most cases each halo contains a subhalo of very similar virial speed, plus possibly additional subhalos of lower virial speed.  In a couple of cases the subhalo has a higher virial speed than the host halo: in that case, we set the virial temperature of the subhalo to be equal to that of its host.
+
+
+Galaxy merging
+^^^^^^^^^^^^^^
+
+Currently a minimal model is in place in which all galaxies in a subhalo are merged into a single galaxy by adding all the relevant components together.  The angular momenta of the merging components are assumed to be aligned.
+
+Future models will:
+
+* trigger starbursts, depending upon the mass ratio of merging galaxies, and/or
+* follow the (vector) angular momentum of the merging galaxies, thus potentially leading to a large contraction in disc size.
+
+
+Cooling
+^^^^^^^
+
+The hot gas in the subhalo will cool onto the galaxy in the same manner as described above for gas cooling from the halo onto the subhalo.  The temperature of the cold gas in the ISM of the galaxyy is taken to be :math:`10^4\,\mathrm{K}`.
+
+
+Galaxies
+--------
+
+
+Properties
+^^^^^^^^^^
+
+
 Gas disc radius
----------------
+:::::::::::::::
 
 For an exponential disc of mass :math:`M` and scale-length :math:`R_\mathrm{d}` embedded within a halo that maintains a constant rotation speed, :math:`v`, the angular momentum is :math:`J=2MvR_\mathrm{d}`.  We can thus determine :math:`R_\mathrm{d}` if we know :math:`J`.
 
@@ -207,10 +275,15 @@ In each case the cold gas disc will expand or contract according to its new spec
 .. image:: figs/gal_coldgas_radius.png
    :width: 600
    :alt: cold gas disc radius versus subhalo mass
+
+Stellar disc radius
+:::::::::::::::::::
+
+The stellar disc radius is determined in the same way as the gas disc radius, by following the angular momentum of the stars.  The angular momentum of the gas that is turned into stars (after prompt recycling) is transferred from the cold gas disk to the stellar disc.
 	 
 
 Star formation
---------------
+^^^^^^^^^^^^^^
 
 ..  For molecular gas, `Sun etal 2023 <https://arxiv.org/abs/2302.12267>`_ give :math:`\dot{M}_\mathrm{star}=M_\mathrm{mol}/\tau_\mathrm{SFR}` where :math:`\tau_\mathrm{SFR}=10^{9.4}\,` yr for nearby galaxies.  There is some residual scatter which could, presumably, correlate with different local environment, such as dynamical time of the disc.
 
@@ -224,7 +297,7 @@ where :math:`M_\mathrm{SFgas}` is the mass of star forming gas, :math:`M_\mathrm
 Depending upon the model, :math:`M_\mathrm{SFgas}` may be the total mass of the cold disc, or the mass of molecular gas, and may or may not be split up into annular rings.
 
 Simple model
-^^^^^^^^^^^^
+::::::::::::
 
 The simplest model, used in `L-Galaxies 2015 <https://arxiv.org/abs/1410.0365>`_, takes
 
@@ -245,8 +318,43 @@ Both :math:`\alpha_\mathrm{SFR}` and :math:`M_\mathrm{crit,0}` are taken to be f
 
 The model assumes that the disc scale length is unaffected by star formation, whereas in practice we might expect stars to form mainly from the central regions where the molecular gas fraction is higher and the local dynamical time is shorter.
 
+Metal enrichment
+^^^^^^^^^^^^^^^^
+
+When stars form they lock up metals from the cold gas (ISM) in proportion to the mass of stars formed.  They then generate further metals within their cores which are returned to the interstellar  gas (ISG: ISM + corona) at the end of their lives, the main channels being stellar winds from asymptotic giant branch (AGB) stars (:math:`0.6,\mathrm{M}_\odot\lesssim M_*\lesssim 8\,\mathrm{M}_\odot`), Type II supernova (:math:`M_*\gtrsim 8\mathrm{M}_\odot`), and Type 1a supernovae (accretion in evolved binary star systems).  Of these, only Type II are expected to be 'prompt' returning their metals to the ISG within approximately 30 Myr; the other two mechanisms are extended over much longer time periods.
+
+The simplest models of metal enrichment do not distinguish between different chemical elements and assume that all feedback is prompt, which is a gross approximation; they also return metals solely into the ISM whereas one might expect some fraction to go injected directly into the corona, especially from the non-prompt mechanisms.
+
+We thus need several parameters/switches to describe the possible metal enrichment models:
+
+* **metal_model**:
+
+  - simple: only one overall metallicity;
+  - mechanism: distinguish between the three metal enrichment mechanisms;
+  - full: follow the full range of metals (in practice limited to a set number of main elements).
+
+* **feedback_timing**:
+
+  - prompt: prompt feedback only; combines all feedback mechanisms;
+  - delayed: match to actual lifetime of stars; requires star formation history to be implemented and a non-simple metal_model.
+
+* feedback_location:
+  Rather than implement this as a model choice, it is simpler to specify the fraction of returned gas (and metals) going into each phase:
+
+  - **fraction_Z_hot**: fraction of recycled gas going into the hot (and ejected) phases; for use only with the simple feedback_timing model;
+  - **fraction_Z_prompt_hot**: fraction of prompt recycled gas going into the hot (and ejected) phases; for use only with the delayed feedback_timing model;
+  - **fraction_Z_delayed_hot**: fraction of non-prompt recycled gas going into the hot (and ejected) phases; for use only with the delayed feedback_timing model;
+
+The simple model in Hen15 uses:
+
+* metal_model - simple
+* feedback_timing - prompt
+* fraction_Z_hot - 0.
+
+and at the time of writing this is the only one implemented.
+
 Stellar feedback
-----------------
+^^^^^^^^^^^^^^^^
 
 Stellar feedback is presumed to be prompt and mostly from radiation pressure around young star-forming regions and Type II supernovae -- there will also be later feedback from AGB winds and Type Ia supernovae, but this will be more isolated and sporadic and it is assumed that the heated gas will quickly cool back onto the cold gas disk (ISM).
 
@@ -355,4 +463,5 @@ The following plots show inthe top row the variation of mass and ejection fracti
 .. image:: figs/mu_epsilon_vvir.png
    :width: 600
    :alt: mass and energy heating fractions as the halo virial speed is increased.
+	 
 	 

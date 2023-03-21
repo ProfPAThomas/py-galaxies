@@ -19,11 +19,6 @@ b_debug:
  Description: 'Print out debugging diagnostics'
  Value: False
 
-b_test_update:
- Description: 'No physics: number and mass simply trace progenitor count'
- Value: True
-
-
 # Model switches
 
 b_HOD:

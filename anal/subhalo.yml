@@ -1,9 +1,13 @@
 # Subhalo plot parameters
 
 inputFiles:
- subhaloFile: 'data/nofeedSubhaloOutput.hdf5'
- galaxyFile:  'data/nofeedGalaxyOutput.hdf5'
-save_prefix: 'nofeed_sub_'
+#  subhaloFile: 'data/nofeedSubhaloOutput.hdf5'
+#  galaxyFile:  'data/nofeedGalaxyOutput.hdf5'
+# save_prefix: 'test_sub_'
+ haloFile: 'data/testHaloOutput.hdf5'
+ subhaloFile: 'data/testSubhaloOutput.hdf5'
+ galaxyFile:  'data/testGalaxyOutput.hdf5'
+save_prefix: 'test_sub_'
 
 # The following should really be attributes of the data
 cosmo:
@@ -12,6 +16,7 @@ cosmo:
 plots:
  velocityDispersion: False
  virialTemperature: False
+ virialSpeedVersusHalo: True
  baryonFraction: False # Not yet included in output file
  hotGas: True
  hotGasMetallicity: True
@@ -51,6 +56,19 @@ virialTemperature:
  save_png: True
  save_pdf: False
  name:    'temp'
+
+virialSpeedVersusHalo:
+ figsize:  [12,8]
+ xscale:  'log'
+ yscale:  'log'
+ markerType: '.'
+ xlabel:  '$v_\mathrm{vir,halo} / \mathrm{km}\,\mathrm{s}^{-1}$'
+ ylabel:  '$v_\mathrm{vir,subhalo} / \mathrm{km}\,\mathrm{s}^{-1}$'
+ legend:   False
+ label:   ' '
+ save_png: True
+ save_pdf: False
+ name:    'vvir_halo'
 
 hotGas:
  figsize: [12,8]

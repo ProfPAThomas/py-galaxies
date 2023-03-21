@@ -122,7 +122,7 @@ model_switches:
   Description: 'Mimic L-galaxies base model as closely as possible'
   Value:        True
  b_halo_angmom:
-  Description: 'Do the halo catalogues contain amgular momentum?'
+  Description: 'Do the halo catalogues contain angular momentum?'
   Value:        False
   
 model_parameters:
@@ -132,7 +132,7 @@ model_parameters:
   Units:       'u.yr'
  timestep_galaxies:
   Description: 'Minimum timestep size for galaxy operations'
-  Value:        !!float 3e7
+  Value:        !!float 1e7
   Units:       'u.yr'
  mass_minimum:
   Description: 'The minimum mass that is considered larger than 0.'
@@ -170,7 +170,7 @@ astrophysics:
   Units:       'None'
  halo_angular_momentum:
   Description: 'Specific angular momentum of halos if not explicit in catalogues = collapse factor; only used if !b_halo_angmom'
-  Value:        0.06
+  Value:        0.12   # I have 0.06 in my head, but that gives disc radii that are far too small
   Units:       'None'
  sfr_model:
   Description: 'The star formation model'
@@ -178,7 +178,7 @@ astrophysics:
   Units:       'None'
  sfr_efficiency:
   Description: 'Star formation efficiency, alpha_{SFR}'
-  Value:        0.025
+  Value:        0.005  # Hen15 value of 0.025 seems to give far too much star formation
   Units:       'None'
  sfr_Mcrit0:
   Description: 'Star formation M_{crit0}, from Hen15 star formation model'
@@ -193,7 +193,7 @@ astrophysics:
   Value:       'Hen15'  # Hen15, ...
   Units:       'None' 
  Hen15_v_snr:
-  Description: 'Reheating efficiency; Hen15 S17'
+  Description: 'Sets reheating energy from SNR; Hen15 S17'
   Value:        630
   Units:       'u.km/u.s'
  Hen15_eta:
@@ -219,5 +219,13 @@ astrophysics:
  Hen15_beta1:
   Description: 'Reheating mass loading slope; Hen15 S19'
   Value:        0.72
+  Units:       'None'
+ Hen15_gamma_reinc:
+  Description: 'Controls the rate of reincorporation of gas'
+  Value:        !!float 3e10
+  Units:       'u.yr'
+ sfr_yield:
+  Description: 'Yield of metals per unit mass of stars formed (before recycling)'
+  Value:        0.046
   Units:       'None'
   

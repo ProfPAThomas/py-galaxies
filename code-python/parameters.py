@@ -155,6 +155,8 @@ class C_parameters:
         # Quantities that need to be in internal code units for use in functions
         self.Hen15_v_eject_internal = (self.Hen15_v_eject/self.units_speed_internal).si.value
         self.Hen15_v_reheat_internal = (self.Hen15_v_reheat/self.units_speed_internal).si.value
+        # Reincoportation. The following gets divided by mass, hence the units
+        self.c_Hen15_reinc = (self.Hen15_gamma_reinc*1e10*c.M_sun/(self.units_time_internal*self.units_mass_internal)).si.value
 
         # Gravitational constant: units L^3/T^2M
         self.c_G=(c.G/self.units_length_internal**3*self.units_time_internal**2*self.units_mass_internal).si.value

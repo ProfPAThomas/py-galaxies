@@ -7,6 +7,7 @@ Major structural development
 * Add in performance monitoring & test timing.
 * Work out how to interface to C-routines
 * Implement MCMC to optimise parameters
+* Implement multiple metallicities
 * Implement resolved discs
 * Implement star formation and metal enrichment histories
 * Write a galaxy formation primer that gradually switches on the astrophysics, one step at a time, and illustrates the effect on the galaxy population.
@@ -15,10 +16,6 @@ Minor structural development
 ----------------------------
 
 * Go through routines and document headers in numpy format; create API interface in documentation.
-
-* Implement mini-steps
-
-  - Done for halos; might need to do for galaxies also
 
 * Pre-processing merger graph to:
   
@@ -55,7 +52,6 @@ Galaxy physics modules to import from L-galaxies
   - implement a version with no resolved discs:
 
     + basic implementation done
-    + need to add yields
     + need to add SFR extraction
     + need to test (star formation seems very strong at the moment)
     

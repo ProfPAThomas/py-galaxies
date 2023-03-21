@@ -83,7 +83,7 @@ def F_halo(halo,sub,cooling_table,parameters):
         sub.half_mass_virial_speed = halo.half_mass_virial_speed
     elif parameters.cooling_model == 'SIS':
         mass_cooled=F_cooling_SIS(halo.mass,halo.tau_dyn,halo.half_mass_radius,halo.mass_gas_hot,halo.mass_metals_gas_hot,
-                                  halo.temperature,sub.temperature,parameters.dt,cooling_table)
+                                  halo.temperature,sub.temperature,parameters.dt_halo,cooling_table)
         mass_metals_cooled  = (mass_cooled/halo.mass_gas_hot) * halo.mass_metals_gas_hot
         halo.mass_gas_hot -= mass_cooled
         halo.mass_metals_hot -= mass_metals_cooled
@@ -112,7 +112,7 @@ def F_sub(sub,gal,cooling_table,parameters):
     if parameters.cooling_model == 'SIS':
         gal_temperature=1e4*u.K/parameters.units_temperature_internal  # Cool down to 1e4 K
         mass_cooled=F_cooling_SIS(sub.mass,sub.tau_dyn,sub.half_mass_radius,sub.mass_gas_hot,sub.mass_metals_gas_hot,
-                                  sub.temperature,gal_temperature,parameters.dt,cooling_table)
+                                  sub.temperature,gal_temperature,parameters.dt_halo,cooling_table)
         mass_metals_cooled  = (mass_cooled/sub.mass_gas_hot) * sub.mass_metals_gas_hot
         sub.mass_gas_hot -= mass_cooled
         sub.mass_metals_gas_hot -= mass_metals_cooled
@@ -160,8 +160,6 @@ def F_cooling_SIS(mass,tau_dyn,half_mass_radius,mass_gas,mass_metals_gas,temp_st
             fg=fg0*np.exp(-dt_ratio)
         else:
             fg=fg0/(tau_ratio*(1+0.5*(dt_ratio-teq_ratio))**2)
-    #if 100<mass<110.: print('cooling:F_cooling_SIS: temp_start, tau_dyn, tau_cool, dt_ratio, fg0, fg =',
-    #      temp_start,tau_dyn,tau_cool,dt_ratio,fg0,fg)
     
     return fg*mass
 
@@ -179,13 +177,18 @@ def F_get_metaldependent_cooling_rate(log10_T,log10_Z,cooling_table):
     fracT=(log10_T-log10_T_table[i_T-1])/(log10_T_table[i_T]-log10_T_table[i_T-1])
     assert 0 <= fracT <=1
     log10_Z_table = cooling_table.log10_Z_table
-    i_Z=np.where(log10_Z_table>log10_Z)[0][0]
+    try:
+        i_Z=np.where(log10_Z_table>log10_Z)[0][0]
+    except:
+        print('log10_Z_table =',log10_Z_table)
+        print('log10_Z =',log10_Z)
+        i_Z=-1
     fracZ=(log10_Z-log10_Z_table[i_Z-1])/(log10_Z_table[i_Z]-log10_Z_table[i_Z-1])
     if not 0 <= fracZ <=1:
         print('log10_Z_table =',log10_Z_table)
         print('log10_Z =',log10_Z)
         print('i_Z =',i_Z)
-    assert 0 <= fracZ <=1, 'base_metallicity below minimum of cooling tables'
+    assert 0 <= fracZ, 'base_metallicity below minimum of cooling tables'
     # Interpolate in 2-d
     log10_Lambda_table = cooling_table.log10_Lambda_table
     log10_Lambda0 = fracT*log10_Lambda_table[i_Z-1,i_T]+(1-fracT)*log10_Lambda_table[i_Z-1,i_T-1]

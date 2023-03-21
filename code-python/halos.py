@@ -108,7 +108,6 @@ class C_halo:
       self.inclusive_contribution = 0.       
       self.n_dt = 0 # Number of times that this halo has been processed
       self.b_done = False # Has this halo been fully processed or not.
-      self.b_desc_exists = True  # Needed to prevent trying to pass properties on to non-existent halo!
 
       # Subhalos
       self.n_sub = graph.n_sub_halo[halo_gid]
