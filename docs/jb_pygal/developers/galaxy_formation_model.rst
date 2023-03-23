@@ -386,7 +386,7 @@ where :math:`\mu_\mathrm{disc}+\mu_\mathrm{halo}+\mu_\mathrm{eject}\equiv\mu_\ma
 Hen15
 :::::
 
-The maximum amount of gas reheated is given by :math:`\Delta M_\mathrm{reheat,max}=\mu_\mathrm{reheat,max}\Delta M_*`, where :math:`\epsilon_\mathrm{reheat}` is an efficiency factor controlled by three parameters of the model:
+The maximum amount of gas reheated is given by :math:`\Delta M_\mathrm{reheat,max}=\mu_\mathrm{reheat,max}\Delta M_*`, where :math:`\mu_\mathrm{reheat}` is an efficiency factor controlled by three parameters of the model:
 
 .. math::
 
@@ -409,7 +409,7 @@ The specific energy required to reheat the gas is taken to be :math:`{1\over2}v_
 That then limits the total amount of gas that can be reheated to
 
 .. math::
-   \Delta M_\mathrm{reheat}=\min(\Delta M_\mathrm{reheat,max},\Delta M_\mathrm{SNR}).
+   \Delta M_\mathrm{reheat}=\min(\Delta M_\mathrm{reheat,max},\Delta M_\mathrm{SNR},\Delta M_\mathrm{cold gas}).
 
 Finally, any excess energy is used to eject reheated gas from the halo, again assuming that this takes an extra specific energy of :math:`{1\over2}v_\mathrm{vir}^2`:
 
