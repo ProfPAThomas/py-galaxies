@@ -366,35 +366,80 @@ The energy available from supernovae, :math:`\Delta E_\mathrm{SNR}` will be prop
 
 where :math:`v_\mathrm{SNR}` is a parameter of the model.
 
-We assume that this energy gets injected into an amount of gas, :math:`\Delta_\mathrm{heat}`, that is directly proportional to :math:`\Delta M_*`,
-
-.. math::
-
-   \Delta M_\mathrm{heat}=F_\mathrm{heat}\Delta M_*,
-
-where :math:`F_\mathrm{heat}` is a fixed parameter.  We can write
-
-.. math::
-
-   \Delta E_\mathrm{SNR}=\mathcal{E}_\mathrm{SNR}\Delta M_\mathrm{heat},\ \ \mathrm{where}\ \ \mathcal{E}_\mathrm{SNR}={v_\mathrm{SNR}^2\over2F_\mathrm{heat}}
-
-is the effective specific energy that SNR inject into the surrounding gas.
-
-Of this energy, some will be used up in heating gas that then rapidly cools down and is reassimilated into the cold gas disc (ISM); some will heat gas high enough that it joins the corona (i.e. subhalo hot gas) and some will heat gas to a high enough temperature that it escapes the subhalo altogether (ie ejected gas).  To keep the model simple, we place this gas not in the halo (from where it could escape still further) but into an **Ejected** phase that is loosely bound to the halo but not within the virial radius.  That gas will become available for re-accretion onto the halo once its (mean) entropy drops below that of the halo gas.  We write
+This energy is used up in three ways: some will be used up in heating gas that then rapidly cools down and is reassimilated into the cold gas disc (ISM), some will heat gas high enough that it joins the corona (i.e. subhalo hot gas), and some will heat gas to a high enough temperature that it escapes the subhalo altogether (i.e. ejected gas).  To keep the model simple, we place this gas not in the halo (from where it could escape still further) but into an **Ejected** phase that is loosely bound to the halo but not within the virial radius.  That gas will become available for re-accretion onto the halo once its (mean) entropy drops below that of the halo gas.  We write
 
 .. math::
 
    \Delta E_\mathrm{SNR}=\Delta E_\mathrm{disc}+\Delta E_\mathrm{halo}+\Delta E_\mathrm{eject} =\Delta E_\mathrm{SNR}(\epsilon_\mathrm{disc}+\epsilon_\mathrm{halo}+\epsilon_\mathrm{eject}),
 
-where :math:`\epsilon_\mathrm{disc}+\epsilon_\mathrm{halo}+\epsilon_\mathrm{eject}=1`.  For consistency with previous nomenclature, we write :math:`\epsilon_\mathrm{reheat}=\epsilon_\mathrm{halo}+\epsilon_\mathrm{eject}`.
+where :math:`\epsilon_\mathrm{disc}+\epsilon_\mathrm{halo}+\epsilon_\mathrm{eject}=1`.  For consistency with previous nomenclature, we write for the total amount of energy used to reheat gas that does not immediately cool back down onto the ISM
+:math:`\epsilon_\mathrm{reheat}=\epsilon_\mathrm{halo}+\epsilon_\mathrm{eject}`.
 
-Similarly
+Similarly, we assume that this energy gets injected into a total amount of gas, :math:`\Delta_\mathrm{heat}` that can be broken up as follows
 
 .. math::
 
    \Delta M_\mathrm{heat}=\Delta M_\mathrm{disc}+\Delta M_\mathrm{halo}+\Delta M_\mathrm{eject} =\Delta M_\mathrm{heat}(\mu_\mathrm{disc}+\mu_\mathrm{halo}+\mu_\mathrm{eject}),
 
 where :math:`\mu_\mathrm{disc}+\mu_\mathrm{halo}+\mu_\mathrm{eject}\equiv\mu_\mathrm{disc}+\mu_\mathrm{reheat}=1`.
+
+Hen15
+:::::
+
+The maximum amount of gas reheated is given by :math:`\Delta M_\mathrm{reheat,max}=\mu_\mathrm{reheat,max}\Delta M_*`, where :math:`\epsilon_\mathrm{reheat}` is an efficiency factor controlled by three parameters of the model:
+
+.. math::
+
+   \mu_\mathrm{reheat,max}=\epsilon\left[0.5+\left(v_\mathrm{vir}\over v_\mathrm{reheat}\right)^{-\beta1}\right].
+
+Note that Hen15 use the term :math:`\epsilon_\mathrm{disk}` in place of :math:`\mu_\mathrm{reheat}` which is at variance with the terminology introduced above.
+
+The amount of supernova energy that goes into reheated gas is :math:`\Delta E_\mathrm{reheat}=\epsilon_\mathrm{reheat}\Delta E_\mathrm{SNR}`, where once again we have changed the terminology, in this case from :math:`\epsilon_\mathrm{halo}` to :math:`\epsilon_\mathrm{reheat}`, and :mathrm:`\epsilon_\mathrm{reheat}` is given by
+
+.. math::
+
+   \epsilon_\mathrm{reheat}=\eta\left[0.5+\left(v_\mathrm{vir}\over v_\mathrm{eject}\right)^{-\beta2}\right].
+
+
+The specific energy required to reheat the gas is taken to be :math:`{1\over2}v_\mathrm{vir}^2` which means that the maximum amount of gas that can be reheated is given by
+
+.. math::
+   \Delta M_\mathrm{SNR}={2\epsilon_\mathrm{reheat}\Delta E_\mathrm{SNR}\over v_\mathrm{vir}^2}.
+
+That then limits the total amount of gas that can be reheated to
+
+.. math::
+   \Delta M_\mathrm{reheat}=\min(\Delta M_\mathrm{reheat,max},\Delta M_\mathrm{SNR}).
+
+Finally, any excess energy is used to eject reheated gas from the halo, again assuming that this takes an extra specific energy of :math:`{1\over2}v_\mathrm{vir}^2`:
+
+.. math::
+
+   \Delta M_\mathrm{eject}=\min(\Delta M_\mathrm{reheat},\Delta M_\mathrm{SNR}-\Delta M_\mathrm{reheat}).
+
+
+New model
+:::::::::
+
+Our new model [not yet implemented!] is similar in spirit to Hen15 but with the following changes:
+
+* :math:`\Delta M_\mathrm{heat}` is taken as directly proportional to :math:`\Delta M_*`:
+
+  .. math::
+
+     \Delta M_\mathrm{heat}=F_\mathrm{heat}\Delta M_*,
+
+  where :math:`F_\mathrm{heat}` is a fixed parameter rather than a function of virial speed.
+
+* The fraction of reheated gas that is ejected is determined by the model, rather being proportional to the energy left over after reheating to the halo phase.
+
+We write
+
+.. math::
+
+  \Delta E_\mathrm{SNR}=\mathcal{E}_\mathrm{SNR}\Delta M_\mathrm{heat},\ \ \mathrm{where}\ \ \mathcal{E}_\mathrm{SNR}={v_\mathrm{SNR}^2\over2F_\mathrm{heat}}
+
+is the effective specific energy that SNR inject into the surrounding gas.
 
 In low mass halos for which the virial speed of the halo is such that :math:`v_\mathrm{vir}\ll v_\mathrm{SNR}`, then most mass will be ejected; on the other hand, if :math:`v_\mathrm{vir}\gg v_\mathrm{SNR}` then almost all gas will fail to heat up to the virial temperature of the subhalo.  It is not unreasonable then to treat the :math:`\epsilon` s and :math:`\mu` s as decreasing functions of :math:`v_\mathrm{vir}/v_\mathrm{SNR}`.
 
@@ -463,5 +508,3 @@ The following plots show inthe top row the variation of mass and ejection fracti
 .. image:: figs/mu_epsilon_vvir.png
    :width: 600
    :alt: mass and energy heating fractions as the halo virial speed is increased.
-	 
-	 
