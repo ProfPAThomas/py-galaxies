@@ -394,7 +394,7 @@ The maximum amount of gas reheated is given by :math:`\Delta M_\mathrm{reheat,ma
 
 Note that Hen15 use the term :math:`\epsilon_\mathrm{disk}` in place of :math:`\mu_\mathrm{reheat}` which is at variance with the terminology introduced above.
 
-The amount of supernova energy that goes into reheated gas is :math:`\Delta E_\mathrm{reheat}=\epsilon_\mathrm{reheat}\Delta E_\mathrm{SNR}`, where once again we have changed the terminology, in this case from :math:`\epsilon_\mathrm{halo}` to :math:`\epsilon_\mathrm{reheat}`, and :mathrm:`\epsilon_\mathrm{reheat}` is given by
+The amount of supernova energy that goes into reheated gas is :math:`\Delta E_\mathrm{reheat}=\epsilon_\mathrm{reheat}\Delta E_\mathrm{SNR}`, where once again we have changed the terminology, in this case from :math:`\epsilon_\mathrm{halo}` to :math:`\epsilon_\mathrm{reheat}`, and :math:`\epsilon_\mathrm{reheat}` is given by
 
 .. math::
 
@@ -409,7 +409,7 @@ The specific energy required to reheat the gas is taken to be :math:`{1\over2}v_
 That then limits the total amount of gas that can be reheated to
 
 .. math::
-   \Delta M_\mathrm{reheat}=\min(\Delta M_\mathrm{reheat,max},\Delta M_\mathrm{SNR},\Delta M_\mathrm{cold gas}).
+   \Delta M_\mathrm{reheat}=\min(\Delta M_\mathrm{reheat,max},\Delta M_\mathrm{SNR},M_\mathrm{cold gas}).
 
 Finally, any excess energy is used to eject reheated gas from the halo, again assuming that this takes an extra specific energy of :math:`{1\over2}v_\mathrm{vir}^2`:
 
@@ -421,7 +421,7 @@ Finally, any excess energy is used to eject reheated gas from the halo, again as
 New model
 :::::::::
 
-Our new model [not yet implemented!] is similar in spirit to Hen15 but with the following changes:
+Our new model is **not yet implemented** and its premises will need testing against ability to reproduce the observations.  It is similar in spirit to Hen15 but with the following changes:
 
 * :math:`\Delta M_\mathrm{heat}` is taken as directly proportional to :math:`\Delta M_*`:
 
