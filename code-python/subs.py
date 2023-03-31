@@ -1,3 +1,7 @@
+"""
+Class files for storage and output of subhalo properties
+"""
+
 import h5py
 import numpy as np
 
@@ -8,54 +12,70 @@ class C_sub:
     No sophisticated methods, it just truncates the GraphProperites class to 
     ensure data from the current generation is selected.
 
-    Arrays are reference with slicing here [:], so will either be:
-    * read from disk into memory, if graph contains dataset pointers;
-    * a view into the corresponding graph arrays if those are already in memory.
+    All physical quantities are in internal code units.
     
     Attributes
     ----------
-    graph_ID : str
+    graph_ID : int
         The graph_ID (from HDF5 group).
     snap_ID : int
          The snapshot ID currently being processed.
     halo_gid : int
         The halo ID relative to the graph of the host halo.
+    halo_sid : int
+        The halo ID relative to the snapshot.
     sub_gid : int
         The subhalo ID relative to the graph of the subhalo currently being processed.
-    catalog_ID : int
-        The ID of the subhalo corresponding to the original catalog.
-    mass : int [Inconsistent with description below.]
-        Mass of halo. Amount of dark matter particles * mass of particle.
-    nprog : int
-        The number of direct progenitors.
-    prog_start_gid : int
-        The index at which this halo's progenitors start.
-    if b_HALO_FULL=True:
-        prog_ids : narray of type 'int'
-           Numpy array of the progenitor IDs for the halo.
-        prog_mass : ndarry of type 'float'
-           Numpy array of the progenitor mass contributions.
-    ndesc : int
-        The number of direct descendents.
-    desc_start_gid : int
-        The index at which this halo's descendents start.
-    desc_end_gid : int
-        The index at which this halo's descendents end.
-    if b_HALO_FULL=True:
-        desc_ids : ndarray of type 'int'
-           Numpy array of the halo's descendent IDs of type.
-        desc_mass : ndarray of type 'float'
-           Numpy array of the descendent mass contributions.
-    mass_baryon : float
-        Mass of Baryons within the halo.
-    mass_from_progenitors : float 
-        Total mass of all the progenitor halos.
-    mass_baryon_from_progenitors : float
-        Total mass of all the Baryons contained within the progenitor halos.
-    inclusive_contribution : float
-        The amount of mass that goes 'missing' when a halo descends.
+    sub_sid : int
+        The subhalo ID relative to the snapshot.
     b_done : bool
-        Whether or not the halo has been processed.
+        Whether or not the subhalo has been fully processed.
+    gal_central_sid : int
+        The location in the current galaxy array of the most massive galaxy in the subhalo.
+    gal_end_sid : int
+        The location in the current galaxy array of the last galaxy in the subhalo (+1 because of python indexing)
+    gal_next_sid : int
+        Galaxy counter used when updating galaxies within the halo
+    gal_start_sid : int
+        The location in the current galaxy array of the first galaxy in the subhalo
+    desc_end_gid : int
+        The index relative to the graph at which this subhalo's descendents end.
+    desc_halo_sid : int
+        The index relative to the snapshot of the host halo of this subhalo.
+    desc_start_gid : int
+        The index relative to the graph at which this subhalo's descendents start.
+    half_mass_radius : float
+        The radius containing half the total mass in the DM-only sim
+    half_mass_virial_speed : float
+        The circular speed at the half-mass radius
+    mass : float
+        The DM-only mass of the subhalo.
+    mass_baryon : float
+        Mass of baryons within the subhalo, inclusive of galaxies
+    mass_gas_hot : float
+        The mass of hot gas
+    mass_stars : float
+        The mass of stars
+    mass_metals_gas_hot : float
+        The mass of metals in hot gas
+    mass_metals_stars : float
+        The mass of metals in stars
+    n_desc : int
+        The number of direct descendants.
+    n_dt : int
+        Number of times that this halo has been processed this snapshot
+    n_gal : int
+        The number of galaxies in the halo, inclusive of subhalos
+    pos : float[3]
+        The position of the subhalo.
+    rms_speed : float
+        The rms speed in the DM-only sim.
+    tau_dyn : float
+        The dynamical time at twice the half-mass radius
+    temperature : float
+        The temperature as derived from the virial speed
+    vel : float[3]
+        Velocity of the subhalo
  
     """   
    def __init__(self,graph_ID,snap_ID,sub_gid,graph,parameters):
@@ -64,15 +84,15 @@ class C_sub:
     
        Parameters
        ----------
-       graph_ID : str
+       graph_ID : int
            The graph_ID (from HDF5 group).
        snap_ID : int
            The snapshot ID currently being processed.
        sub_gid : int
            The subhalo ID relative to the graph of the subhalo currently being processed.
-       graph : an instance of the class C_graph
-           The graph contianing this halo.
-       parameters : an instance of the class C_parameters
+       graph : obj : C_graph
+           The graph containing this halo.
+       parameters : obj : C_parameters
            The global parameters for this SAM run.
            
       """
@@ -98,7 +118,7 @@ class C_sub:
       self.temperature = self.half_mass_virial_speed**2 * parameters.c_half_mass_virial_speed_to_temperature
       self.tau_dyn = 2.*self.half_mass_radius/self.half_mass_virial_speed
       # SAM properties
-      self.mass_baryon =  0. # 1e-10 # Small, non-zero value because no cooling onto subhalos when first formed.
+      self.mass_baryon =  0.
       self.mass_gas_hot = 0.
       self.mass_metals_gas_hot = 0.
       self.mass_stars = 0.
@@ -119,7 +139,17 @@ class C_sub:
 
    def gal_count(self,n_gal):
       """
-      Returns the current galaxy counter and updates it
+      Returns the current galaxy counter and updates it.
+
+      Parameters
+      ----------
+      n_gal : int
+         The number of galaxies being added to the subhalo
+
+      Returns
+      -------
+      int
+         The galaxy counter upon entry (ie before updating)
       """
       gal_next_sid = self.gal_next_sid
       self.gal_next_sid += n_gal
@@ -128,6 +158,17 @@ class C_sub:
    def gal_loc(self,gal_start_sid):
       """
       Sets the location of this subhalo's galaxies in the galaxy lookup table.
+      Also sets the location counter gal_next_sid to be the equal to the gal_star_sid, to initialise updating.
+
+      Parameters
+      ----------
+      gal_start_sid : int
+         The start location of this subhalos galaxies in the galaxy array for this graph/snapshot.
+
+      Returns
+      -------
+      int
+         The start location of this subhalos galaxies in the galaxy array for this graph/snapshot (+1 for python indexing).
       """
       # Require subhalo to have at least 1 galaxy
       self.n_gal = max(self.n_gal,1)
@@ -140,27 +181,38 @@ class C_sub:
        """
        Calculates the total baryonic mass of the subhalo, including galaxies.
        Returns value rather than setting it because being used as a check on simpler method.
+
+       Parameters
+       ----------
+       gals : obj : D_gal[]
+          Array of records for the galaxies in this subhalo.
+
+       Returns
+       -------
+       float
+          The baryonic mass of the subhalo, inclusive of galaxies.
        """
-       mass_baryon = self.mass_gas_hot + self.mass_stars
-       mass_baryon += np.sum(gals[self.gal_start_sid:self.gal_end_sid]['mass_gas_cold'])
-       mass_baryon += np.sum(gals[self.gal_start_sid:self.gal_end_sid]['mass_stars_bulge'])
-       mass_baryon += np.sum(gals[self.gal_start_sid:self.gal_end_sid]['mass_stars_disc'])
+       mass_baryon = self.mass_gas_hot + self.mass_stars + \
+                       np.sum(gals[self.gal_start_sid:self.gal_end_sid]['mass_baryon'])
        return mass_baryon
         
 class C_sub_output:
    
    """
    This class contains the attributes and methods for the subhalo output files.
+
    Attributes
    ----------
-
-   Methods
-   -------
-   __init__
-   append - add subhalos to output buffer
-   close - flush io buffer then close HDF5 file
-   flush - flush output buffer to HDF5 dataset
-   
+   sub_file : obj : File
+      HDF5 file for subhalo output
+   i_rec : int
+      Counter for how many records have been created.
+   io_buffer : obj " D_gal[n_rec]
+      Storage for subhalo records prior to outputting. 
+   n_rec : int
+      Number records to be buffered before outputting.
+   dataset : obj : HDF5 dataset
+      HDF5 dataset to which the data is output. 
    """
    def __init__(self,parameters):
       """
@@ -168,10 +220,10 @@ class C_sub_output:
       Creates the subhalo output buffer.
       Creates the HDF5 halo dataset.
 
-      Parameters:
-      -----------
+      Parameters
+      ----------
       parameters : obj : C_parameters
-         Contains the global run paramters.
+         Contains the global run parameters.
       """
       # Open file for output
       self.sub_file = h5py.File(parameters.subhalo_file,'w')
@@ -203,8 +255,7 @@ class C_sub_output:
 
    def close(self):
       """
-      Empties the halo io buffer, closes the halo dataset, and
-      closes the halo output file
+      Empties the halo io buffer, closes the halo dataset, and closes the subhalo output file.
       """
       self.flush()
       # self.dataset.close() # There does not seem to be a need to close datasets.
@@ -222,12 +273,14 @@ class C_sub_output:
 
    def append(self,subs,parameters):
       """
-      Extracts the quantities desired for halo_output and adds them to the io buffer,
-      flushing if required.
+      Extracts the quantities desired for halo_output and adds them to the io buffer, flushing if required.
+
       Parameters
       ----------
-         subs - list of C_sub objects to be output
-         parameters - C_parameters class file containing the global run parameters
+         subs : obj : C_sub[]
+            list of C_sub objects to be output.
+         parameters : obj : C_parameters
+            The global run parameters.
       """
       for sub in subs:
          self.io_buffer[self.i_rec]['graph_ID'] = sub.graph_ID

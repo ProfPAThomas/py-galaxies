@@ -1,68 +1,56 @@
+"""
+Class file for reading and storage of graph properties
+"""
+
 import numpy as np
     
 class C_graph:
    """
    A container for all data contained within a single graph.
-    
-   Data attributes:
-   ----------------
-   graph_ID : int
-      The ID of this graph
-   n_halo : int
-      Number of halos in the graph
-   root_mass : float
-      Mass of the root halo
-   # Properties of graph: halos per snaphot (generation)
-   generation_id : ndarray : int32
-      ID of this snapshot (NO_DATA if no halos); redundant
-   generation_length : ndarray : float32
-      Number of halos in each generation(snapshot)
-   generation_start_index : ndarry : float32
-      First generation (snaphot) with halos in it
-   # Halo properties, fixed length arrays
-   desc_start_index : ndarray : int32
-      First entry in descendant arrays
-   half_mass_radius : ndarray : float32
-      Half mass radius of halo (Units?)
-   half_mass_speed : ndarray : float32
-      Half mass speed of halo (Units?)
-   halo_catalog_halo_ids : ndarray : int64
-      IDs in original halo catalogue from N-body simulation
-   mean_pos : ndarray : float32[3]
-      Position of CofM of halo (Units? Presumably comoving?)
-   mean_vel : ndarray : float32[3]
-      Velocity of CofM of halo (Units?)
-   ndesc : ndarray : int32
-      Number of descendant halos
-   nparts : ndarray : int32
-      Number of particles in this halo
-   nprog : ndarray : int32
-      Number of progenitors of this halo
-   prog_start_index : ndarray : int32
-      First entry in progenitor arrays
-   redshifts : ndarray : float32
-      Redshift of halo (redundant)
-   rms_radius : ndarray : float32
-      RMS size of halo (Units?)
-   rms_speed : ndarray : float32
-      RMS speed of halo particles (3-D velocity dispersion) (Units?)
-   snapshots : ndarray : int32
-      Snapshot of halo (redundant)
-   v_max : ndarray : float32
-      Maximum rotation speed of halo (Units?)      
-   # Halo properties, variable length arrays (because of possible graph branching)
-   direct_desc_contribution : ndarray : int32
-      Number of particles contributed to descendant
-   direct_desc_ids : ndarry : int32
-      The IDs of the direct descendants
-   direct_prog_contribution : ndarray : int32
-      Number of particles contributed by progenitor
-   direct_prog_ids : ndarry : int32
-      The IDs of the direct progenitors
-   ... and more for subhalos ...
 
-    Authors: Andrew Bowell & Peter Thomas
-        
+   Note that all attributes are in internal units.
+   In the following attributes the sizes of the arrays are specified in terms of the total number of snapshots, halos, subhalos, progenitors and descendants within the graph.
+   
+   Attributes:
+      # Graph and snapshot properties:
+      graph_ID (int) : graph_ID.
+      halo_start_gid (int[n_snap]) : the first halo in each snapshot.
+      n_gal (int) : running total of the number of galaxies created by py-galaxies when processing the graph
+      n_halo (int) : total number of halos in the graph.
+      n_halo_snap (int[n_snap]) : number of halos in each snapshots.
+      n_sub (int) : total number of subhalos in the graph.
+      n_sub_snap (int[n_snap]) : number of subhalos in each snapshots.
+      root_mass (float) : mass of the root halo in the graph.
+      snap_ID (int[n_snap]) : list of snapshots with halos: contains no data flag if there are no halos.
+      sub_start_gid (int[n_snap]) : = first subhalo in each snapshot.
+
+      # Halo properties:
+      desc_contribution (float[n_desc_halo]) : list of all particle contributions to descendant halos
+      desc_IDs_gid (int[n_desc_halo]) : list of all descendant halos
+      desc_start_gid (int[n_halo]) : location in graph of first descendant halo of each halo.
+      half_mass_radius (float[n_halo]) : radius containing half of the halo particles
+      mass  (float[n_halo]) : mass of each halo.
+      mean_pos (float[n_halo,3]) : position of each halo.
+      mean_vel (float[n_halo,3]) : velocity of each halo.
+      n_desc (float[n_halo]) : number of descendants of each halo.
+      n_prog  (float[n_halo]) : number of progenitors of each halo.
+      n_sub_halo (float[n_halo]) : number of subhalos for each halo
+      prog_start_gid (int) : location in graph of first progenitor halo of each halo.
+      rms_radius (float[n_halo]) : rms radius of halo particles
+      rms_speed (float[n_halo]) : rms speed of halo particles
+      sub_start_halo_gid (float[n_halo]) : the first subhalo in each halo
+
+      # Subhalo properties:
+      sub_desc_contribution (float[n_desc_sub]) : list of all particle contributions to descendant halos
+      sub_desc_IDs_gid  (int[n_desc_sub]) : list of all descendant subhalos
+      sub_desc_start_gid (int[n_sub]): location in graph of first descendant halo of each halo.
+      sub_half_mass_radius (float[n_sub]) : radius containing half of the subhalo particles
+      sub_host_gid (int[n_sub]) : the host halo of each subhalo
+      sub_mass  (float[n_sub]) : mass of each subhalo.
+      sub_n_desc (float[n_sub]) : number of descendants of each subhalo.
+      sub_pos (float[n_sub,3]) : position of each subhalo.
+      sub_rms_speed (float[n_sub]) : rms speed of subhalo particles
+      sub_vel (float[n_sub,3]) : velocity of each subhalo.        
    """
    
    def __init__(self,graph_ID,open_graph_file,parameters):
@@ -76,9 +64,7 @@ class C_graph:
       open_graph_file : obj : 'File'
          Open HDF5 file that is to be read from.
       parameters : obj : 'Class'
-         parameters class object.  
-         Included in case graph file has parameters to be read.
-      
+         Contains parameters describing the simulation.
       """
 
       """ Note:

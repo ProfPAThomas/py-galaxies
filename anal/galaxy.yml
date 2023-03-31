@@ -1,10 +1,10 @@
 # Galaxy plot parameters
 
 inputFiles:
-  haloFile: 'data/testHaloOutput.hdf5'
-  subhaloFile: 'data/testSubhaloOutput.hdf5'
-  galaxyFile: 'data/testGalaxyOutput.hdf5'
-save_prefix: 'test_gal_'
+  haloFile: 'data/AGNfeed_HaloOutput.hdf5'
+  subhaloFile: 'data/AGNfeed_SubhaloOutput.hdf5'
+  galaxyFile: 'data/AGNfeed_GalaxyOutput.hdf5'
+save_prefix: 'AGNfeed_gal_'
  
 # The following should really be attributes of the data
 cosmo:
@@ -12,17 +12,18 @@ cosmo:
 
 plots:
  baryonFraction: False
+ blackHole_stars: True
  coldGas_halo: False
  coldGas_subhalo: False
+ coldGasMetallicity: True
+ coldGasRadius: True
+ starFormationRate: False
  stellarMass_halo: False
  stellarMass_subhalo: True
  stellarHaloMassRatio: False
  stellarSubhaloMassRatio: False
- coldGasRadius: True
  stellarDiscRadius: True
- coldGasMetallicity: True
  stellarDiscMetallicity: True
- starFormationRate: False
 
 graphs:
  graphMin: 0
@@ -39,6 +40,19 @@ baryonFraction:
  markerType: '.'
  xlabel: '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
  ylabel: 'Baryon fraction'
+
+blackHole_stars:
+ figsize: [12,8]
+ xscale: 'log'
+ yscale: 'log'
+ markerType: '.'
+ xlabel: '$M_*$ / M$_\odot$' # Units should really be an attribute of the data
+ ylabel: '$M_\mathrm{BH}$ / M$_\odot$'
+ legend:   False
+ label:   'SAM galaxies'
+ save_png: True
+ save_pdf: False
+ name:    'BH_stars'
 
 coldGas_halo:
  figsize: [12,8]

@@ -11,9 +11,9 @@ io_files:
   graph_file:   'MergerGraphs/mega_graph_micro_09-11.hdf5'
   snap_file:    'MergerGraphs/snaplist.txt' # Should ideally be stored in graph_file
  output_files:
-  halo_file:    'output/testHaloOutput.hdf5'
-  subhalo_file: 'output/testSubhaloOutput.hdf5'
-  galaxy_file:  'output/testGalaxyOutput.hdf5'
+  halo_file:    'output/AGNfeed_HaloOutput.hdf5'
+  subhalo_file: 'output/AGNfeed_SubhaloOutput.hdf5'
+  galaxy_file:  'output/AGNfeed_GalaxyOutput.hdf5'
  auxiliary_files:
   cooling_function_file: 'aux_files/Lambda_table.npz'
 
@@ -138,7 +138,11 @@ model_parameters:
   Description: 'The minimum mass that is considered larger than 0.'
   Value:        1.
   Units:       'c.M_sun'
- 
+ length_minimum:
+  Description: 'The minimum length that is considered larger than 0.'
+  Value:        !!float 1e-5
+  Units:       'u.pc'
+  
 astrophysics:
 # mu m_H and mu_ratio are really functions of metallicity.  However, that would mean that we had to keep track
 # of energy rather than temperature in the hot gas, and make the cooling rate constant vary halo by halo,
@@ -148,10 +152,6 @@ astrophysics:
   Description: 'Mass per particle in the hot gas'
   Value:        !!float 1e-27
   Units:       'u.kg'
- mu_ratio:
-  Description: 'Mass per particle in the hot gas'
-  Value:        0.25
-  Units:       'None'
  lambda_ratio:
   Description: 'n_e n_i / n_t^2 - for use with the cooling function Lambda'
   Value:        0.25
@@ -168,9 +168,29 @@ astrophysics:
   Description: 'Mass ratio to trigger major mergers'
   Value:        0.3
   Units:       'None'
+ merger_f_burst:
+  Description: 'Normalisation of burst fraction in major mergers'
+  Value:        0.60
+  Units:       'None'
+ merger_beta_burst:
+  Description: 'Power law index in burst fraction formulae for major mergers'
+  Value:        1.9
+  Units:       'None'
+ BH_f_q:
+  Description: 'Normalisation of BH growth in major mergers, Hen15, S23'
+  Value:        0.041
+  Units:       'None'
+ BH_v_q:
+  Description: 'BH growth in merger (ie virial speed cutoff), Hen15, S23'
+  Value:        750
+  Units:       'u.km/u.s'
+ BH_f_r:
+  Description: 'Normalisation of BH growth rate from hot gas, Hen15, S24'
+  Value:        !!float 5.3e-3
+  Units:       'c.M_sun/u.yr'
  halo_angular_momentum:
   Description: 'Specific angular momentum of halos if not explicit in catalogues = collapse factor; only used if !b_halo_angmom'
-  Value:        0.12   # I have 0.06 in my head, but that gives disc radii that are far too small
+  Value:        0.25   # I have 0.06 in my head, but that gives disc radii that are far too small
   Units:       'None'
  sfr_model:
   Description: 'The star formation model'
@@ -178,7 +198,7 @@ astrophysics:
   Units:       'None'
  sfr_efficiency:
   Description: 'Star formation efficiency, alpha_{SFR}'
-  Value:        0.005  # Hen15 value of 0.025 seems to give far too much star formation
+  Value:        0.025  # Hen15 value of 0.025 seems to give far too much star formation
   Units:       'None'
  sfr_Mcrit0:
   Description: 'Star formation M_{crit0}, from Hen15 star formation model'
@@ -213,7 +233,7 @@ astrophysics:
   Value:        2.6
   Units:       'None'
  Hen15_v_reheat:
-  Description: 'Reheating mass loading scale scale (ie virial speed cutoff); Hen15 S19'
+  Description: 'Reheating mass loading scale (ie virial speed cutoff); Hen15 S19'
   Value:        480.
   Units:       'u.km/u.s'
  Hen15_beta1:

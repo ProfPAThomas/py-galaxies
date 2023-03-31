@@ -35,7 +35,7 @@ def F_gal_form_stars(gal,parameters):
    # (The return of gas mass to the cold gas has been handled by the recycling fraction above.)
    gal['mass_metals_gas_cold'] += parameters.sfr_yield * mass_stars_imf
    if gal['mass_metals_gas_cold']>gal['mass_gas_cold']*0.1:
-        print('Warning, high Z for cold gas: mass, Z =',gal['mass_gas_cold'],gal['mass_metals_gas_cold']/gal['mass_gas_cold'])
+      print('Warning, high Z for cold gas: mass, Z =',gal['mass_gas_cold'],gal['mass_metals_gas_cold']/gal['mass_gas_cold'])
 
    # We want to model the size of the stellar disc.  We do this using angular momentum (assuming exponential in shape)
    ang_mom_stars_disc += mass_stars * gal['v_vir'] * gal['radius_gas_cold']
@@ -88,6 +88,7 @@ def F_gal_SNR_feedback(mass_stars,gal,sub,halo,parameters):
    gal['mass_metals_gas_cold'] -= mass_metals_reheat
    sub.mass_gas_hot += mass_halo
    sub.mass_metals_gas_hot += mass_metals_halo
+   gal['mass_baryon'] -= mass_reheat
    # Ejected gas leaves the subhalo (but not the halo, if the subhalo is a halo)
    try:
         sub.sub_sid
@@ -115,4 +116,4 @@ def F_SNR_feedback_Hen15(mass_stars,v_vir,mass_gas_cold,parameters):
     DM_halo = DM_reheat - DM_eject
     
     return DM_halo, DM_eject
-    
+ 

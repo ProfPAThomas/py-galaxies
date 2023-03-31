@@ -152,9 +152,12 @@ class C_parameters:
         self.timestep_gal_internal = (self.timestep_galaxies / self.units_time_internal).si.value
         # The minimum mass (values below this are regarded as equivalent to zero mass)
         self.mass_minimum_internal = (self.mass_minimum/self.units_mass_internal).si.value
+        # The minimum length (values below this are regarded as not set)
+        self.length_minimum_internal = (self.length_minimum/self.units_length_internal).si.value
         # Quantities that need to be in internal code units for use in functions
         self.Hen15_v_eject_internal = (self.Hen15_v_eject/self.units_speed_internal).si.value
         self.Hen15_v_reheat_internal = (self.Hen15_v_reheat/self.units_speed_internal).si.value
+        self.BH_v_q_internal = (self.BH_v_q/self.units_speed_internal).si.value
         # Reincoportation. The following gets divided by mass, hence the units
         self.c_Hen15_reinc = (self.Hen15_gamma_reinc*1e10*c.M_sun/(self.units_time_internal*self.units_mass_internal)).si.value
 
@@ -177,7 +180,6 @@ class C_parameters:
         print('c_cooling = {:.3g}'.format(self.c_cooling.si))
         self.c_cooling = self.c_cooling.si.value
         # Star formation rate model from from Hen15 (arXiv:1410.0365) S1.6.
-        # This constant should be dimensionless.
         self.c_sfr_Mcrit = (self.sfr_Mcrit0 / self.units_mass_internal) * (self.units_speed_internal * u.s / (200. *u.km)) * \
                           (self.units_length_internal / (10. * u.kpc))
         print('c_sfr_Mcrit = {:.3g}'.format(self.c_sfr_Mcrit.si))
@@ -186,6 +188,18 @@ class C_parameters:
         self.c_Hen15_S16 = self.units_mass_internal*self.Hen15_v_snr**2/(2.*self.units_energy_internal)
         print('c_Hen15_S16 = {:.3g}'.format(self.c_Hen15_S16.si))
         self.c_Hen15_S16 = self.c_Hen15_S16.si.value
+        # BH radio accretion rate from Hen15 eq S24
+        self.c_BH_r = self.BH_f_r * self.units_mass_internal*self.units_time_internal/(1e11*1e8*c.M_sun**2)
+        print('c_BH_r = {:.3g}'.format(self.c_BH_r.si))
+        self.c_BH_r = self.c_BH_r.si.value
+        # BH cooling suppresion from Hen15 eq S25/S26: 0.2 is 0.1 / 0.5
+        self.c_BH_mheat_r = 0.2 * (c.c/self.units_speed_internal)**2
+        print('c_BH_mheat_r = {:.3g}'.format(self.c_BH_mheat_r.si))
+        self.c_BH_mheat_r = self.c_BH_mheat_r.si.value
+        # Determination of Eddington accretion rate (note: strictly should be m_H)
+        self.c_BH_Edd = 4.*np.pi*c.G*c.m_p*self.units_time_internal/(c.sigma_T*c.c)
+        print('c_BH_Edd = {:.3g}'.format(self.c_BH_Edd.si))
+        self.c_BH_Edd = self.c_BH_Edd.si.value
 
 
     def __str__(self):

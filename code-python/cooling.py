@@ -1,5 +1,7 @@
 import numpy as np
 import astropy.units as u
+from BH_agn import F_BH_growth_rate_radio
+
 """
 Functions to cool gas from halos onto the central subhalo, and from the central subhalo onto the galaxy
 Calling sequences:
@@ -58,8 +60,9 @@ class C_cooling:
         self.log10_Lambda_table=data['log10_Lambda'] + np.log10(
             (u.erg*u.cm**3 / (u.s*parameters.units_lambda_internal)).si.value ) - \
             np.log10(parameters.c_cooling)
-        print('C_cooling verbosity =',parameters.verbosity)
-        if parameters.verbosity >=4: print('log10_Lambda_table =',self.log10_Lambda_table)
+        # Fudge to test cooling
+        # self.log10_Lambda_table -= 0.3
+        # print('log10_Lambda_table =',self.log10_Lambda_table)
 
 def F_halo(halo,sub,cooling_table,parameters):
     """
@@ -99,33 +102,65 @@ def F_sub(sub,gal,cooling_table,parameters):
     Cooling of subhalo onto galaxy.
     Also sets the radius of the disc.
     """
-    mass_gas_cold=gal['mass_gas_cold']
-    r_half=sub.half_mass_radius
-    v_vir=sub.half_mass_virial_speed
+    r_half = sub.half_mass_radius
+    v_vir = sub.half_mass_virial_speed
+    dt = parameters.dt_halo
     
     # Angular momentum assuming exponential disc is 2vR_dM where R_d is the exponential disk radius
-    ang_mom_gas_cold = 2. * mass_gas_cold * v_vir * gal['radius_gas_cold']
-    
-    # Mass cooling
+    ang_mom_gas_cold = 2. * gal['mass_gas_cold'] * gal['v_vir'] * gal['radius_gas_cold']
+
+    # Mass cooling in the absence of AGN heating
     if sub.mass_gas_hot <= parameters.mass_minimum_internal:
         return None
     if parameters.cooling_model == 'SIS':
         gal_temperature=1e4*u.K/parameters.units_temperature_internal  # Cool down to 1e4 K
         mass_cooled=F_cooling_SIS(sub.mass,sub.tau_dyn,sub.half_mass_radius,sub.mass_gas_hot,sub.mass_metals_gas_hot,
-                                  sub.temperature,gal_temperature,parameters.dt_halo,cooling_table)
-        mass_metals_cooled  = (mass_cooled/sub.mass_gas_hot) * sub.mass_metals_gas_hot
-        sub.mass_gas_hot -= mass_cooled
-        sub.mass_metals_gas_hot -= mass_metals_cooled
-        gal['mass_gas_cold'] += mass_cooled
-        gal['mass_metals_gas_cold'] += mass_metals_cooled
+                                  sub.temperature,gal_temperature,dt,cooling_table)
     else:
         raise valueError('cooling.F_sub: cooling model '+parameters.cooling_model+' not implemented.')
+
+    # Radio mode growth of BH
+    # Formula from Hen15 S24
+    dm_BH_max = F_BH_growth_rate_radio(sub.mass_gas_hot,gal['mass_BH'],parameters.c_BH_r)*dt
+    # Eddington limit
+    dm_Edd = parameters.c_BH_Edd * gal['mass_BH'] * dt
+    # Amount of growth needed to fully offset cooling
+    efac = parameters.c_BH_mheat_r/v_vir**2
+    dm_BH_heat_max = mass_cooled / (1+efac)
+    # Hence actual BH accretion rate
+    dm_BH = min(dm_BH_max,dm_Edd,dm_BH_heat_max)
+    # Modify the amount of gas cooled
+    mass_heated = dm_BH * efac
+    mass_cooled = mass_cooled-mass_heated
+    if mass_cooled < 0.:
+        if mass_cooled > -1e-10:
+            mass_cooled = 0.
+        else:
+            raise valueError('negative amount of gas cooled')
+    
+    mass_metals_cooled  = (mass_cooled/sub.mass_gas_hot) * sub.mass_metals_gas_hot
+    sub.mass_gas_hot -= mass_cooled
+    sub.mass_metals_gas_hot -= mass_metals_cooled
+    gal['mass_gas_cold'] += mass_cooled
+    gal['mass_metals_gas_cold'] += mass_metals_cooled
+    # Cooled gas will add to the baryon content of galaxies
+    gal['mass_baryon'] += mass_cooled
         
     # Disc radius (assuming exponential disc for cold gas and SIS for halo gas)
     # Accreted angular momentum for SIS is (1/2)RVM*lambda where lambda=parameters.halo_angular_momentum
-    ang_mom_gas_cold += mass_cooled * v_vir * r_half * parameters.halo_angular_momentum
-    gal['radius_gas_cold'] = ang_mom_gas_cold / (2 * gal['mass_gas_cold'] * v_vir)      
-    
+    if gal['mass_gas_cold'] > parameters.mass_minimum_internal:
+        ang_mom_gas_cold += mass_cooled * v_vir * r_half * parameters.halo_angular_momentum
+        gal['radius_gas_cold'] = ang_mom_gas_cold / (2 * gal['mass_gas_cold'] * v_vir)
+    else:
+        gal['radius_gas_cold'] = 0. # Set to arbitrary value
+        
+    # We will transfer gas from the hot gas, even if it releases more energy than required to prevent cooling
+    dm_metals_BH  = (dm_BH/sub.mass_gas_hot) * sub.mass_metals_gas_hot
+    sub.mass_gas_hot -= dm_BH
+    sub.mass_metals_gas_hot -= dm_metals_BH
+    gal['mass_BH'] += dm_BH
+    gal['mass_metals_BH'] += dm_metals_BH
+    gal['mass_baryon'] += dm_BH
     return None
 
 def F_cooling_SIS(mass,tau_dyn,half_mass_radius,mass_gas,mass_metals_gas,temp_start,temp_end,dt,cooling_table):
@@ -160,8 +195,8 @@ def F_cooling_SIS(mass,tau_dyn,half_mass_radius,mass_gas,mass_metals_gas,temp_st
             fg=fg0*np.exp(-dt_ratio)
         else:
             fg=fg0/(tau_ratio*(1+0.5*(dt_ratio-teq_ratio))**2)
-    
-    return fg*mass
+            
+    return (fg0-fg)*mass
 
 def F_get_metaldependent_cooling_rate(log10_T,log10_Z,cooling_table):
     """

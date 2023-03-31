@@ -4,10 +4,10 @@ inputFiles:
 #  subhaloFile: 'data/nofeedSubhaloOutput.hdf5'
 #  galaxyFile:  'data/nofeedGalaxyOutput.hdf5'
 # save_prefix: 'test_sub_'
- haloFile: 'data/testHaloOutput.hdf5'
- subhaloFile: 'data/testSubhaloOutput.hdf5'
- galaxyFile:  'data/testGalaxyOutput.hdf5'
-save_prefix: 'test_sub_'
+ haloFile: 'data/AGNfeed_HaloOutput.hdf5'
+ subhaloFile: 'data/AGNfeed_SubhaloOutput.hdf5'
+ galaxyFile:  'data/AGNfeed_GalaxyOutput.hdf5'
+save_prefix: 'SNRfeed_sub_'
 
 # The following should really be attributes of the data
 cosmo:

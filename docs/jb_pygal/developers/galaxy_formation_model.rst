@@ -9,7 +9,9 @@ Halos
 
 Halos are containers of diffuse, hot (virial temperature) gas **hot gas** (this is the intracluster gas, ICG)  and of subhalos and/or galaxies.  The gas is presumed predominantly ionised and therefore too hot for galaxy formation.
 
-The may also contain **stars** (intracluster stars) that have been stripped from galaxies and/or subhalos.
+Within the halo instances, we also keep track of **Ejected gas** that has been given enough energy from stellar feedback to be pushed beyond the outer radius of the halo.
+
+They may also contain **stars** (intracluster stars) that have been stripped from galaxies and/or subhalos.
 
 Accretion
 :::::::::
@@ -40,11 +42,12 @@ Subhalos are the dark mater halos within which galaxies form and reside.
 
 Their virial temperature is typically lower than that of the host halo.  They contain **hot gas** (the galactic corona).
 
+They may also contain **stars** (intracluster stars) that have been stripped from non-central galaxies.
+
 Galaxy merging
 ::::::::::::::
 
-At the beginning of each timestep, check for merging of satellite galaxies onto the central galaxy.  This will trigger a rearrangement of both stars and cold gas within the central galaxy, dependent upon the change in angular momentum.  It may or may not require imposition of an explicit starburst phase, or that may arise naturally from the compression of cold gas -- to be determined.  The black hole of the satellite will merge onto that of the central galaxy.
-
+At the beginning of each timestep, check for merging of satellite galaxies onto the central galaxy.  This will trigger a rearrangement of both stars and cold gas within the central galaxy, dependent upon the change in angular momentum.  It may or may not require imposition of an explicit starburst phase, or that may arise naturally from the compression of cold gas -- to be determined: for now we follow previous models by triggering a starburst if the mass ratio of the merging satellites is close to unity.  The black hole of the satellite will merge onto that of the central galaxy and also trigger BH accretion and quasar activity.
 
 Cooling
 :::::::
@@ -56,6 +59,11 @@ Galaxies
 
 Galaxies are comprised of **cold gas** (the interstellar medium, ISM), **disc** stars, **bulge** stars and a **black hole**.
 
+There are two alternative methods for the distribution of cold gas and disc stars:
+
+* They may be taken to be exponential in form, each with a distinct scale-length determined by the angular momentum.
+* The discs may be broken up into annular rings -- not yet implemented.
+
 Accretion
 :::::::::
 
@@ -64,14 +72,26 @@ The cold gas may have accreted cooling gas from the containing subhalo.
 Star Formation
 ::::::::::::::
 
-The cold gas disc is broken up into annular rings.  Within each ring, star formation may occur (dependent upon the particular physical model for star formation, but typically requiring the gas to exceed a critical surface density threshold).  The stars will form within the stellar disc.
+Star formation may occur within the cold gas disc (dependent upon the particular physical model for star formation, but typically requiring the gas to exceed a critical surface density threshold).  The stars will form within the stellar disc.
 
-Star formation will trigger feedback of mass and metals from the cold gas into the hot gas of the enclosing subhalo.  In extreme cases, feedback may push material out of the subhalo and into the host halo.
+Star formation will trigger feedback of mass and metals from the cold gas into the hot gas of the enclosing subhalo.  In extreme cases, feedback may push material out of the subhalo to become ejected gas associated with the host halo.
 
-Black hole accretion
-::::::::::::::::::::
+Stellar evolution: metal enrichment and SNR feedback
+::::::::::::::::::::::::::::::::::::::::::::::::::::
+  
+As stellar populations age, first massive stars and then gradually younger and younger stars reach the end of their lives, releasing metals and energy into their surroundings.  This can be handled with two levels of complexity:
 
-The black hole of the central galaxy will accrete some diffuse gas from the hot gas of the subhalo.  This will result in radio mode feedback of energy that pushes hot gas from the subhalo to the host halo.
+* In the simplest models, all feedback is assumed to be prompt, i.e. instantaneous.
+* Alternatively, one can record the star formation history of a galaxy and feed back metals and energy in a much more gradual fashion as stars of different ages reach the end of their lives.
+
+Some of the newly-formed metals will be retained in the cold gas by material that is insufficiently heated and can cool back down.  Some will be associated with material that is heated into the coronal gas or ejected from the halo.
+
+
+Black hole growth and feedack
+:::::::::::::::::::::::::::::
+
+The black hole grows through material being pushed close to the centre of the galaxy via secular evolution (disc instability), accretion of cooling gas, and mergers.  Mergers are the main growth mechanism and can give rise to luminous quasars, whereas 'radio mode' accretion of diffuse gas gives rise to jets that provide feedback, especially in the most massive galaxies.
+
 
 Halos
 -----
@@ -87,7 +107,7 @@ In MEGA, galaxies do not come with a virial speed, needed to determine the viria
 Consider the simple isothermal sphere (SIS) for which :math:`m=2\sigma^2r/G`, where :math:`m(r)` is the mass within radius :math:`r`, :math:`\sigma` is the (constant) 1-D velocity dispersion, and :math:`G` is the gravitational constant.
 Then :math:`\sigma^2=Gm/2r`, where we can evaluate at any radius.
 
-We then expect :math:`\sigma_3^2=3\sigma^2`.
+Alternatively we can assuming an isotropic velocoty dispersion and set :math:`\sigma^2={1\over3}\sigma_3^2`.
 
 Here is a plot showing the results of evaluating :math:`\sigma` these two different ways:
 
@@ -103,7 +123,7 @@ The virial temperature (i.e. the hot gas temperature) is given by the relation: 
    :width: 600
    :alt: virial temperature versus halo mass
 
-Any of the three relations on the above plot could be used to fix the virial temperature of the halo: further testing is required to see which is most robust to mergers.  For now, we use the half mass radius as that seems the most direct measure of the conditions in the dentre of the halo, where cooling will be most effective.
+Any of the three relations on the above plot could be used to fix the virial temperature of the halo: further testing is required to see which is most robust to mergers.  For now, we use the half mass radius as that seems the most direct measure of the conditions in the centre of the halo, where cooling will be most effective.
 
 Accretion
 ^^^^^^^^^
@@ -508,3 +528,93 @@ The following plots show inthe top row the variation of mass and ejection fracti
 .. image:: figs/mu_epsilon_vvir.png
    :width: 600
    :alt: mass and energy heating fractions as the halo virial speed is increased.
+
+
+Black hole growth and feedback
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The energy released by supernovae and stellar winds has a dramatic effect on low-mass galaxies, but is un- able to reduce cooling onto massive systems (:math:`M_∗>10^{10.5}\mathrm{M}_\odot`) to the very low rates inferred from their observed stel- lar masses and star formation rates. We follow Croton et al. (2006) in assuming that feedback from central supermassive black holes is the agent that terminates galaxy growth in massive haloes. Black holes are taken to form and to grow when cold gas is driven to the centre of merging systems. In addition, pre-existing black holes merge as soon as their host galaxies do. This “quasar mode” growth is the main chan- nel by which black holes gain mass in our model, but we do not associate it with any feedback beyond that from the strong starbursts which accompany gas-rich mergers. Black holes are also allowed to accrete gas from the hot gas at- mospheres of their galaxies, however, and this is assumed to generate jets and bubbles which produce radio mode feedback, suppressing cooling onto the galaxy and so eliminating the supply of cold gas and quenching star formation.
+
+Black holes accrete mass whenever gas is pushed within the Bondi-Hoyle radius, which is too small to be resolved even in the highest-resolution simulations: we must therefore characterise the larger-scale processes that are likely to direct material towards the galactic centre.  These are threefold:
+
+* Galaxy mergers.
+* Secular processes in the gas disc (and to a lesser extent the stellar disc and bulge).
+* Direct accretion from cooling coronal gas.
+
+Of these, the former appears to be the most important.
+
+The nature of the initial black hole seeds is uncertain but do not seem to be that important.  All we require is that there is a nascent BH which can accrete gas, with the rate of accretion being determined by the supply of matter rather than the initial size of the B-H radius (which itself is proportional to the mass of the BH).
+
+Galaxy mergers (quasar mode)
+::::::::::::::::::::::::::::
+
+The new black-hole mass is given by
+
+.. math::
+
+   M_\mathrm{BH} = M_\mathrm{BH,1} + M_\mathrm{BH,2} + \Delta M_\mathrm{BH,q},
+
+where
+
+.. math::
+
+    \Delta M_\mathrm{BH,q}=f_\mathrm{BH,q}{M_2\over M_1}{M_\mathrm{coldgas,1}+M_\mathrm{coldgas,2}\over 1+\left(v_\mathrm{BH,q}\over v_\mathrm{vir,1}\right)^2}.
+
+Here the subscripts 1 and 2 refer to the central (more massive) galaxy and the merging satellite, respectively, and :math:`f_\mathrm{BH,q}` and :math:`v_\mathrm{BH,q}` are parameters of the model.
+
+Accretion from cooling gas (radio mode)
+:::::::::::::::::::::::::::::::::::::::
+
+We know observationally that low-level jet/bubble activity from AGN is responsible for quenching the cooling flow of hot gas onto galaxies.  This accretion is sub-Eddington and does not give rise to a super-luminous accretion disc; hence most detections of such activity occur via radio emission from the jest and so this is known as *radio mode* accretion.  It is not major source of black hole growth, but nevertheless the associated jet power couples efficiently with the coronal gas and suppresses the cooling rate.
+
+Following Hen15 (equation S24), we take the maximum accretion rate to be
+
+.. math::
+
+   \dot{M}_\mathrm{BH,r,max} = f_\mathrm{BH,r}\,\left(M_\mathrm{gas,hot}\over10^{11}\mathrm{M}_\odot\right)  \left(M_\mathrm{BH}\over10^{8}\mathrm{M}_\odot\right),
+
+where :math:`f_\mathrm{BH,r}` is a parameter of the model (Hen15 call this parameter :math:`k_\mathrm{AGN}`).
+
+This rate is then limited by two factors:
+
+* BHs are not allow to grow faster than the Eddington rate
+
+  .. math::
+
+     \dot{M}_\mathrm{Edd} = {4\pi G m_p\over\sigma_T c}\,M_\mathrm{BH},
+
+* BHs cannot heat more gas than is being cooled (but there must be some small BH growth to power the feedback).  Setting :math:`\dot{M}_\mathrm{cool,max}=\dot{M}_\mathrm{cool}+\dot{M}_\mathrm{BH}+\dot{M}_\mathrm{heat}`, where :math:`\dot{M}_\mathrm{cool,max}` is the cooling rate in the absence of BH feedback, and :math:`\dot{M}_\mathrm{heat}` is the amount of reheated gas (i.e. the amount of gas prevented from cooling).
+
+  To determine the latter we must consider the power available to heat the cooling gas which we take to be
+
+  .. math::
+
+     \dot{E}_\mathrm{BH,r} = \epsilon_\mathrm{BH,r}\,\dot{M}_\mathrm{BH,r,max}c^2,
+
+  where :math:`\epsilon_\mathrm{BH,r}=0.1` is an efficiency parameter (Hen15 call this parameter :math:`\eta`).  Because the associated mass accretion rate is small, only the combination of :math:`\epsilon_\mathrm{BH,r}f_\mathrm{BH,r}` is important: hence we take a fixed value of :math:`\epsilon_\mathrm{BH,r}=0.1`.
+
+  The energy so released will then suppress cooling at a rate that is inversely proportional to the specific energy of the cooling gas.  Hence
+
+  .. math::
+
+     \dot{M}_\mathrm{heat} = {0.1c^2\over \mathcal{E}_\mathrm{halo}}\,\dot{M}_\mathrm{cool,max},
+
+  where :math:`\mathcal{E}_\mathrm{halo}= 0.5v_\mathrm{vir}^2` is (proportional to) the specific energy of the coronal gas -- to aid comparison with Hen15 we use a value for the specific energy that is slightly smaller than the correct one; however this again gets absorbed inside the normalisation constant :math:`f_\mathrm{BH,r}`.
+
+  Now, :math:`\dot{M}_\mathrm{cool}` cannot be negative, hence the BH accretion rate is less than
+
+  .. math::
+
+     \dot{M}_\mathrm{BH,heat,max} = {\dot{M}_\mathrm{cool,max}\over 1+{0.1c^2\over \mathcal{E}_\mathrm{halo}} }.
+
+This finally then sets the BH accretion rate to be:
+
+.. math::
+
+   \dot{M}_\mathrm{BH,r} = \min\left[ \dot{M}_\mathrm{BH,r,max},\dot{M}_\mathrm{Edd},\dot{M}_\mathrm{BH,heat,max}\right],
+
+with an associated reduction in the cooling rate
+
+.. math::
+
+    \dot{M}_\mathrm{cool,net} = \max\left[0,\dot{M}_\mathrm{cool}-{\dot{E}_\mathrm{BH,r}\over\mathcal{E}_\mathrm{halo}}\right].

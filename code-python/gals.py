@@ -1,10 +1,57 @@
+"""
+Galaxy numpy structured array d_type definition and template for initialisation, and python class for output.
+
+All physical quantities are in internal code units.
+
+Attributes
+----------
+graph_ID : int
+   The graph_ID (from HDF5 group).
+snap_ID : int
+   The snapshot ID currently being processed.
+halo_gid : int
+   The halo ID relative to the graph.
+halo_sid : int
+   The halo ID relative to the snapshot.
+sub_gid : int
+   The subhalo ID relative to the graph
+sub_sid : int
+   The subhalo ID relative to the snapshot.
+gal_gid : int
+   The galaxy location relative to the start of this graph in the output file.
+b_exists : bool
+   Whether or not the galaxy exists (it may have merged with another galaxy).
+desc_gid : int
+   The index relative to the graph of this galaxy's descendant.
+first_prog_gid: int
+   The index relative to the graph of this galaxy's first progenitor.
+mass_gas_cold : float
+   The mass of cold gas, inclusive of metals.
+mass_metals_gas_cold : float
+   The mass of metals in the cold gas.
+mass_metals_stars_bulge : float
+   The mass of metals in bulge stars.
+mass_metals_stars_disc : float
+   The mass of metals in disc stars.
+mass_stars_bulge : float
+   The mass of bulge stars, inclusive of metals.
+mass_stars_disc : float
+   The mass of disc stars, inclusive of metals.
+next_prog_gid : int
+   The index relative to the graph of the next progenitor of the descendant galaxy.
+radius_gas_cold : float
+   The disc scale radius for the cold gas.
+radius_stars_bulge : float
+   The half mass radius for the bulge stars (Jaffe profile).
+radius_stars_disc : float
+   The disc scale radius for the stellar disc.
+v_vir : float
+   The half-mass circular speed of the host subhalo (or halo, if no subhalo).
+"""
+
 import h5py
 import numpy as np
 
-"""
-Galaxies are stored in structured numpy arrays, so we will not create any instances of this class.   
-But we use it to define the dtype of that strucured array.
-"""
 # Create the dtype that we will need to store galaxy properties.
 D_gal=[
    ('graph_ID',np.int32),
@@ -14,13 +61,11 @@ D_gal=[
    ('sub_gid',np.int32),
    ('sub_sid',np.int32),
    ('gal_gid',np.int32),      # The unique identifier for this galaxy within this graph; should match location in output file
+   ('gal_sid',np.int32),
    ('desc_gid',np.int32),
    ('first_prog_gid',np.int32),
    ('next_prog_gid',np.int32),
    ('b_exists',np.bool),
-   ('b_merger',np.bool),
-   #('pos',np.float32,(3,)),  # Not sure where to set this in the main program ...
-   #('vel',np.float32,(3,)),  # ... and can be found in halo/subhalo catalogues (apart maybe for orphans)
    ('v_vir',np.float32),      # Virial speed of host halo
    ('mass_stars_bulge',np.float32),
    ('mass_metals_stars_bulge',np.float32),
@@ -28,13 +73,26 @@ D_gal=[
    ('mass_metals_stars_disc',np.float32),
    ('mass_gas_cold',np.float32),
    ('mass_metals_gas_cold',np.float32),
+   ('mass_BH',np.float32),
+   ('mass_metals_BH',np.float32),   # Metals have no meaning in a BH but useful for tracking
+   ('mass_baryon',np.float32),      # Includes BHs.  Effectively equivalent to total mass of galaxy (assuming no DM).
    ('radius_gas_cold',np.float32),  # Exponential disc radius
-   ('radius_stars_disc',np.float32)  # Exponential disc radius
+   ('radius_stars_disc',np.float32), # Exponential disc radius
+   ('radius_stars_bulge',np.float32) # Half mass radius
 ]
 
 def F_gal_template(parameters):
    """
    Creates a template for the galaxies
+
+   Parameters
+   ----------
+   parameters : obj : C_parameters
+      Contains the global run parameters.
+
+   Returns
+   -------
+   : obj : D_gal
    """
    NDI=parameters.NO_DATA_INT
    template=np.empty(1,dtype=D_gal)
@@ -49,9 +107,6 @@ def F_gal_template(parameters):
    template['first_prog_gid']=NDI
    template['next_prog_gid']=NDI
    template['b_exists']=False
-   template['b_merger']=False
-   #template['pos']=np.nan
-   #template['vel']=np.nan
    template['v_vir']=0.
    template['mass_stars_bulge']=0.
    template['mass_metals_stars_bulge']=0.
@@ -59,23 +114,30 @@ def F_gal_template(parameters):
    template['mass_metals_stars_disc']=0.
    template['mass_gas_cold']=0.
    template['mass_metals_gas_cold']=0.
+   template['mass_BH']=0.
+   template['mass_metals_BH']=0.
+   template['mass_baryon']=0.
    template['radius_gas_cold']=0.
    template['radius_stars_disc']=0.
+   template['radius_stars_bulge']=0.
    return template
 
 class C_gal_output:
    """
    This class contains the attributes and methods for the galaxy output file.
+
    Attributes
    ----------
-
-   Methods
-   -------
-   __init__
-   append - add halos to output buffer
-   close - flush io buffer then close HDF5 file
-   flush - flush output buffer to HDF5 dataset
-   
+   gal_file : obj : File
+      HDF5 file for galaxy output
+   i_rec : int
+      Counter for how many records have been created.
+   io_buffer : obj " D_gal[n_rec]
+      Storage for subhalo records prior to outputting. 
+   n_rec : int
+      Number records to be buffered before outputting.
+   dataset : obj : HDF5 dataset
+      HDF5 dataset to which the data is output.
    """
    def __init__(self,parameters):
       """
@@ -83,10 +145,10 @@ class C_gal_output:
       Creates the galaxy output buffer.
       Creates the HDF5 galaxy dataset.
 
-      Parameters:
-      -----------
+      Parameters
+      ----------
       parameters : obj : C_parameters
-         Contains the gloabal run paramters.
+         Contains the global run paramters.
       """
       # Open file for output
       self.gal_file = h5py.File(parameters.galaxy_file,'w')
@@ -104,16 +166,16 @@ class C_gal_output:
       dtype.append(('first_prog_gid',np.int32))
       dtype.append(('next_prog_gid',np.int32))
       dtype.append(('b_exists',np.bool))
-      #dtype.append(('pos',np.float32,(3,)))
-      #dtype.append(('vel',np.float32,(3,)))
       dtype.append(('mass_stars_bulge',np.float32))
       dtype.append(('mass_metals_stars_bulge',np.float32))
       dtype.append(('mass_stars_disc',np.float32))
       dtype.append(('mass_metals_stars_disc',np.float32))
       dtype.append(('mass_gas_cold',np.float32))
       dtype.append(('mass_metals_gas_cold',np.float32))
+      dtype.append(('mass_BH',np.float32))
       dtype.append(('radius_gas_cold',np.float32))
       dtype.append(('radius_stars_disc',np.float32))
+      dtype.append(('radius_stars_bulge',np.float32))
       # Create halo io buffer
       self.io_buffer=np.empty(self.n_rec,dtype=dtype)
       # Create HDF5 dataset
@@ -143,10 +205,13 @@ class C_gal_output:
       """
       Extracts the quantities desired for halo_output and adds them to the io buffer,
       flushing if required.
+
       Parameters
       ----------
-         halos - list of C_halo objects to be output
-         parameters - C_parameters class file containing the global run parameters
+         gals : obj: D_gal[n_gal]
+            Array of D_gal records to be output
+         parameters : obj : C_parameters
+            Contains the global run paramters.
       """
       for i_gal in range(len(gals)):
          self.io_buffer[self.i_rec]['graph_ID'] = gals[i_gal]['graph_ID']
@@ -167,8 +232,10 @@ class C_gal_output:
          self.io_buffer[self.i_rec]['mass_metals_stars_disc'] = gals[i_gal]['mass_metals_stars_disc'] * parameters.mass_internal_to_output
          self.io_buffer[self.i_rec]['mass_gas_cold']= gals[i_gal]['mass_gas_cold'] * parameters.mass_internal_to_output
          self.io_buffer[self.i_rec]['mass_metals_gas_cold']= gals[i_gal]['mass_metals_gas_cold'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_BH']= gals[i_gal]['mass_BH'] * parameters.mass_internal_to_output
          self.io_buffer[self.i_rec]['radius_gas_cold']= gals[i_gal]['radius_gas_cold'] * parameters.length_internal_to_output
          self.io_buffer[self.i_rec]['radius_stars_disc']= gals[i_gal]['radius_stars_disc'] * parameters.length_internal_to_output
+         self.io_buffer[self.i_rec]['radius_stars_bulge']= gals[i_gal]['radius_stars_bulge'] * parameters.length_internal_to_output
          self.i_rec+=1
          if self.i_rec == self.n_rec: self.flush()
       return None

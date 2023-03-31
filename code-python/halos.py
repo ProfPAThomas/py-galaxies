@@ -1,3 +1,7 @@
+"""
+Class files for storage and output of halo properties
+"""
+
 import h5py
 import numpy as np
 
@@ -8,9 +12,7 @@ class C_halo:
     No sophisticated methods, it just truncates the GraphProperites class to 
     ensure data from the current generation is selected.
 
-    Arrays are reference with slicing here [:], so will either be:
-    * read from disk into memory, if graph contains dataset pointers;
-    * a view into the corresponding graph arrays if those are already in memory.
+    All physical quantities are in internal code units.
     
     Attributes
     ----------
@@ -20,39 +22,86 @@ class C_halo:
          The snapshot ID currently being processed.
     halo_gid : int
         The halo ID within the graph of the halo currently being processed.
-    mass : int [Inconsistent with description below.]
-        Mass of halo. Amount of dark matter particles * mass of particle.
-    nprog : int
-        The number of direct progenitors.
-    prog_start_gid : int
-        The index at which this halo's progenitors start.
-    if b_HALO_FULL=True:
-        prog_ids : narray of type 'int'
-           Numpy array of the progenitor IDs for the halo.
-        prog_mass : ndarry of type 'float'
-           Numpy array of the progenitor mass contributions.
-    ndesc : int
-        The number of direct descendents.
+    halo_sid : int
+        The halo ID within the snapshot of the halo currently being processed.
+    b_done : bool
+        Whether or not the halo has been fully processed.
+    desc_main_sid : int
+        The main descendant location in this snapshot
     desc_start_gid : int
         The index at which this halo's descendents start.
     desc_end_gid : int
         The index at which this halo's descendents end.
-    if b_HALO_FULL=True:
-        desc_ids : ndarray of type 'int'
-           Numpy array of the halo's descendent IDs of type.
-        desc_mass : ndarray of type 'float'
-           Numpy array of the descendent mass contributions.
-    mass_baryon : float
-        Mass of Baryons within the halo.
+    half_mass_radius : float
+        The radius containing half the total mass in the DM-only sim
+    half_mass_virial_speed : float
+        The circular speed at the half-mass radius
+    mass : float
+        The DM-only mass of halo.
     mass_from_progenitors : float 
-        Total mass of all the progenitor halos.
+        Total DM-only mass of all the progenitor halos.
+    mass_baryon : float
+        Mass of baryons within the halo, inclusive of subhalos and galaxies
     mass_baryon_from_progenitors : float
-        Total mass of all the Baryons contained within the progenitor halos.
-    inclusive_contribution : float
-        The amount of mass that goes 'missing' when a halo descends.
-    b_done : bool
-        Whether or not the halo has been processed.
- 
+        Total mass of all the baryons contained within the progenitor halos.
+    mass_gas_eject : float
+        The mass of ejected gas
+    mass_gas_hot : float
+        The mass of hot gas
+    mass_stars : float
+        The mass of stars
+    mass_metals_gas_eject : float
+        The mass of metals in ejected gas
+    mass_metals_gas_hot : float
+        The mass of metals in hot gas
+    mass_metals_stars : float
+        The mass of metals in stars
+    n_desc : int
+        The number of direct descendants.
+    n_dt : int
+        Number of times that this halo has been processed this snapshot
+    n_gal : int
+        The number of galaxies in the halo, inclusive of subhalos
+    n_orphan : int
+        The number of orphan galaxies (i.e. excluding those in subhalos)
+    n_sub : int
+        The number of subhalos.
+    orphan_start_sid : int
+        The location of the first orphan galaxy within the current snapshot galaxy array
+    orphan_next_sid : int
+        To track the processing of orphan galaxies during the halo_update phase.
+    pos : float[3]
+        The position of the halo.
+    rms_speed : float
+        The rms speed in the DM-only sim.
+    sub_central_gid : int
+        The location in the graph of the subhalo at the centre of the halo (if any)
+    sub_central_sid : int
+        The location in the snapshot of the subhalo at the centre of the halo (if any)
+    sub_end_gid : int
+        The location in the graph of the last subhalo (+1 because of python indexing)
+    sub_end_sid : int
+        The location in the snapshot of the last subhalo (+1 because of python indexing)
+    sub_mass : float[n_sub]
+        The DM-only masses of the subhalos
+    sub_rel_pos : float[n_sub,3]
+        The positions of the subhalos relative to that of the halo
+    sub_rel_vel : float[n_sub,3]
+        The velocities of the subhalos relative to that of the halo
+    sub_start_gid : int
+        The location in the graph of the first subhalo
+    sub_start_sid : int
+        The location in the snapshot of the first subhalo
+    tau_dyn : float
+        The dynamical time at twice the half-mass radius
+    temperature : float
+        The temperature as derived from the virial speed
+    vel : float[3]
+        Velocity of the halo
+
+    Methods
+    -------
+
     """   
    def __init__(self,graph_ID,snap_ID,halo_gid,graph,parameters):
       """
@@ -94,7 +143,6 @@ class C_halo:
       # The following are properties of the SAM
       self.desc_main_sid = parameters.NO_DATA_INT  # Main descendant location in halos_this_snap
       self.mass_baryon = 0.
-      self.mass_baryon_simple = 0.
       self.mass_from_progenitors = 0.
       self.mass_baryon_from_progenitors = 0.
       self.mass_gas_hot = 0.
@@ -103,9 +151,6 @@ class C_halo:
       self.mass_metals_gas_eject = 0.
       self.mass_stars = 0.
       self.mass_metals_stars = 0.
-      if parameters.b_HOD == True:
-         self.star_formation_rate = 0.
-      self.inclusive_contribution = 0.       
       self.n_dt = 0 # Number of times that this halo has been processed
       self.b_done = False # Has this halo been fully processed or not.
 
@@ -156,6 +201,16 @@ class C_halo:
    def orphan_count(self,n_orphan):
       """
       Returns the current orphan galaxy location counter and then updates it.
+
+      Parameters
+      ----------
+      n_orphan : int
+         The number of orphans to add to the halo
+
+      Returns
+      -------
+      int
+         The current orphan count for this snapshot of the graph
       """
       orphan_next_sid = self.orphan_next_sid
       self.orphan_next_sid += n_orphan
@@ -164,6 +219,18 @@ class C_halo:
    def gal_loc(self,gal_start0_sid,gal_start_sid):
       """
       Sets the location of this halo's subhalo and orphan galaxies in the galaxy lookup table for this snapshot.
+
+      Parameters
+      ----------
+      gal_start0_sid : int 
+         The location of the first galaxy in the halo, inclusive of subhalos, in the galaxy array for this snapshot.
+      gal_start_sid : int 
+         The location of the first orphan galaxy in the halo, exlcusive of subhalos, in the galaxy array for this snapshot.
+
+      Returns
+      -------
+      int
+         The updated galaxy pointer (ie location of the last galaxy in this halo +1 for python indexing)
       """
       self.gal_start_sid = gal_start0_sid
       self.orphan_start_sid = gal_start_sid
@@ -172,7 +239,18 @@ class C_halo:
     
    def set_mass_baryon(self,subs,gals):
      """
-     Calculates the total baryonic mass of the subhalo, including galaxies
+     Calculates and updates the total baryonic mass of the subhalo, inclusive of subhalos and galaxies
+
+     Parameters
+     ----------
+     subs : obj: C_sub[n_sub]
+        The subhalo instances contained within this halo
+     gals : obj: D_gal[n_gal]
+        The galaxies  contained within this halo, inclusive of subhalos
+
+     Returns
+     -------
+     None
      """
      self.mass_baryon = self.mass_gas_hot + self.mass_gas_eject + self.mass_stars
      for i_sub in range(self.n_sub): 
@@ -188,17 +266,20 @@ class C_halo:
 class C_halo_output:
    
    """
-   This class contains the attributes and methods for the halo output files.
+   This class contains the attributes and methods for the halo output files. 
+
    Attributes
    ----------
-
-   Methods
-   -------
-   __init__
-   append - add halos to output buffer
-   close - flush io buffer then close HDF5 file
-   flush - flush output buffer to HDF5 dataset
-   
+   halo_file : obj : File
+      HDF5 file for halo output
+   i_rec : int
+      Counter for how many records have been created.
+   io_buffer : obj " D_gal[n_rec]
+      Storage for halo records prior to outputting. 
+   n_rec : int
+      Number records to be buffered before outputting.
+   dataset : obj : HDF5 dataset
+      HDF5 dataset to which the data is output.
    """
    def __init__(self,parameters):
       """
@@ -206,10 +287,13 @@ class C_halo_output:
       Creates the halo output buffer.
       Creates the HDF5 halo dataset.
 
-      Parameters:
-      -----------
+      Parameters
+      ----------
       parameters : obj : C_parameters
-         Contains the gloabal run paramters.
+         Contains the global run parameters.
+      Returns
+      -------
+      None
       """
       # Open file for output
       self.halo_file = h5py.File(parameters.halo_file,'w')
@@ -228,15 +312,12 @@ class C_halo_output:
       dtype.append(('rms_speed',np.float32))
       dtype.append(('half_mass_virial_speed',np.float32))
       dtype.append(('mass_baryon',np.float32))
-      dtype.append(('mass_baryon_simple',np.float32))
       dtype.append(('mass_gas_hot',np.float32))
       dtype.append(('mass_metals_gas_hot',np.float32))
       dtype.append(('mass_gas_eject',np.float32))
       dtype.append(('mass_metals_gas_eject',np.float32))
       dtype.append(('mass_stars',np.float32))
       dtype.append(('mass_metals_stars',np.float32))
-      if parameters.b_HOD==True:
-         dtype.append(('star_formation_rate',np.float32))
       # Create halo io buffer
       print('self.n_rec =',self.n_rec)
       self.io_buffer=np.empty(self.n_rec,dtype=dtype)
@@ -247,7 +328,7 @@ class C_halo_output:
    def close(self):
       """
       Empties the halo io buffer, closes the halo dataset, and
-      closes the halo output file
+      closes the halo output file.
       """
       self.flush()
       # self.dataset.close() # There does not seem to be a need to close datasets.
@@ -267,10 +348,13 @@ class C_halo_output:
       """
       Extracts the quantities desired for halo_output and adds them to the io buffer,
       flushing if required.
+
       Parameters
       ----------
-         halos - list of C_halo objects to be output
-         parameters - C_parameters class file containing the global run parameters
+         halos : obj : C_halo[]
+            list of C_halo objects to be output.
+         parameters : obj : C_parameters
+            The global run parameters.
       """
       for halo in halos:
          self.io_buffer[self.i_rec]['graph_ID'] = halo.graph_ID
@@ -283,15 +367,12 @@ class C_halo_output:
          self.io_buffer[self.i_rec]['rms_speed'] = halo.rms_speed * parameters.speed_internal_to_output
          self.io_buffer[self.i_rec]['half_mass_virial_speed'] = halo.half_mass_virial_speed * parameters.speed_internal_to_output
          self.io_buffer[self.i_rec]['mass_baryon']= halo.mass_baryon  * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_baryon_simple']= halo.mass_baryon_simple  * parameters.mass_internal_to_output         
          self.io_buffer[self.i_rec]['mass_gas_hot'] = halo.mass_gas_hot  * parameters.mass_internal_to_output
          self.io_buffer[self.i_rec]['mass_metals_gas_hot'] = halo.mass_metals_gas_hot  * parameters.mass_internal_to_output
          self.io_buffer[self.i_rec]['mass_gas_eject'] = halo.mass_gas_eject  * parameters.mass_internal_to_output
          self.io_buffer[self.i_rec]['mass_metals_gas_eject'] = halo.mass_metals_gas_eject  * parameters.mass_internal_to_output
          self.io_buffer[self.i_rec]['mass_stars'] = halo.mass_stars  * parameters.mass_internal_to_output
          self.io_buffer[self.i_rec]['mass_metals_stars'] = halo.mass_metals_stars  * parameters.mass_internal_to_output
-         if parameters.b_HOD==True:
-            self.io_buffer[self.i_rec]['star_formation_rate'] = halo.star_formation_rate
          self.i_rec+=1
          if self.i_rec == self.n_rec: self.flush()
       return None
