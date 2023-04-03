@@ -15,8 +15,6 @@ Major structural development
 Minor structural development
 ----------------------------
 
-* Go through routines and document headers in numpy format; create API interface in documentation.
-
 * Pre-processing merger graph to:
   
   - ensure every halo has a subhalo (introduce dummy subhalos as necessary)
@@ -27,11 +25,14 @@ Minor structural development
   - for comparison with other models, specifically L-Galaxies
   - could possibly be a run-time option within L-Galaxies (give everything to main descendant) but should work out of the box with tree as input.
   
-* Option to alter structure to mimic L-Galaxies as closely as possible (might be a major development).
-
 * Code to locate the central subhalo (if any) in a halo.
 
 * (Probably) code to add a dummy subhalo if running in L-Galaxies model (or even if not, might allow higher resolution).
+
+* Need angular momentum of halos from merger graph:
+
+  - follow angular momentum of gas and stellar discs.
+  - investigate using shrinking of disc in mergers to trigger starburst.
 
 Galaxy physics modules to import from L-galaxies
 ------------------------------------------------
@@ -39,11 +40,12 @@ Galaxy physics modules to import from L-galaxies
 * Reincorporate gas onto halos:
   Basic version completed
   
-  - implement infall from Ejected phase.
+  - implement infall from Ejected phase using new prescription.
 
 * Hot gas cooling onto galaxy:
   Basic SIS version completed and tested.
-  
+
+  - need better version of merger graphs so can use angular momentum of halo.
   - implement a beta model for the hot gas distribution.
   - add resolved galactic discs
   
@@ -52,19 +54,19 @@ Galaxy physics modules to import from L-galaxies
   - implement a version with no resolved discs:
 
     + basic implementation done
-    + need to add SFR extraction
-    + need to test (star formation seems very strong at the moment)
+    + need to add in calculation of SFR
+    + need to test
     
   - add resolved galactic discs with inflow of gas
 
 * AGN accretion and feedback:
   
-  - BH growth from mergers: quasar luminosity?
-  - Radio mode accretion + feedback (L-Galaxies model is feeble in this regard, but sort of works)
+  - BH growth from mergers: add in calculation of quasar luminosity.
   
 * Galaxy merging:
+  Basic version with instantaneous merging implemented
   
-  - redistributing gas and stars
+  - need better merger graphs so 
   - triggering starburst (does this need to be explicit, or can it arise naturally from contraction of disc?)
 
 Plotting developments

@@ -281,6 +281,8 @@ half_mass_virial_speed      float32          The circular speed at the half mass
 mass_baryon                 float32          The baryon mass in the halo, including all subhalos and galaxies
 mass_gas_hot                float32          The hot gas mass in the halo, excluding subhalos
 mass_metals_gas_hot         float32          The hot gas metal mass in the halo, excluding subhalos
+mass_gas_eject              float32          The mass of gas ejected from the halo
+mass_metals_gas_eject       float32          The moss of metals in the gas ejected from the halo
 mass_stars                  float32          The (initial) stellar mass in the halo, excluding subhalos
 mass_metals_stars           float32          The (initial) stellar metals mass in the halo, excluding subhalos
 ========================  ================  =======================================================================
@@ -288,7 +290,7 @@ mass_metals_stars           float32          The (initial) stellar metals mass i
 Subhalos
 ^^^^^^^^
 
-This dataset is labelled "Halos"
+This dataset is labelled "Subhalos"
 
 ========================  ================  =======================================================================
    Name                     Type                  Description
@@ -336,6 +338,10 @@ mass_stars_disc             float32          The (initial) stellar mass in the d
 mass_metals_stars_disc      float32          The (initial) stellar metals mass in the disc
 mass_gas_cold               float32          The mass in the cold gas (ie ISM)
 mass_metals_gas_cold        float32          The metals mass in the cold gas (ie ISM)
+mass_BH                     float32          The mass of the central  black hole
+radius_gas_cold             float32          The exponential disc scale length of the cold gas
+radius_stars_disc           float32          The exponential disc scale length of the stellar disc
+radius_stars_bulge          float32          The half-mass radius of the stellar bulge
 ========================  ================  =======================================================================
 
 The pointers to locations in the galaxy table refer to the current graph.  Therefore we also need a record of where each graph starts.  The relevant dataset is labelled "Graph_start_locations"; it is a 1-D numpy array.

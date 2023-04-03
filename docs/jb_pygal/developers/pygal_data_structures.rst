@@ -30,7 +30,7 @@ Within each snapshot, halos, subhalo and galaxies are stored as python lists.  W
 halos and subhalos are therefore stored in two different kinds of structures within which they are indexed differently:
 
 * MEGA input files: ``_gid`` is the location relative to the graph datasets.
-* snapshot lists: `_sid`` is the location relative to the first halo/subhalo in the list
+* snapshot lists: ``_sid`` is the location relative to the first halo/subhalo in the list.
 
 These are related by constant offsets:
 
@@ -126,15 +126,14 @@ Galaxies create the most book-keeping.  Within the galaxy array, we first store 
 
 * Halos:
 
-  - host_ID_gid - the host halo of this subhalo
-  - desc_host_sid - main descendant of host halo; needed if no descendant of subhalo
+  - halo_(gid|sid) - the host halo of this subhalo
+  - desc_halo_sid - main descendant of host halo, which will receive this subhalos contents, should this subhalo have no descendant.
 
 * Subhalos
     
   - n_desc - the number of descendant subhalos.
   - desc_start_gid - first descendant subhalo
   - desc_end_gid - last descendant subhalo +1 (python indexing)
-  - desc_host_sid - the descendant halo of the host which will receive this subhalos contents, should this subhalo have no descendant.
 
 * Galaxies
 
