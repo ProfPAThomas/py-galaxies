@@ -5,6 +5,16 @@ The py-galaxies API
    :maxdepth: 3
    :caption: Contents:
 
+Driver routines
+---------------
+
+.. automodule:: parameters
+   :members:
+
+.. automodule:: driver
+   :members:
+
+	     
 Data structures
 ---------------
 
@@ -32,3 +42,29 @@ Galaxies
 .. automodule:: gals
    :members:
 
+SAM routines
+------------
+
+Cooling
+^^^^^^^
+
+.. automodule:: cooling
+   :members:
+
+Mergers
+^^^^^^^
+
+.. automodule:: mergers
+   :members:
+
+Star formation and feedback
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: star_formation_and_feedback
+   :members:
+
+Black holes and AGN
+^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: bh_agn
+   :members:

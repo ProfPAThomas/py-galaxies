@@ -1,12 +1,26 @@
 import numpy as np
 import astropy.units as u
 """
-Functions to make stars from galaxies and to provide feedback of cold gas from SNR
+Functions to make stars from galaxies and to provide feedback of cold gas from SNR.
 """
+
+#-------------------------------------------------------------------------------------------------------------
 
 def F_gal_form_stars(gal,parameters):
    """
    Creates stars from gas in the cold gas disc.
+
+   Arguments
+   ---------
+   gal : obj : D_gal
+      The galaxy that represents the merger product.
+   parameters : obj : C_parameters
+      Instance of class containing global parameters.
+
+   Returns
+   -------
+   float
+      The mass of stars formed (before recycling).
    """
    # We will need this later to set the new disc scale length
    ang_mom_stars_disc = 2. * gal['mass_stars_disc'] * gal['v_vir'] * gal['radius_stars_disc']
@@ -41,11 +55,33 @@ def F_gal_form_stars(gal,parameters):
    ang_mom_stars_disc += mass_stars * gal['v_vir'] * gal['radius_gas_cold']
    gal['radius_stars_disc'] = ang_mom_stars_disc / (2 * gal['mass_stars_disc'] * gal['v_vir'])      
 
-   return mass_stars
+   return mass_stars_imf
+
+#-------------------------------------------------------------------------------------------------------------
 
 def F_star_formation_unresolved(mass_gas,R_d,v_vir,dt,sfr_efficiency,c_sfr_Mcrit):
    """ 
    Implements star formation assuming gas disk unresolved, using the model from Hen15 (arXiv:1410.0365) S1.6.
+
+   Arguments
+   ---------
+   mass_gas : float
+      The mass of the cold gas disc.
+   R_d : float
+      The cold gas disc exponential scale length.
+   v_vir : float
+      The circular speed of the halo that is associated with the galaxy
+   dt : float
+      The (galaxy) timestep.
+   sfr_efficiency : float
+      The SFR efficiency from Hen15 S14.
+   c_sfr_Mcrit : float
+      The mass threshold for star formation from Hen15 S14/S15.
+
+   Returns
+   -------
+   float
+      The mass of stars formed (before recycling).
    """
 
    t_dyn = R_d / v_vir
@@ -63,12 +99,32 @@ def F_star_formation_unresolved(mass_gas,R_d,v_vir,dt,sfr_efficiency,c_sfr_Mcrit
       mass_stars = 0.
    return mass_stars
 
+#-------------------------------------------------------------------------------------------------------------
+
 def F_gal_SNR_feedback(mass_stars,gal,sub,halo,parameters):
    """
    Implements feedback from SNR after star formation.
+
    For now, assume prompt feedback.
+
+   Arguments
+   ---------
+   mass_stars : float
+      The initial mass of stars formed, before recycling.
+   gal : obj : D_gal
+      The galaxy currently being processed.
+   sub : obj : C_sub
+      The host subhalo of this galaxy (or host halo if no host subhalo exists).
+   halo : obj : C_halo
+      The host halo of this galaxy.
+   parameters : obj : C_parameters
+      Instance of class containing global parameters.
+   
+   Returns
+   -------
+   None
    """
-   # Note: input sub maybe a halo if no subhalo exists.
+   # Note: input sub may be a halo if no subhalo exists.
     
    snr_model=parameters.snr_model
    if snr_model == "Hen15":
@@ -100,20 +156,44 @@ def F_gal_SNR_feedback(mass_stars,gal,sub,halo,parameters):
    
    return None
 
+#-------------------------------------------------------------------------------------------------------------
+
 def F_SNR_feedback_Hen15(mass_stars,v_vir,mass_gas_cold,parameters):
-    # Eq S16 & S17 SNR feedback energy (note: have absorbed minus sign into ratio by swapping num. & denom.)
-    epsilon_halo = parameters.Hen15_eta*(0.5+(parameters.Hen15_v_eject_internal/v_vir)**parameters.Hen15_beta2)
-    DE_snr = parameters.c_Hen15_S16*epsilon_halo*mass_stars
-    # Amount of mass that this energy can raise to the virial temperature (well, actually, 0.5*v_vir^2)
-    DM_snr = DE_snr / (0.5 * v_vir**2)
-    # Eq S18 & S19 SNR reheated mass (note: have absorbed minus sign into ratio by swapping num. & denom.)
-    epsilon_disk = parameters.Hen15_epsilon*(0.5+(parameters.Hen15_v_reheat_internal/v_vir)**parameters.Hen15_beta1)
-    DM_reheat_max = epsilon_disk*mass_stars
-    # Can't reheat more gas than exists, or that we have energy for
-    DM_reheat = min(DM_snr,DM_reheat_max,mass_gas_cold)
-    # Use excess energy to eject gas from the (sub)halo
-    DM_eject = min(DM_snr-DM_reheat,DM_reheat)
-    DM_halo = DM_reheat - DM_eject
+   """
+   Evaluates the mass returned to the corona and ejected from the halo in the Hen15 model.
+
+   Arguments
+   ---------
+   mass_stars : float
+      The mass of stars formed, prior to recycling.
+   v_vir : float
+      The circular speed of the host (sub)halo of the galaxy.
+   mass_gas_cold : float
+      The amount of cold gas in the galaxy prior to feedback.
+   parameters : obj : C_parameters
+      Instance of class containing global parameters.
+
+   Returns
+   -------
+   float
+      The mass reheated into the hot gas (coronal) phase.
+   float
+      The mass ejected from the host halo.
+   """
+   
+   # Eq S16 & S17 SNR feedback energy (note: have absorbed minus sign into ratio by swapping num. & denom.)
+   epsilon_halo = parameters.Hen15_eta*(0.5+(parameters.Hen15_v_eject_internal/v_vir)**parameters.Hen15_beta2)
+   DE_snr = parameters.c_Hen15_S16*epsilon_halo*mass_stars
+   # Amount of mass that this energy can raise to the virial temperature (well, actually, 0.5*v_vir^2)
+   DM_snr = DE_snr / (0.5 * v_vir**2)
+   # Eq S18 & S19 SNR reheated mass (note: have absorbed minus sign into ratio by swapping num. & denom.)
+   epsilon_disk = parameters.Hen15_epsilon*(0.5+(parameters.Hen15_v_reheat_internal/v_vir)**parameters.Hen15_beta1)
+   DM_reheat_max = epsilon_disk*mass_stars
+   # Can't reheat more gas than exists, or that we have energy for
+   DM_reheat = min(DM_snr,DM_reheat_max,mass_gas_cold)
+   # Use excess energy to eject gas from the (sub)halo
+   DM_eject = min(DM_snr-DM_reheat,DM_reheat)
+   DM_halo = DM_reheat - DM_eject
     
-    return DM_halo, DM_eject
+   return DM_halo, DM_eject
  

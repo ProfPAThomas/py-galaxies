@@ -1,8 +1,4 @@
-"""
-High-level driver routines.
-
-F_process_halos - does the astrophysics
-F_update_halos - propagates halos, subhalo and galaxy properties from one snapshot to the next
+"""**High-level driver routines.**
 """
 
 import numpy as np
@@ -20,8 +16,19 @@ def F_halo_set_baryon_fraction(halo,parameters):
     """
     Updates the baryon content to be the universal mean, or the sum of the baryon content from
     the progenitors, whichever is larger (so that baryons are not lost).
-    Also, baryon mass cannot decrease.
+
     Any excess baryons arrive in the form of base_metallicity hot gas.
+
+    Arguments
+    ---------
+    halo : obj : C_halo
+       The halo currently being processed.
+    parameters : obj : C_parameters
+       Instance of class containing global parameters
+
+    Returns
+    -------
+    None
     """  
     delta_baryon=max(0.,parameters.baryon_fraction*max(halo.mass,halo.mass_from_progenitors)-halo.mass_baryon)
     halo.mass_baryon+=delta_baryon
@@ -34,8 +41,20 @@ def F_halo_set_baryon_fraction(halo,parameters):
 def F_halo_reincorporation(halo,parameters):
     """
     Reincorporation of ejected gas.
+
     Currently just assumes Hen15 model.
     Might be better to pass dt_halo and c_reinc explicitly
+
+    Arguments
+    ---------
+    halo : obj : C_halo
+       The halo currently being processed.
+    parameters : obj : C_parameters
+       Instance of class containing global parameters
+
+    Returns
+    -------
+    None
     """
     t_reinc = parameters.c_Hen15_reinc/halo.mass
     mass_reinc = halo.mass_gas_eject * (1.-np.exp(-parameters.dt_halo/t_reinc))
@@ -51,9 +70,23 @@ def F_halo_reincorporation(halo,parameters):
 def F_process_halos(halos,subs,gals,graph,parameters):
     """
     This is the controlling routine for halo processing.
-    Need to think where best to do loop over mini-steps: here or in calling routine (probably the latter)
-    Note that all halo, subhalo and gal processing can be done in parallel: not sure how to tell the compiler that.
+
+    Arguments
+    ---------
+    halos : obj : C_halo[n_halo]
+       The halos currently being processed in this graph/snapshot
+    halos : obj : C_sub[n_sub]
+       The subhalos currently being processed in this graph/snapshot
+    gals : obj : np.darray[n_gal]
+       The galaxies currently being processed in this graph/snapshot.
+    parameters : obj : C_parameters
+       Instance of class containing global parameters
+
+    Returns
+    -------
+    None
     """
+
     # Set flag for existencs (or otherwise) of galaxies.
     if isinstance(gals, np.ndarray):
         b_gals_exist = True
@@ -132,14 +165,25 @@ def F_process_halos(halos,subs,gals,graph,parameters):
                     else:
                         F_gal_SNR_feedback(mass_stars,gal,subs[sub_sid],halos[halo_sid],parameters)
                         pass
+    return None
 
 #------------------------------------------------------------------------------------------------------
 
 def F_set_central_galaxy(sub,parameters):
     """
+    Determine the central galaxy in a subhalo.
+
     Will eventually have fancy code to determine which, if any, galaxy is the central one.
     For now, just make that the first (and only) galaxy.
+
+    Arguments
+    ---------
+    sub : obj : C_sub
+       The subhalo currently being processed.
+    parameters : obj : C_parameters
+       Instance of class containing global parameters
     """
+    
     sub.gal_central_sid = sub.gal_start_sid
     return None
 
@@ -149,11 +193,28 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
                    gals_last_snap,graph,parameters):
     """
     Propagate properties from progenitor halos to descendants.
+
     Done as a push rather than a pull because sharing determined by progenitor.
     First loop to push halo / subhalo properties; 
     then structured gal array needs to be generated;
     then second push of gal properties.
+
+    Arguments
+    ---------
+    halos : obj : C_halo[n_halo]
+       The halos currently being processed in this graph/snapshot
+    halos : obj : C_sub[n_sub]
+       The subhalos currently being processed in this graph/snapshot
+    gals : obj : np.darray[n_gal]
+       The galaxies currently being processed in this graph/snapshot.
+    parameters : obj : C_parameters
+       Instance of class containing global parameters
+
+    Returns
+    -------
+    None
     """
+    
     # These offsets give the first (sub)halo in this snapshot
     halo_offset=halos_this_snap[0].halo_gid
     if subs_this_snap != None: sub_offset=subs_this_snap[0].sub_gid
@@ -376,4 +437,5 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
             print(gal.dtype)
             print(gal)
             raise AssertionError('Galaxy disc scale length not set')
- 
+
+    return None

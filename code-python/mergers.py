@@ -1,18 +1,36 @@
 """
-Functions related to galaxy mergers
+Functions related to galaxy mergers.
 """
 
 import numpy as np
 import astropy.units as u
-from BH_agn import F_BH_growth_quasar
+from bh_agn import F_BH_growth_quasar
 from star_formation_and_feedback import F_gal_SNR_feedback
 
 # Merge gals in subhalos
 def F_merge_gals(halo,sub,gals,parameters):
     """
     Merges galaxies within subhalo.
+
     This currently merges all galaxies.  
     In the future, it should check to see whether galaxies should be merged yet or not.
+
+    Arguments
+    ---------
+    halo : obj : C_halo
+       The host halo of the subhalo currently being processed.
+    sub : obj : C_sub
+       The subhalo currently being processed.
+    parameters : obj : C_parameters
+       Instance of class containing global parameters
+    gals : obj : D_gal[n_gal]
+       The galaxies in the subhalo currently being processed.
+    parameters : obj : C_parameters
+       Instance of class containing global parameters.
+
+    Returns
+    -------
+    None
     """
     # Find the most massive galaxy: we will take this to be the one onto which everything accretes
     i_main=np.argmax(gals['mass_baryon'])
@@ -127,7 +145,20 @@ def F_merge_gals(halo,sub,gals,parameters):
 def F_starburst(mass_ratio,gal,parameters):
    """
    Major mergers of galaxies trigger a burst of star formation that goes into the bulge of the remnant.
+
    The starburst is assumed compact and transfers zero angular momentum.
+
+   Arguments
+   ---------
+   mass_ratio : float
+      The ratio of the baryonic mass of the smaller galaxy to the larger one.
+   gal : obj : D_gal
+      The galaxy that represents the merger product.
+
+   Returns
+   -------
+   float
+      The mass of stars formed in the starburst (before recycling).
    """
 
    assert parameters.major_merger_fraction <= mass_ratio <=1, str(parameters.major_merger_fraction)+','+str(mass_ratio)
@@ -148,9 +179,11 @@ def F_starburst(mass_ratio,gal,parameters):
    # Now we enrich our surroundings with prompt metals returned from the newly formed stars
    # To begin with we will assume that all metal enrichment is prompt and everything goes to cold gas.
    # (The return of gas mass to the cold gas has been handled by the recycling fraction above.)
+   # Subsequent feedback will then transfer some of those metals to the hot gas.
+   # Later versions of L-Galaxies allowed some fraction of the metals to go straight to the hot gas phase
    gal['mass_metals_gas_cold'] += parameters.sfr_yield * mass_stars_imf
-   if gal['mass_metals_gas_cold']>gal['mass_gas_cold']*0.1:
+   if parameters.b_debug and gal['mass_metals_gas_cold']>gal['mass_gas_cold']*0.2:
         print('Warning, high Z for cold gas: mass,Z',
               gal['mass_gas_cold'],gal['mass_metals_gas_cold']/gal['mass_gas_cold'])
 
-   return mass_stars
+   return mass_stars_imf

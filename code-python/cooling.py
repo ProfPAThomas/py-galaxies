@@ -1,9 +1,12 @@
-import numpy as np
-import astropy.units as u
-from BH_agn import F_BH_growth_rate_radio
-
 """
 Functions to cool gas from halos onto the central subhalo, and from the central subhalo onto the galaxy
+"""
+
+import numpy as np
+import astropy.units as u
+from bh_agn import F_BH_growth_rate_radio
+
+"""
 Calling sequences:
 F_halo(halo,subhalo,dt,parameters):
     Inputs:
@@ -42,6 +45,15 @@ F_cooling_<cooling_model>(...):
 class C_cooling:
     """
     Class to generate and store the cooling tables.
+
+    Attributes
+    ----------
+    log10_T_table : obj : np.array[]
+       Temperatures associated with cooling table entries.
+    log10_Z_table : obj : np.array[]
+       Metallicities associated with cooling table entries.
+    log10_Lambda_table : np.array[,]
+       Cooling table in units such as to simplify cooling formula in code.
     """
     def __init__(self,parameters):
         """
@@ -67,6 +79,15 @@ class C_cooling:
 def F_halo(halo,sub,parameters):
     """
     Cooling of halo onto subhalo.
+
+    Arguments
+    ---------
+    halo : obj : C_halo
+       The halo currently being processed.
+    sub : obj : C_sub
+       The central subhalo of the halo currently being processed.
+    parameters : obj : C_parameters
+       Instance of class containing global parameters
     """
     if parameters.b_lgalaxies:
         """
@@ -101,6 +122,15 @@ def F_sub(sub,gal,parameters):
     """
     Cooling of subhalo onto galaxy.
     Also sets the radius of the disc.
+
+    Arguments
+    ---------
+    sub : obj : C_sub
+       The subhalo currently being processed.
+    gal : obj : D_gal
+       The central galaxy of the subhalo currently being processed.
+    parameters : obj : C_parameters
+       Instance of class containing global parameters
     """
     r_half = sub.half_mass_radius
     v_vir = sub.half_mass_virial_speed
@@ -166,6 +196,34 @@ def F_sub(sub,gal,parameters):
 def F_cooling_SIS(mass,tau_dyn,half_mass_radius,mass_gas,mass_metals_gas,temp_start,temp_end,dt,cooling_table):
     """
     Implements the isothermal cooling model as used in L-Galaxies and many other SAMs.
+
+    Can be used to determine the amount of cooled gas either in halos or subhalos.
+
+    Arguments
+    ---------
+    mass : float
+       The mass of the halo/subhalo.
+    tau_dyn : float
+       The dynamical time of the halo/subhalo.
+    half_mass_radius : float
+       The half_mass_radius of the halo/subhalo.
+    mass_gas : float
+       The mass of hot gas in the halo/subhalo.
+    mass_metals_gas : float
+       The mass of metals in the hot gas in the halo/subhalo.
+    temp_start : float
+       The starting temperature of the cooling gas.
+    temp_end : float
+       The final temperature of the cooling gas.
+    dt : float
+       The time for which the gas cools.
+    cooling_table : obj : np.array[,]
+       Cooling table in units such as to simplify cooling formula in code.
+
+    Returns
+    -------
+    float
+       Mass of cooled gas.
     """
     # Not sure if subhalo virial temperature can ever exceed that of the halo that it is in.
     # If it can, trap out before call to this subroutine, so raise error here
@@ -202,6 +260,20 @@ def F_get_metaldependent_cooling_rate(log10_T,log10_Z,cooling_table):
     """
     Returns the cooling function, ie the cooling rate per unit density of electrons and ions.
     Assumes that the cooling function is tabulated in code units.
+
+    Arguments
+    ---------
+    log10_T : float
+       Temperature of cooling gas
+    log10_Z : float
+       Metallicities associated with cooling table entries.
+    log10_Lambda_table : np.array[,]
+       Cooling table in units such as to simplify cooling formula in code.
+
+    Returns
+    -------
+    float
+       Value of cooling function in units such as to simplify cooling formula in code.
     """
     # Needs to read in/know cooling function
     # Needs to read in/know table limits

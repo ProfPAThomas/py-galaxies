@@ -11,8 +11,8 @@ cosmo:
  baryonFraction: 0.155
 
 plots:
- velocityDispersion: False
- virialTemperature: False
+ velocityDispersion: True
+ virialTemperature: True
  baryonFraction: True
  hotGas: True
  hotGasMetallicity: True

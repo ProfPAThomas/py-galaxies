@@ -12,15 +12,16 @@ cosmo:
 
 plots:
  baryonFraction: False
+ bulgeFraction: True
  blackHole_stars: True
  coldGas_halo: False
- coldGas_subhalo: False
+ coldGas_subhalo: True
  coldGasMetallicity: True
  coldGasRadius: True
  starFormationRate: False
  stellarMass_halo: False
  stellarMass_subhalo: True
- stellarHaloMassRatio: False
+ stellarHaloMassRatio: True
  stellarSubhaloMassRatio: False
  stellarDiscRadius: True
  stellarDiscMetallicity: True
@@ -40,6 +41,11 @@ baryonFraction:
  markerType: '.'
  xlabel: '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
  ylabel: 'Baryon fraction'
+ legend:  True
+ label:   'Universal baryon fraction'
+ save_png: True
+ save_pdf: False
+ name:    'bfrac'
 
 blackHole_stars:
  figsize: [12,8]
@@ -53,6 +59,19 @@ blackHole_stars:
  save_png: True
  save_pdf: False
  name:    'BH_stars'
+
+bulgeFraction:
+ figsize: [12,8]
+ xscale: 'log'
+ yscale: 'linear'
+ markerType: '.'
+ xlabel: '$M_*$ / M$_\odot$' # Units should really be an attribute of the data
+ ylabel: 'Bulge/total stellar fraction'
+ legend:   False
+ label:   ' '
+ save_png: True
+ save_pdf: False
+ name:    'bulge_fraction'
 
 coldGas_halo:
  figsize: [12,8]

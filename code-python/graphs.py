@@ -63,7 +63,7 @@ class C_graph:
          The ID of the graph to be opened.
       open_graph_file : obj : 'File'
          Open HDF5 file that is to be read from.
-      parameters : obj : 'Class'
+      parameters : obj : 'C_parameters class'
          Contains parameters describing the simulation.
       """
 
@@ -133,3 +133,4 @@ class C_graph:
          #self.sub_v_max = graph['sub_v_max']
       # Galaxies
       self.n_gal=0
+

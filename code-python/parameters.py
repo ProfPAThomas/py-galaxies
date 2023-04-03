@@ -15,36 +15,24 @@ class C_parameters:
     ----------
     b_* : boolean
         Flag for each of the model parameters
-    baryon_fraction : float
-        Cosmic baryon fraction.
     cooling_table: C_cooling
         Stores cooling table and associated metal and temperature scales
     c_* : float
         Various dimensionless physical constants for use in astrophysics routines
     D_param : dictionary 
         Dictionary containing contents of yml file.
-    n_HDF5_io_rec : int
-        IO HDF5 buffer size.
- 
-    Methods:
-    --------
-        __init__
-        __str__ 
-    
-    """
+    units_* : float
+        The units used for input, output and internally within the code, and conversion factors between them.
+     """
     
     def __init__(self,param_file):
         """ 
-        Key parameters for the model
+        Reads in and generates global parameters.
         
-        Input parameters
-        ----------------
+        Parameters
+        ----------
         param_file : str
            Filepath to the yml file containing the model parameters.
-        verbosity : int
-           The level of detail needed for debugging messages.
-        b_debug : bool
-           To print out debugging messages, true or false. 
         """
         
         # Read in yaml file and save entries within this parameter instance
@@ -196,11 +184,10 @@ class C_parameters:
         self.c_BH_Edd = self.c_BH_Edd.si.value
         
         if self.b_display_parameters: self.__str__()
-            
+
     def __str__(self):
         """ 
         Simple method to print out parameters.  
-        Returns 
         """
         for item in self.D_param:
             print("{:20s}: {}\n".format(item,self.D_param[item]))
@@ -215,6 +202,18 @@ class C_parameters:
         return ''
 
     def F_update_parameters(self,graph_file):
+        """ 
+        Reads in attributes of the graph and the snapshot table
+
+        Arguments
+        ---------
+        graph_file : obj : HDF5 File
+           Open HDF5 file containing the merger graphs.
+
+        Returns
+        -------
+           None
+        """
         for key, value in graph_file['Header'].attrs.items():
             if self.b_display_parameters: print(key,value)
             exec('self.'+key+'=value')
@@ -225,5 +224,4 @@ class C_parameters:
         # Currently read from disk:
         self.snap_table=np.loadtxt(self.snap_file,usecols=[0,2,4],
             dtype=[('snap_ID',np.int32),('redshift',np.float32),('time_in_years',np.float32)])
-
-
+        return None

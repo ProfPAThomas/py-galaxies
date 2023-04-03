@@ -7,7 +7,7 @@ inputFiles:
  haloFile: 'data/AGNfeed_HaloOutput.hdf5'
  subhaloFile: 'data/AGNfeed_SubhaloOutput.hdf5'
  galaxyFile:  'data/AGNfeed_GalaxyOutput.hdf5'
-save_prefix: 'SNRfeed_sub_'
+save_prefix: 'AGNfeed_sub_'
 
 # The following should really be attributes of the data
 cosmo:
@@ -75,7 +75,7 @@ hotGas:
  xscale: 'log'
  yscale: 'log'
  markerType: '.'
- xlabel: '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
+ xlabel: '$M_\mathrm{subhalo}$ / M$_\odot$' # Units should really be an attribute of the data
  ylabel: '$M_\mathrm{hot\ gas}$ / M$_\odot$'
  legend:  False
  label:  ' '
@@ -88,7 +88,7 @@ hotGasMetallicity:
  xscale: 'log'
  yscale: 'linear'
  markerType: '.'
- xlabel: '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
+ xlabel: '$M_\mathrm{subhalo}$ / M$_\odot$' # Units should really be an attribute of the data
  ylabel: '$Z_\mathrm{hot\ gas}$'
  legend:  False
  label:  ' '
@@ -101,13 +101,13 @@ stellarHaloMassRatio:
  xscale: 'log'
  yscale: 'linear'
  markerType: '.'
- xlabel: '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
- ylabel: '$M_\mathrm{stars}$ / $M_\mathrm{halo}$'
+ xlabel: '$M_\mathrm{subhalo}$ / M$_\odot$' # Units should really be an attribute of the data
+ ylabel: '$M_\mathrm{stars}$ / $M_\mathrm{subhalo}$'
 
 starFormationRate:
  figsize: [12,8]
  xscale: 'log'
  yscale: 'log'
  markerType: '.'
- xlabel: '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
+ xlabel: '$M_\mathrm{subhalo}$ / M$_\odot$' # Units should really be an attribute of the data
  ylabel: 'SFR / M$_\odot$ yr$^{-1}$'
