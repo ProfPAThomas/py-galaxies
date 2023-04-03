@@ -16,6 +16,18 @@ io_files:
   galaxy_file:  'output/AGNfeed_GalaxyOutput.hdf5'
  auxiliary_files:
   cooling_function_file: 'aux_files/Lambda_table.npz'
+  
+# Diagnostics
+diagnostics:
+ b_debug:
+  Description: 'Print out debugging diagnostics'
+  Value: False
+ b_display_parameters:
+  Description: 'Display runtime parameters after reading in'
+  Value: True
+ verbosity:
+  Description: 'Level of diagnostic messages: 0 - None; 1/2 - main counters; 3/4/5 - debugging info'
+  Value: 2
 
 # Should be attributes in the graph input file
 cosmology:

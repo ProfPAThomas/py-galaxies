@@ -77,14 +77,14 @@ class C_graph:
       """
       self.graph_ID = graph_ID
       graph = open_graph_file[str(graph_ID)]
-      part_mass=parameters.part_mass                          # This is already in internal units
+      part_mass_internal=parameters.part_mass*parameters.mass_input_to_internal
       # Attributes of graph
       self.n_halo = graph.attrs['nhalos_in_graph']            # Total number of halos in the graph
       try:
          self.n_sub = graph.attrs['sub_nhalos_in_graph']      # Total number of subhalos in the graph
       except:
          self.n_sub = 0
-      self.root_mass=graph.attrs['root_mass'] * part_mass 
+      self.root_mass=graph.attrs['root_mass'] * part_mass_internal 
       # Properties of graph: halos per snaphot (generation)
       self.snap_ID = graph['generation_id'][:] # Contains no data flag if there are no halos.
       # Note that the following is set to the no data flag, not 0, if there are no halos - need to correct
@@ -96,7 +96,7 @@ class C_graph:
       self.mean_pos = graph['mean_pos'][:] * parameters.length_input_to_internal
       self.mean_vel = graph['mean_vel'][:] * parameters.speed_input_to_internal
       self.n_desc = graph['ndesc'][:]
-      self.mass = graph['nparts'][:] * part_mass
+      self.mass = graph['nparts'][:] * part_mass_internal
       self.n_prog = graph['nprog'][:]
       self.prog_start_gid = graph['prog_start_index'][:]
       self.rms_radius = graph['rms_radius'][:] * parameters.length_input_to_internal
@@ -126,7 +126,7 @@ class C_graph:
          self.sub_pos = graph['sub_mean_pos'][:] * parameters.length_input_to_internal
          self.sub_vel = graph['sub_mean_vel'][:]* parameters.speed_input_to_internal
          self.sub_n_desc = graph['sub_ndesc'][:]
-         self.sub_mass = graph['sub_nparts'][:] * part_mass
+         self.sub_mass = graph['sub_nparts'][:] * part_mass_internal
          self.sub_rms_speed = graph['sub_3D_velocity_dispersion'][:] * parameters.speed_input_to_internal
          self.sub_half_mass_radius = graph['sub_half_mass_radius'][:] * parameters.length_input_to_internal
          self.sub_start_halo_gid = graph['subhalo_start_index'][:]      # First subhalo in each halo

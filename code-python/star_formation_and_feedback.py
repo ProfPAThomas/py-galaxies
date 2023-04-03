@@ -34,7 +34,7 @@ def F_gal_form_stars(gal,parameters):
    # To begin with we will assume that all metal enrichment is prompt and everything goes to cold gas.
    # (The return of gas mass to the cold gas has been handled by the recycling fraction above.)
    gal['mass_metals_gas_cold'] += parameters.sfr_yield * mass_stars_imf
-   if gal['mass_metals_gas_cold']>gal['mass_gas_cold']*0.1:
+   if gal['mass_metals_gas_cold']>gal['mass_gas_cold']*0.2:
       print('Warning, high Z for cold gas: mass, Z =',gal['mass_gas_cold'],gal['mass_metals_gas_cold']/gal['mass_gas_cold'])
 
    # We want to model the size of the stellar disc.  We do this using angular momentum (assuming exponential in shape)

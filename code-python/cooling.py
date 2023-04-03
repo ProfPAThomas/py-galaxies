@@ -64,7 +64,7 @@ class C_cooling:
         # self.log10_Lambda_table -= 0.3
         # print('log10_Lambda_table =',self.log10_Lambda_table)
 
-def F_halo(halo,sub,cooling_table,parameters):
+def F_halo(halo,sub,parameters):
     """
     Cooling of halo onto subhalo.
     """
@@ -86,7 +86,7 @@ def F_halo(halo,sub,cooling_table,parameters):
         sub.half_mass_virial_speed = halo.half_mass_virial_speed
     elif parameters.cooling_model == 'SIS':
         mass_cooled=F_cooling_SIS(halo.mass,halo.tau_dyn,halo.half_mass_radius,halo.mass_gas_hot,halo.mass_metals_gas_hot,
-                                  halo.temperature,sub.temperature,parameters.dt_halo,cooling_table)
+                                  halo.temperature,sub.temperature,parameters.dt_halo,paraemters.cooling_table)
         mass_metals_cooled  = (mass_cooled/halo.mass_gas_hot) * halo.mass_metals_gas_hot
         halo.mass_gas_hot -= mass_cooled
         halo.mass_metals_hot -= mass_metals_cooled
@@ -97,7 +97,7 @@ def F_halo(halo,sub,cooling_table,parameters):
         raise valueError('cooling.F_halo: cooling model '+parameters.cooling_model+' not implemented.')
     return None
 
-def F_sub(sub,gal,cooling_table,parameters):
+def F_sub(sub,gal,parameters):
     """
     Cooling of subhalo onto galaxy.
     Also sets the radius of the disc.
@@ -115,7 +115,7 @@ def F_sub(sub,gal,cooling_table,parameters):
     if parameters.cooling_model == 'SIS':
         gal_temperature=1e4*u.K/parameters.units_temperature_internal  # Cool down to 1e4 K
         mass_cooled=F_cooling_SIS(sub.mass,sub.tau_dyn,sub.half_mass_radius,sub.mass_gas_hot,sub.mass_metals_gas_hot,
-                                  sub.temperature,gal_temperature,dt,cooling_table)
+                                  sub.temperature,gal_temperature,dt,parameters.cooling_table)
     else:
         raise valueError('cooling.F_sub: cooling model '+parameters.cooling_model+' not implemented.')
 

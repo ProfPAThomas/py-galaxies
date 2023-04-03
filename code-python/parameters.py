@@ -7,23 +7,22 @@ import yaml
 class C_parameters:
     """Read in yml parameters and store them.
     
-    Simple class to read in and store parameters from the yml file. Simple
-    methods included to print out the parameters etc.
+    Simple class to read in and store parameters from the yml file. 
+    Simple methods included to print out the parameters etc.
+    All global parameters are stored here.
 
-    Data attributes:
-    ----------------
+    Attributes
+    ----------
     b_* : boolean
         Flag for each of the model parameters
     baryon_fraction : float
         Cosmic baryon fraction.
+    cooling_table: C_cooling
+        Stores cooling table and associated metal and temperature scales
+    c_* : float
+        Various dimensionless physical constants for use in astrophysics routines
     D_param : dictionary 
         Dictionary containing contents of yml file.
-    galaxy_file : str
-        The filepath to the halo output HDF5 file.
-    graph_file : str
-        The filepath to the input graph HDF5 file.
-    halo_file : str
-        The filepath to the galaxy output HDF5 file.
     n_HDF5_io_rec : int
         IO HDF5 buffer size.
  
@@ -34,7 +33,7 @@ class C_parameters:
     
     """
     
-    def __init__(self,param_file,available_option_file):
+    def __init__(self,param_file):
         """ 
         Key parameters for the model
         
@@ -56,6 +55,11 @@ class C_parameters:
             for file_type, file_name in value.items():
                 exec('self.'+str(file_type)+'=file_name')
                 print('self.'+str(file_type)+' =',eval('self.'+str(file_type)))
+        # Diagnostics
+        for key, value in self.D_param['diagnostics'].items():
+            Value = value['Value']
+            exec('self.'+str(key)+'=Value')
+            print('self.'+str(key)+' =',eval('self.'+str(key)))
         # Cosmological parameters (ideally would be in graph input files)
         for key, value in self.D_param['cosmology'].items():
             Value = value['Value']
@@ -110,16 +114,6 @@ class C_parameters:
                 exec('self.'+str(key)+'=Value*eval(Units)')
             print('self.'+str(key)+' =',eval('self.'+str(key)))
 
-        # Loop over all available options, creating False flag for each missing one
-        self.D_option = yaml.load(open(available_option_file),Loader=yaml.Loader)
-        for key in self.D_option:
-            try:
-                exec('self.'+key)
-            except:
-                exec('self.'+key+'='+str(self.D_option[key]['Value']))
-
-        if self.b_display_parameters: self.__str__()
-            
         # Set up units used for I/O and within the code
         # Conversion of masses for I/O
         self.mass_input_to_internal=(self.units_mass_input/self.units_mass_internal).si.value
@@ -200,19 +194,36 @@ class C_parameters:
         self.c_BH_Edd = 4.*np.pi*c.G*c.m_p*self.units_time_internal/(c.sigma_T*c.c)
         print('c_BH_Edd = {:.3g}'.format(self.c_BH_Edd.si))
         self.c_BH_Edd = self.c_BH_Edd.si.value
-
-
+        
+        if self.b_display_parameters: self.__str__()
+            
     def __str__(self):
         """ 
         Simple method to print out parameters.  
         Returns 
         """
-        print('Inbuilt options:')
-        for item in self.D_option:
-            print("{:20s}: {}\n".format(item,self.D_option[item]))
-        print('\nRuntime options:')
         for item in self.D_param:
             print("{:20s}: {}\n".format(item,self.D_param[item]))
         print('\n')
+        # Double down on listing units as super-useful
+        print('Internal unit:')
+        print('  mass  ',self.units_mass_internal.to(c.M_sun))
+        print('  length',self.units_length_internal)
+        print('  time  ',self.units_time_internal)
+        print('  speed ',self.units_speed_internal.to(u.km/u.s))
+        print('  temp. ',self.units_temperature_internal)
         return ''
-    
+
+    def F_update_parameters(self,graph_file):
+        for key, value in graph_file['Header'].attrs.items():
+            if self.b_display_parameters: print(key,value)
+            exec('self.'+key+'=value')
+        # Store the total number of graphs in the input file:
+        self.n_graph=len(graph_file['graph_lengths'])
+        # Put code in here to either copy table of snapshot redshifts/times from graph_file,
+        # Or calculate them if that does not exist.
+        # Currently read from disk:
+        self.snap_table=np.loadtxt(self.snap_file,usecols=[0,2,4],
+            dtype=[('snap_ID',np.int32),('redshift',np.float32),('time_in_years',np.float32)])
+
+
