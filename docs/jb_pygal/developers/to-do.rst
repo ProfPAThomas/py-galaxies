@@ -48,6 +48,7 @@ Galaxy physics modules to import from L-galaxies
   - need better version of merger graphs so can use angular momentum of halo.
   - implement a beta model for the hot gas distribution.
   - add resolved galactic discs
+  - cool in stages and check that this better aligns the instantaneous and averaged cooling rates.
   
 * Star formation and feedback:
   
@@ -69,8 +70,17 @@ Galaxy physics modules to import from L-galaxies
   - need better merger graphs so 
   - triggering starburst (does this need to be explicit, or can it arise naturally from contraction of disc?)
 
+* Stripping:
+
+  - Need to implement stripping of non-central galaxies (and subhalos).
+
 Plotting developments
 ---------------------
 
 * Galaxy stellar mass function
 * Luminosity functions (requires code to generate SEDs from star formation history)
+
+Testing
+-------
+
+* Check where the crazily large gas disc sizes come from.

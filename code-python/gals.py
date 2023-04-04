@@ -45,6 +45,10 @@ radius_stars_bulge : float
    The half mass radius for the bulge stars (Jaffe profile).
 radius_stars_disc : float
    The disc scale radius for the stellar disc.
+SFR_dt : float
+   The star formation rate in the last galaxy timestep
+SFR_snap : float
+   The star formation rate averaged over the last snapshot
 v_vir : float
    The half-mass circular speed of the host subhalo (or halo, if no subhalo).
 """
@@ -78,7 +82,9 @@ D_gal=[
    ('mass_baryon',np.float32),      # Includes BHs.  Effectively equivalent to total mass of galaxy (assuming no DM).
    ('radius_gas_cold',np.float32),  # Exponential disc radius
    ('radius_stars_disc',np.float32), # Exponential disc radius
-   ('radius_stars_bulge',np.float32) # Half mass radius
+   ('radius_stars_bulge',np.float32), # Half mass radius
+   ('SFR_dt',np.float32),
+   ('SFR_snap',np.float32)
 ]
 
 def F_gal_template(parameters):
@@ -120,6 +126,8 @@ def F_gal_template(parameters):
    template['radius_gas_cold']=0.
    template['radius_stars_disc']=0.
    template['radius_stars_bulge']=0.
+   template['SFR_dt']=0.
+   template['SFR_snap']=0.
    return template
 
 class C_gal_output:
@@ -176,6 +184,8 @@ class C_gal_output:
       dtype.append(('radius_gas_cold',np.float32))
       dtype.append(('radius_stars_disc',np.float32))
       dtype.append(('radius_stars_bulge',np.float32))
+      dtype.append(('SFR_dt',np.float32))
+      dtype.append(('SFR_snap',np.float32))
       # Create halo io buffer
       self.io_buffer=np.empty(self.n_rec,dtype=dtype)
       # Create HDF5 dataset
@@ -236,6 +246,8 @@ class C_gal_output:
          self.io_buffer[self.i_rec]['radius_gas_cold']= gals[i_gal]['radius_gas_cold'] * parameters.length_internal_to_output
          self.io_buffer[self.i_rec]['radius_stars_disc']= gals[i_gal]['radius_stars_disc'] * parameters.length_internal_to_output
          self.io_buffer[self.i_rec]['radius_stars_bulge']= gals[i_gal]['radius_stars_bulge'] * parameters.length_internal_to_output
+         self.io_buffer[self.i_rec]['SFR_dt']=gals[i_gal]['SFR_dt'] * parameters.mass_internal_to_output / parameters.time_internal_to_output
+         self.io_buffer[self.i_rec]['SFR_snap']=gals[i_gal]['SFR_snap'] * parameters.mass_internal_to_output / parameters.time_internal_to_output
          self.i_rec+=1
          if self.i_rec == self.n_rec: self.flush()
       return None

@@ -12,19 +12,20 @@ cosmo:
 
 plots:
  baryonFraction: False
- bulgeFraction: True
- blackHole_stars: True
+ bulgeFraction: False
+ blackHole_stars: False
  coldGas_halo: False
- coldGas_subhalo: True
- coldGasMetallicity: True
- coldGasRadius: True
- starFormationRate: False
+ coldGas_subhalo: False
+ coldGasMetallicity: False
+ coldGasRadius: False
+ SFR: True
+ sSFR: True
  stellarMass_halo: False
- stellarMass_subhalo: True
- stellarHaloMassRatio: True
+ stellarMass_subhalo: False
+ stellarHaloMassRatio: False
  stellarSubhaloMassRatio: False
- stellarDiscRadius: True
- stellarDiscMetallicity: True
+ stellarDiscRadius: False
+ stellarDiscMetallicity: False
 
 graphs:
  graphMin: 0
@@ -190,6 +191,32 @@ coldGasMetallicity:
  save_pdf: False
  name:    'gas_disc_Z'
 
+SFR:
+ figsize: [12,8]
+ xscale: 'log'
+ yscale: 'log'
+ markerType: '.'
+ xlabel: '$M_*$ / M$_\odot$'
+ ylabel: 'SFR / M$_\odot$ yr$^{-1}$'
+ legend:   True
+ label:   'In last timestep'
+ save_png: True
+ save_pdf: False
+ name:    'SFR'
+
+sSFR:
+ figsize: [12,8]
+ xscale: 'log'
+ yscale: 'log'
+ markerType: '.'
+ xlabel: '$M_*$ / M$_\odot$'
+ ylabel: 'SFR / yr$^{-1}$'
+ legend:   True
+ label:   'In last timestep'
+ save_png: True
+ save_pdf: False
+ name:    'sSFR'
+
 stellarDiscMetallicity:
  figsize: [12,8]
  xscale: 'log'
@@ -203,10 +230,3 @@ stellarDiscMetallicity:
  save_pdf: False
  name:    'stellar_disc_Z'
 
-starFormationRate:
- figsize: [12,8]
- xscale: 'log'
- yscale: 'log'
- markerType: '.'
- xlabel: '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
- ylabel: 'SFR / M$_\odot$ yr$^{-1}$'

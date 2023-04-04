@@ -154,6 +154,7 @@ def F_process_halos(halos,subs,gals,graph,parameters):
         for i_dt in range(n_dt_gal):
             for gal in gals:
                 if not gal['b_exists']: continue  #  Galaxies may have merged
+                gal['SFR_dt'] = 0. # This will fail to capture mergers (done above in subs loop) until we have a proper merger time for them.
                 if gal['mass_gas_cold'] > parameters.mass_minimum_internal: 
                     mass_stars = F_gal_form_stars(gal,parameters)
                     # If subhalo does not exist, use halo as proxy.  This will work here as only need access to hot gas phase.

@@ -123,7 +123,7 @@ The virial temperature (i.e. the hot gas temperature) is given by the relation: 
    :width: 600
    :alt: virial temperature versus halo mass
 
-Any of the three relations on the above plot could be used to fix the virial temperature of the halo: further testing is required to see which is most robust to mergers.  For now, we use the half mass radius as that seems the most direct measure of the conditions in the centre of the halo, where cooling will be most effective.
+Any of the three relations on the above plot could be used to fix the virial temperature of the halo: further testing is required to see which is most robust to mergers.  We use the half mass radius as that seems the most direct measure of the conditions in the centre of the halo, where cooling will be most effective.
 
 Accretion
 ^^^^^^^^^
@@ -137,9 +137,9 @@ This is the first step in the astrophysics: once properties have been pushed fro
 
 :code:`delta_baryon=max(0.,parameters.baryon_fraction*max(halo.mass,halo.mass_from_progenitors)-halo.mass_baryon)`
 
-The following image shows a typical baryon fraction distribution.  Small halos can fluctuate above the cosmic mean because of variations in mass; that effect is much reduced in high mass halos.  The visible lines in the plot show the evolution in baryon fraction for individual halos as they increase in mass from one snapshot to the next.  Incidentally, this plot was produced with MEGA merger graphs; the fluctuations above the mean are much larger in other merger trees.
+The following image shows a typical baryon fraction distribution.  Small halos can fluctuate above the cosmic mean because of variations in mass; that effect is much reduced in high mass halos.  *The origin of the visible lines in bottom-left of the plot is uncertain*.  Incidentally, this plot was produced with MEGA merger graphs; the fluctuations above the mean are much larger in other merger trees.
 
-.. image:: figs/bfrac.png
+.. image:: figs/halo_bfrac.png
    :width: 600
    :alt: baryon fraction versus halo mass
 
@@ -255,12 +255,39 @@ It can be seen that in most cases each halo contains a subhalo of very similar v
 Galaxy merging
 ^^^^^^^^^^^^^^
 
-Currently a minimal model is in place in which all galaxies in a subhalo are merged into a single galaxy by adding all the relevant components together.  The angular momenta of the merging components are assumed to be aligned.
+Currently a minimal model is in place in which all galaxies in a subhalo are instantaneously merged into a single galaxy using the following procedure, which changes depending upon the mass ratio of the merging galaxies.
 
-Future models will:
+* The most massive galaxy is taken to become the merger remnant; the other we will call the satellite galaxy.
+* The mass ratio, :math:`\mu`, is defined to be the baryonic mass of the satellite galaxy divided by that of the more massive one (befgre merging), such that :math:`0\leq\mu\leq1`.
+* The cold gas discs are added together: in the development model, MEGA does not provide the angular momentum of halos, so the discs are presumed to align; this will over-estimate disc sizes.
+* If :math:`\mu>=\mu_\mathrm{merge}` then a starburst is triggered that forms a mass of stars (Hen15, S33)
+  
+  .. math::
 
-* trigger starbursts, depending upon the mass ratio of merging galaxies, and/or
-* follow the (vector) angular momentum of the merging galaxies, thus potentially leading to a large contraction in disc size.
+     M_\mathrm{*,burst}=\alpha_\mathrm{SFR,burst}\mu^\beta_\mathrm{SFR,burst}M_\mathrm{cold gas}.
+
+  The starburst will result in SNR feedback as described in the :ref:`Stellar feedback` section below.
+* The stellar bulges are added together.
+* The stellar disc of the satellite is added to the bulge of the remnant.
+* If :math:`\mu<\mu_\mathrm{merge}` then the stellar disc of the remnant is unchanged; otherwise it is transferred to the bulge.
+* The half-mass radius of the bulge is determined using a model from `Guo et al. 2011 <https://arxiv.org/pdf/1006.0106.pdf>`_ (Hen15, S34)
+  
+  .. math::
+
+     {M_\mathrm{bulge,new}^2\over r_\mathrm{bulge,new}}={M_\mathrm{bulge,1}^2\over r_\mathrm{bulge,1}} +
+     {M_\mathrm{bulge,1}^2\over r_\mathrm{bulge,1}} +
+     2\alpha_\mathrm{merge}{M_\mathrm{bulge,1}M_\mathrm{bulge,2}\over r_\mathrm{bulge,1}+r_\mathrm{bulge,2}},
+
+  where the subscripts 1 and 2 represent the two galaxies and :math:`\alpha_\mathrm{merge}=0.5` is a fixed parameter that leads to sensible bulge sizes.
+* The black holes of the two galaxies will merge and, in addition, the black hole will accrete an amount of cold gas as described in the section on :ref:`Galaxy mergers (quasar mode)` below.
+
+In future, once we have angular momenta, then we will follow the (vector) angular momentum of the merging galaxies, thus potentially leading to a large contraction in the cold gas disc size.  This in turn may trigger more star formation (possibly eliminating the need for explict modelling of a starburst).
+
+Mergers are the dominant method for forming bulges in high-mass galaxies.  The following plot shows the bulge to total stellar mass ratio for galaxies in the absence of disc instability (which is the other mechanism for bulge formation, not yet implemented).
+
+.. image:: figs/AGNfeed_gal_bulge_fraction.png
+   :width: 600
+   :alt: The bulge to total mass ratio of stars in galaxies 
 
 
 Cooling
@@ -290,17 +317,26 @@ There are two models to determine the angular momentum of newly cooled gas:
   
 * More generally, if we know the (vector) angular momentum of the halo, then the accreted gas is presumed to have the same specific angular momentum as that and we do a vector sum to determine the angular momentum of the gas disc after accretion.
 
-In each case the cold gas disc will expand or contract according to its new specific angular momentum: :math:`R_\mathrm{d}=J/(2Mv)`.  The following figure shows an example relation using :math:`\lambda=0.06`: note that there is no star formation and feedback included in the model that generates this plot.
+In each case the cold gas disc will expand or contract according to its new specific angular momentum: :math:`R_\mathrm{d}=J/(2Mv)`.  The following figure shows an example relation using :math:`\lambda=0.25`.
 
-.. image:: figs/gal_coldgas_radius.png
+.. image:: figs/AGNfeed_gal_gas_disc_radius.png
    :width: 600
-   :alt: cold gas disc radius versus subhalo mass
+   :alt: cold gas disc radius versus stellar mass
+
+Note:
+
+* :math:`\lambda=0.25` seems very large but using the smaller 0.06 (which is what I had in my head) gave disc sizes that were too small.
+* Need to follow up where the ridiculously large disc sizes come from (they do not correspond to extremely small cold gas masses).
 
 Stellar disc radius
 :::::::::::::::::::
 
 The stellar disc radius is determined in the same way as the gas disc radius, by following the angular momentum of the stars.  The angular momentum of the gas that is turned into stars (after prompt recycling) is transferred from the cold gas disk to the stellar disc.
-	 
+
+.. image:: figs/AGNfeed_gal_stellar_disc_radius.png
+   :width: 600
+   :alt: stellar disc radius versus stellar mass
+
 
 Star formation
 ^^^^^^^^^^^^^^
@@ -338,6 +374,30 @@ Both :math:`\alpha_\mathrm{SFR}` and :math:`M_\mathrm{crit,0}` are taken to be f
 
 The model assumes that the disc scale length is unaffected by star formation, whereas in practice we might expect stars to form mainly from the central regions where the molecular gas fraction is higher and the local dynamical time is shorter.
 
+The following image shows the stellar content of galaxies versus the mass of the subhalo:
+
+.. image:: figs/AGNfeed_gal_stars_sub.png
+   :width: 600
+   :alt: The stellar content of galaxies versus the mass of the subhalo
+
+and this one show the ratio of the stellar mass content of (all galaxies in) a halo to the total DMO mass of the halo:
+
+.. image:: figs/AGNfeed_gal_stars_halo_ratio.png
+   :width: 600
+   :alt: The stellar to halo mass ratio
+
+In the future, when we have implemented star formation histories, then it will be possible to measure the star formation rate averaged over arbitrary intervals of time; for now, we do it on the galaxy timestep and average over a snapshot.
+The star formation and specific star formation rates show that star formation declines over the snapshot: that is because we only cool/accrete gas onto galaxies on the halo timestep, but we form stars on several galaxy timesteps within each halo timestep and cool gas is quickly recycled.  The model needs to be modified to make cooling/accretion happen on the shorter timescale.
+
+.. image:: figs/AGNfeed_gal_SFR.png
+   :width: 600
+   :alt: The star formation rate versus stellar mass
+
+.. image:: figs/AGNfeed_gal_sSFR.png
+   :width: 600
+   :alt: The specific star formation rate versus stellar mass
+
+	   
 Metal enrichment
 ^^^^^^^^^^^^^^^^
 
@@ -372,6 +432,8 @@ The simple model in Hen15 uses:
 * fraction_Z_hot - 0.
 
 and at the time of writing this is the only one implemented.
+
+.. _Stellar feedback:
 
 Stellar feedback
 ^^^^^^^^^^^^^^^^
@@ -545,6 +607,8 @@ Of these, the former appears to be the most important.
 
 The nature of the initial black hole seeds is uncertain but do not seem to be that important.  All we require is that there is a nascent BH which can accrete gas, with the rate of accretion being determined by the supply of matter rather than the initial size of the B-H radius (which itself is proportional to the mass of the BH).
 
+.. _Galaxy mergers (quasar mode):
+
 Galaxy mergers (quasar mode)
 ::::::::::::::::::::::::::::
 
@@ -561,6 +625,12 @@ where
     \Delta M_\mathrm{BH,q}=f_\mathrm{BH,q}{M_2\over M_1}{M_\mathrm{coldgas,1}+M_\mathrm{coldgas,2}\over 1+\left(v_\mathrm{BH,q}\over v_\mathrm{vir,1}\right)^2}.
 
 Here the subscripts 1 and 2 refer to the central (more massive) galaxy and the merging satellite, respectively, and :math:`f_\mathrm{BH,q}` and :math:`v_\mathrm{BH,q}` are parameters of the model.
+
+The following image shows the resulting relationship between black hole and stellar mass (note that this also requires the feedback described in the next section to prevent the growth of excessively massive galaxies).
+
+.. image:: figs/AGNfeed_gal_BH_stars.png
+   :width: 600
+   :alt: black hole versus stellar mass
 
 Accretion from cooling gas (radio mode)
 :::::::::::::::::::::::::::::::::::::::
