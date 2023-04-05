@@ -1,0 +1,5 @@
+# List of modules that pip needs to install
+astropy
+h5py
+numpy
+
