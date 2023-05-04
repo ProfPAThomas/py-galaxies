@@ -8,12 +8,13 @@
 
 io_files:
  input_files:
-  graph_file:   'MergerGraphs/mega_graph_micro_09-11.hdf5'
+  graph_file:   'MergerGraphs/mega_graph_mini_09-11.hdf5'
   snap_file:    'MergerGraphs/snaplist.txt' # Should ideally be stored in graph_file
  output_files:
-  halo_file:    'output/AGNfeed_HaloOutput.hdf5'
-  subhalo_file: 'output/AGNfeed_SubhaloOutput.hdf5'
-  galaxy_file:  'output/AGNfeed_GalaxyOutput.hdf5'
+  halo_file:    'output/test_HaloOutput.hdf5'
+  subhalo_file: 'output/test_SubhaloOutput.hdf5'
+  galaxy_file:  'output/test_GalaxyOutput.hdf5'
+  profile_cpu_file: 'output/test_profile_cpu.pkl'
  auxiliary_files:
   cooling_function_file: 'aux_files/Lambda_table.npz'
   
@@ -24,6 +25,9 @@ diagnostics:
   Value: False
  b_display_parameters:
   Description: 'Display runtime parameters after reading in'
+  Value: True
+ b_profile_cpu:
+  Description: 'Profile cpu-time'
   Value: True
  verbosity:
   Description: 'Level of diagnostic messages: 0 - None; 1/2 - main counters; 3/4/5 - debugging info'

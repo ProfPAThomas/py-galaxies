@@ -2,6 +2,12 @@
 """
 
 import numpy as np
+from codetiming import Timer
+from profiling import conditional_decorator
+#import traceback
+#import warnings
+#warnings.simplefilter("always")
+#from warnings import warn
 
 # Import astrophysics modules (could be run-time parameter dependent)
 from cooling import F_halo as F_halo_cooling
@@ -12,6 +18,7 @@ from mergers import F_merge_gals as F_merge_gals
 
 #------------------------------------------------------------------------------------------------------
 
+@conditional_decorator(Timer(name='F_halo_set_baryon_fraction',logger=None),True)
 def F_halo_set_baryon_fraction(halo,parameters):
     """
     Updates the baryon content to be the universal mean, or the sum of the baryon content from
@@ -38,6 +45,7 @@ def F_halo_set_baryon_fraction(halo,parameters):
 
 #------------------------------------------------------------------------------------------------------
 
+@conditional_decorator(Timer(name='F_halo_reincorporation',logger=None),True)
 def F_halo_reincorporation(halo,parameters):
     """
     Reincorporation of ejected gas.
@@ -67,6 +75,7 @@ def F_halo_reincorporation(halo,parameters):
 
 #------------------------------------------------------------------------------------------------------
 
+@conditional_decorator(Timer(name='F_process_halos',logger=None),True)
 def F_process_halos(halos,subs,gals,graph,parameters):
     """
     This is the controlling routine for halo processing.
@@ -170,6 +179,7 @@ def F_process_halos(halos,subs,gals,graph,parameters):
 
 #------------------------------------------------------------------------------------------------------
 
+@conditional_decorator(Timer(name='F_set_central_galaxy',logger=None),True)
 def F_set_central_galaxy(sub,parameters):
     """
     Determine the central galaxy in a subhalo.
@@ -190,6 +200,7 @@ def F_set_central_galaxy(sub,parameters):
 
 #------------------------------------------------------------------------------------------------------
 
+@conditional_decorator(Timer(name='F_update_halos',logger=None),True)
 def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap,
                    gals_last_snap,graph,parameters):
     """
@@ -260,6 +271,10 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
             sub_desc_end_gid=sub.desc_end_gid
             halo_sid=sub.halo_sid
             desc_main_sid=halos_last_snap[halo_sid].desc_main_sid  # This possibly does not exist
+            if desc_main_sid==parameters.NO_DATA_INT:
+                #warn('No descendant for halo '+str(halo_sid)+': galaxies will be lost')
+                print('No descendant for halo '+str(halo_sid)+': galaxies will be lost')
+                continue
             sub.desc_halo_sid=desc_main_sid
             if sub.n_desc==0:
                 # If no descendant, subhalo components get given to the (main descendant of) the host halo
@@ -343,6 +358,7 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
                 #gals_this_snap[gal_this_start_sid:gal_this_end_sid]['v_vir']=desc_halo.half_mass_virial_speed
         if subs_last_snap != None:
             for sub in subs_last_snap:
+                if sub.desc_halo_sid==parameters.NO_DATA_INT: continue # No descendent halo
                 n_sub_gal=sub.n_gal
                 sub_desc_start_gid=sub.desc_start_gid
                 sub_desc_end_gid=sub_desc_start_gid+sub.n_desc

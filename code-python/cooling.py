@@ -4,6 +4,8 @@ Functions to cool gas from halos onto the central subhalo, and from the central 
 
 import numpy as np
 import astropy.units as u
+from codetiming import Timer
+from profiling import conditional_decorator
 from bh_agn import F_BH_growth_rate_radio
 
 """
@@ -76,6 +78,7 @@ class C_cooling:
         # self.log10_Lambda_table -= 0.3
         # print('log10_Lambda_table =',self.log10_Lambda_table)
 
+@conditional_decorator(Timer(name='cooling_F_halo',logger=None),True)
 def F_halo(halo,sub,parameters):
     """
     Cooling of halo onto subhalo.
@@ -118,6 +121,7 @@ def F_halo(halo,sub,parameters):
         raise valueError('cooling.F_halo: cooling model '+parameters.cooling_model+' not implemented.')
     return None
 
+@conditional_decorator(Timer(name='cooling_F_sub',logger=None),True)
 def F_sub(sub,gal,parameters):
     """
     Cooling of subhalo onto galaxy.
@@ -193,6 +197,7 @@ def F_sub(sub,gal,parameters):
     gal['mass_baryon'] += dm_BH
     return None
 
+@conditional_decorator(Timer(name='F_cooling_SIS',logger=None),True)
 def F_cooling_SIS(mass,tau_dyn,half_mass_radius,mass_gas,mass_metals_gas,temp_start,temp_end,dt,cooling_table):
     """
     Implements the isothermal cooling model as used in L-Galaxies and many other SAMs.
@@ -256,6 +261,7 @@ def F_cooling_SIS(mass,tau_dyn,half_mass_radius,mass_gas,mass_metals_gas,temp_st
             
     return (fg0-fg)*mass
 
+@conditional_decorator(Timer(name='F_get_metaldependent_cooling_rate',logger=None),True)
 def F_get_metaldependent_cooling_rate(log10_T,log10_Z,cooling_table):
     """
     Returns the cooling function, ie the cooling rate per unit density of electrons and ions.
