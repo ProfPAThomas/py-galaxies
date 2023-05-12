@@ -69,7 +69,7 @@ D_gal=[
    ('desc_gid',np.int32),
    ('first_prog_gid',np.int32),
    ('next_prog_gid',np.int32),
-   ('b_exists',np.bool),
+   ('b_exists',bool),
    ('v_vir',np.float32),      # Virial speed of host halo
    ('mass_stars_bulge',np.float32),
    ('mass_metals_stars_bulge',np.float32),
@@ -173,7 +173,7 @@ class C_gal_output:
       dtype.append(('desc_gid',np.int32))
       dtype.append(('first_prog_gid',np.int32))
       dtype.append(('next_prog_gid',np.int32))
-      dtype.append(('b_exists',np.bool))
+      dtype.append(('b_exists',bool))
       dtype.append(('mass_stars_bulge',np.float32))
       dtype.append(('mass_metals_stars_bulge',np.float32))
       dtype.append(('mass_stars_disc',np.float32))

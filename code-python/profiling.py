@@ -5,6 +5,7 @@ Functions to permit profiling of the code.
 import numpy as np
 import pickle
 from time import perf_counter
+import tracemalloc as tm
 
 def conditional_decorator(dec, condition):
    """
@@ -83,4 +84,59 @@ class C_timer:
       entry['cpu_time_total'] += perf_counter()-entry['cpu_time_start']
       return None
 
-      
+class C_mem:
+   """
+   Keep track of memory usage.
+   All this does is track memory size and peak memory size.
+
+   Creates a new dictionary entry each time it is called with a different keyword
+   """
+
+   def __init__(self):
+      # The dictionary to store the timers
+      self.mem={}
+
+      dtype=np.dtype([
+         ('mem_size',np.float32),
+         ('mem_peak',np.float32)
+      ])
+      self.template=np.empty(1,dtype)
+      self.template['mem_size']=0.
+      self.template['mem_peak']=0.
+
+      # Start profiler
+      tm.start()
+   
+      return None
+
+   def __repr__(self):
+      for key in self.mem:
+         print(key,': ',self.mem[key])
+      return ''
+
+   def dump(self,filename):
+      with open(filename, 'wb') as f:
+         pickle.dump(self.mem, f)
+      return None
+   
+   def start(self,name):
+      if name=='': raise AttributeError('No name supplied to C_mem.start()')
+      try:
+         entry=self.mem[name]
+      except:
+         # Create new dictionary entry and initialise
+         self.mem[name]=self.template.copy()
+         #self.timers[name]={}
+      tm.reset_peak()
+
+   def stop(self,name):
+      if name=='': raise AttributeError('No name supplied to C_mem.stop()')
+      try:
+         entry=self.mem[name]
+      except:
+         raise ValueError('timer '+name+' does not exist')
+      tm_size, tm_peak = tm.get_traced_memory()
+      entry['mem_size'] = tm_size
+      entry['mem_peak'] = tm_peak
+      return None
+  
