@@ -9,9 +9,12 @@ from profiling import conditional_decorator
 from bh_agn import F_BH_growth_quasar
 from star_formation_and_feedback import F_gal_SNR_feedback
 
+import commons
+b_profile_cpu=commons.load('b_profile_cpu')
+
 # Merge gals in subhalos
 
-@conditional_decorator(Timer(name='F_merge_gals',logger=None),True)
+@conditional_decorator(Timer(name='F_merge_gals',logger=None),b_profile_cpu)
 def F_merge_gals(halo,sub,gals,parameters):
     """
     Merges galaxies within subhalo.
@@ -146,7 +149,7 @@ def F_merge_gals(halo,sub,gals,parameters):
             
     return None
 
-@conditional_decorator(Timer(name='F_BH_starburst',logger=None),True)
+@conditional_decorator(Timer(name='F_BH_starburst',logger=None),b_profile_cpu)
 def F_starburst(mass_ratio,gal,parameters):
    """
    Major mergers of galaxies trigger a burst of star formation that goes into the bulge of the remnant.

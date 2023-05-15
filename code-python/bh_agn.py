@@ -1,13 +1,16 @@
 """
 Functions related to black holes and agn activity
 """
+import commons
 import numpy as np
 from codetiming import Timer
 from profiling import conditional_decorator
 
+b_profile_cpu=commons.load('b_profile_cpu')
+
 #------------------------------------------------------------------------------------------------------
 
-@conditional_decorator(Timer(name='F_BH_growth_quasar',logger=None),True)
+@conditional_decorator(Timer(name='F_BH_growth_quasar',logger=None),b_profile_cpu)
 def F_BH_growth_quasar(mass_ratio,mass_gas_cold,v_vir,f_BH,v_BH):
    """
    Calculates the mass driven onto the bh in a merger (quasar mode).
@@ -42,7 +45,7 @@ def F_BH_growth_quasar(mass_ratio,mass_gas_cold,v_vir,f_BH,v_BH):
 
 #------------------------------------------------------------------------------------------------------
 
-@conditional_decorator(Timer(name='F_BH_growth_rate_radio',logger=None),True)
+@conditional_decorator(Timer(name='F_BH_growth_rate_radio',logger=None),b_profile_cpu)
 def F_BH_growth_rate_radio(mass_gas_hot,mass_BH,f_BH):
    """
    Accretion from cooling gas in the hot atmosphere as in Hen15, S24.

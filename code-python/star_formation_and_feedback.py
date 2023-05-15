@@ -7,9 +7,12 @@ import astropy.units as u
 from codetiming import Timer
 from profiling import conditional_decorator
 
+import commons
+b_profile_cpu=commons.load('b_profile_cpu')
+
 #-------------------------------------------------------------------------------------------------------------
 
-@conditional_decorator(Timer(name='F_gal_form_stars',logger=None),True)
+@conditional_decorator(Timer(name='F_gal_form_stars',logger=None),b_profile_cpu)
 def F_gal_form_stars(gal,parameters):
    """
    Creates stars from gas in the cold gas disc.
@@ -68,7 +71,7 @@ def F_gal_form_stars(gal,parameters):
 
 #-------------------------------------------------------------------------------------------------------------
 
-@conditional_decorator(Timer(name='F_star_formation_unresolved',logger=None),True)
+@conditional_decorator(Timer(name='F_star_formation_unresolved',logger=None),b_profile_cpu)
 def F_star_formation_unresolved(mass_gas,R_d,v_vir,dt,sfr_efficiency,c_sfr_Mcrit):
    """ 
    Implements star formation assuming gas disk unresolved, using the model from Hen15 (arXiv:1410.0365) S1.6.
@@ -111,7 +114,7 @@ def F_star_formation_unresolved(mass_gas,R_d,v_vir,dt,sfr_efficiency,c_sfr_Mcrit
 
 #-------------------------------------------------------------------------------------------------------------
 
-@conditional_decorator(Timer(name='F_gal_SNR_feedback',logger=None),True)
+@conditional_decorator(Timer(name='F_gal_SNR_feedback',logger=None),b_profile_cpu)
 def F_gal_SNR_feedback(mass_stars,gal,sub,halo,parameters):
    """
    Implements feedback from SNR after star formation.
@@ -169,7 +172,7 @@ def F_gal_SNR_feedback(mass_stars,gal,sub,halo,parameters):
 
 #-------------------------------------------------------------------------------------------------------------
 
-@conditional_decorator(Timer(name='F_SNR_feedback_Hen15',logger=None),True)
+@conditional_decorator(Timer(name='F_SNR_feedback_Hen15',logger=None),b_profile_cpu)
 def F_SNR_feedback_Hen15(mass_stars,v_vir,mass_gas_cold,parameters):
    """
    Evaluates the mass returned to the corona and ejected from the halo in the Hen15 model.

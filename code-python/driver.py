@@ -4,10 +4,9 @@
 import numpy as np
 from codetiming import Timer
 from profiling import conditional_decorator
-#import traceback
-#import warnings
-#warnings.simplefilter("always")
-#from warnings import warn
+
+import commons
+b_profile_cpu=commons.load('b_profile_cpu')
 
 # Import astrophysics modules (could be run-time parameter dependent)
 from cooling import F_halo as F_halo_cooling
@@ -18,7 +17,7 @@ from mergers import F_merge_gals as F_merge_gals
 
 #------------------------------------------------------------------------------------------------------
 
-@conditional_decorator(Timer(name='F_halo_set_baryon_fraction',logger=None),True)
+@conditional_decorator(Timer(name='F_halo_set_baryon_fraction',logger=None),b_profile_cpu)
 def F_halo_set_baryon_fraction(halo,parameters):
     """
     Updates the baryon content to be the universal mean, or the sum of the baryon content from
@@ -45,7 +44,7 @@ def F_halo_set_baryon_fraction(halo,parameters):
 
 #------------------------------------------------------------------------------------------------------
 
-@conditional_decorator(Timer(name='F_halo_reincorporation',logger=None),True)
+@conditional_decorator(Timer(name='F_halo_reincorporation',logger=None),b_profile_cpu)
 def F_halo_reincorporation(halo,parameters):
     """
     Reincorporation of ejected gas.
@@ -75,7 +74,7 @@ def F_halo_reincorporation(halo,parameters):
 
 #------------------------------------------------------------------------------------------------------
 
-@conditional_decorator(Timer(name='F_process_halos',logger=None),True)
+@conditional_decorator(Timer(name='F_process_halos',logger=None),b_profile_cpu)
 def F_process_halos(halos,subs,gals,graph,parameters):
     """
     This is the controlling routine for halo processing.
@@ -179,7 +178,7 @@ def F_process_halos(halos,subs,gals,graph,parameters):
 
 #------------------------------------------------------------------------------------------------------
 
-@conditional_decorator(Timer(name='F_set_central_galaxy',logger=None),True)
+@conditional_decorator(Timer(name='F_set_central_galaxy',logger=None),b_profile_cpu)
 def F_set_central_galaxy(sub,parameters):
     """
     Determine the central galaxy in a subhalo.
@@ -200,7 +199,7 @@ def F_set_central_galaxy(sub,parameters):
 
 #------------------------------------------------------------------------------------------------------
 
-@conditional_decorator(Timer(name='F_update_halos',logger=None),True)
+@conditional_decorator(Timer(name='F_update_halos',logger=None),b_profile_cpu)
 def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap,
                    gals_last_snap,graph,parameters):
     """
