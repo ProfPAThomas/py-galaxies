@@ -29,6 +29,13 @@ def F_gal_form_stars(gal,parameters):
    float
       The mass of stars formed (before recycling).
    """
+
+   b_SFH=parameters.b_SFH
+   
+   # The timestep
+   dt_gal=commons.load('dt_gal')
+   if b_SFH: i_bin_sfh=commons.load('i_bin_sfh')
+   
    # We will need this later to set the new disc scale length
    ang_mom_stars_disc = 2. * gal['mass_stars_disc'] * gal['v_vir'] * gal['radius_stars_disc']
 
@@ -36,14 +43,14 @@ def F_gal_form_stars(gal,parameters):
    sfr_model=parameters.sfr_model
    if sfr_model == "Unresolved":
       mass_stars_imf=F_star_formation_unresolved(gal['mass_gas_cold'],gal['radius_gas_cold'],gal['v_vir'], \
-                                             parameters.dt_gal,parameters.sfr_efficiency,parameters.c_sfr_Mcrit)
+                                             dt_gal,parameters.sfr_efficiency,parameters.c_sfr_Mcrit)
    else:
       raise valueError('sfr model '+sfr_model+' not yet implemented')
    if mass_stars_imf < parameters.mass_minimum_internal: return 0.
 
    # Record star formation rates
-   gal['SFR_dt'] += mass_stars_imf/parameters.dt_gal        # zeroed at start of timestep
-   gal['SFR_snap'] += mass_stars_imf/parameters.dt_snap     # This one is cumulative over the snapshot
+   gal['SFR_dt'] += mass_stars_imf/dt_gal                    # zeroed at start of timestep
+   gal['SFR_snap'] += mass_stars_imf/commons.load('dt_snap') # This one is cumulative over the snapshot
    
    # For now assume instantaneous recycling back into the cold gas
    # Then the mass stored in stars is that AFTER recycling, not the initial mass
@@ -55,6 +62,9 @@ def F_gal_form_stars(gal,parameters):
    gal['mass_metals_gas_cold'] -= mass_metals_stars
    gal['mass_stars_disc'] += mass_stars
    gal['mass_metals_stars_disc'] += mass_metals_stars
+   if b_SFH:
+         gal['mass_stars_disc_sfh'][i_bin_sfh-1] += mass_stars
+         gal['mass_metals_stars_disc_sfh'][i_bin_sfh-1] += mass_metals_stars
 
    # Now we enrich our surroundings with prompt metals returned from the newly formed stars
    # To begin with we will assume that all metal enrichment is prompt and everything goes to cold gas.

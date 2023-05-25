@@ -1,0 +1,78 @@
+# SFH plot parameters
+
+inputFiles:
+  haloFile: 'data/python_HaloOutput.hdf5'
+  subhaloFile: 'data/python_SubhaloOutput.hdf5'
+  galaxyFile: 'data/python_GalaxyOutput.hdf5'
+  sfhFile: 'data/python_SFH.hdf5'
+save_prefix: 'python_SFH_'
+ 
+# The following should really be attributes of the data
+cosmo:
+ baryonFraction: 0.155
+
+plots:
+ test: True
+ sfh_time: True
+ sfh_bulge_mass: True
+ sfh_disc_mass: True
+ 
+graphs:
+ graphMin: 0
+ graphMax: 1000 # Note - includes last element!
+ 
+snapshots:
+ snapMin: 61
+ snapMax: 61 # Note - includes last element!
+
+test:
+ figsize: [12,8]
+ xscale: 'log'
+ yscale: 'log'
+ markerType: '.'
+ xlabel: '$M_\mathrm{disc}$ / M$_\odot$' # Units should really be an attribute of the data
+ ylabel: '$\Sigma M_\mathrm{disc,SFH}$ / M$_\odot$'
+ legend:  False
+ label:   ''
+ save_png: True
+ save_pdf: False
+ name:    'test'
+
+sfh_time:
+ figsize: [12,8]
+ xscale: 'log'
+ yscale: 'log'
+ markerType: '.'
+ xlabel: 'Lookback time / yr' # Units should really be an attribute of the data
+ ylabel: '$\Sigma$SFR / M$_\odot$ yr$^{-1}$'
+ legend:  True
+ label:   'Total'
+ save_png: True
+ save_pdf: False
+ name:    'sfh_time'
+
+sfh_bulge_mass:
+ figsize: [12,8]
+ xscale: 'log'
+ yscale: 'log'
+ markerType: '-'
+ xlabel: 'Lookback time / yr' # Units should really be an attribute of the data
+ ylabel: 'SFR$_\mathrm{bulge}$ / M$_\odot$ yr$^{-1}$'
+ legend:  True
+ label:   '$10^{11}\leq M_*/$M$_\odot$'
+ save_png: True
+ save_pdf: False
+ name:    'sfh_bulge_mass'
+
+sfh_disc_mass:
+ figsize: [12,8]
+ xscale: 'log'
+ yscale: 'log'
+ markerType: '-'
+ xlabel: 'Lookback time / yr' # Units should really be an attribute of the data
+ ylabel: 'SFR$_\mathrm{disc}$ / M$_\odot$ yr$^{-1}$'
+ legend:  True
+ label:   '$10^{11}\leq M_*/$M$_\odot$'
+ save_png: True
+ save_pdf: False
+ name:    'sfh_disc_mass'

@@ -126,7 +126,7 @@ class C_mem:
       except:
          # Create new dictionary entry and initialise
          self.mem[name]=self.template.copy()
-         #self.timers[name]={}
+         #self.mem[name]={}
       tm.reset_peak()
 
    def stop(self,name):

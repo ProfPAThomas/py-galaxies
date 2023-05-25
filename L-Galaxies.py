@@ -26,18 +26,18 @@
 # * [ijk]_ - variable counter (integer)
 # * n_ - total counter (integer)
 
+# In[1]:
+
+
 # Imports of generic python routines
 
 import astropy.constants as c
 import astropy.units as u
-from codetiming import Timer
-import gc
+#import gc
 import h5py
 import numpy as np
 import pickle
 import sys
-import tracemalloc as tm
-
 # Switch on traceback for warnings
 import traceback
 import warnings
@@ -49,6 +49,10 @@ def warn_with_traceback(message, category, filename, lineno, file=None, line=Non
     log.write(warnings.formatwarning(message, category, filename, lineno, line))
 
 warnings.showwarning = warn_with_traceback
+
+
+# In[2]:
+
 
 # Location of code
 C_DIR='code-C'
@@ -67,6 +71,9 @@ FILE_PARAMETERS='input/input.yml'
 
 # ### Imports of parameter and data classes
 
+# In[3]:
+
+
 # Imports of py-galaxies python routines
 sys.path.insert(1,PYTHON_DIR)
 
@@ -77,10 +84,38 @@ import commons
 # The parameter class, used to store run-time parameters
 from parameters import C_parameters
 
+# Read in parameters from yaml input files
+parameters=C_parameters(FILE_PARAMETERS)
+parameters.verbosity=VERBOSITY
+commons.save('verbosity',parameters.verbosity)
+
+# Open graph input file: needs to come before F_set_dt and F_update_parameters
+graph_file=h5py.File(parameters.graph_file,'r')
+# Update parameters with attributes from graph_file
+parameters.F_update_parameters(graph_file)
+
+# Need to set the timesteps now, because that information is needed to determine the structure of
+# the halo & subhalo classes and especially the galaxy arrays.
+# This loads in the snapshot times and determines the number of timesteps required.
+from misc import F_set_dt
+F_set_dt(parameters)
+if VERBOSITY >=2:
+    for i_snap in range(len(parameters.snap_table)):
+        print('i_snap, n_dt_halo, dt_halo, n_dt_gal, dt_gal')
+        print(i_snap, parameters.n_dt_halo[i_snap], parameters.dt_halo[i_snap], parameters.n_dt_gal[i_snap], parameters.dt_gal[i_snap])
+# This generates a class instance that holds the structure of the SFH arrays at all different timesteps
+b_SFH=parameters.b_SFH
+if b_SFH:
+    from sfh import C_sfh
+    sfh=C_sfh(parameters)
+    parameters.sfh=sfh     # Useful to avoid having to optionally pass sfh as a function argument
+
+# These parameters are needed at import, so save to commons here
+commons.save('b_SFH',parameters.b_SFH)
+if b_SFH: commons.save('sfh.n_bin',sfh.n_bin)
+
 # The conditional decorator and profilers
-# These may not be needed but we don't know until we read in the parameters
 from profiling import conditional_decorator
-from profiling import C_mem, C_timer
 
 # The graph class, used to store graphs for processing
 from graphs import C_graph
@@ -101,23 +136,20 @@ from subs import C_sub_output
 from gals import C_gal_output
 
 
+
 # ### Initialisation of SAM
 
-# Read in parameters from yaml input files
-parameters=C_parameters(FILE_PARAMETERS,)
-parameters.verbosity=VERBOSITY
-commons.save('verbosity',parameters.verbosity)
+# In[4]:
 
+
+# Start CPU profiling, if required.
 b_profile_cpu=parameters.b_profile_cpu
 commons.save('b_profile_cpu',b_profile_cpu)
-if b_profile_cpu: 
+if b_profile_cpu:
+    from codetiming import Timer
+    from profiling import C_timer
     timer = C_timer()
     timer.start('Initialisation')
-
-# Open graph input file: needs to come before F_update_parameters
-graph_file=h5py.File(parameters.graph_file,'r')
-# Update parameters with attributes from graph_file
-parameters.F_update_parameters(graph_file)
 
 # Create counter to locate graphs within the galaxy output file
 n_graph=min(parameters.n_graph,n_GRAPH)
@@ -146,21 +178,27 @@ from driver import F_update_halos     # Propagates info from last snapshot to cu
 from driver import F_process_halos    # Does all the astrophysics
 
 if b_profile_cpu: timer.stop('Initialisation')
-
+    
 # Start Memory profiling, if required
 b_profile_mem=parameters.b_profile_mem
 if b_profile_mem: 
+    import tracemalloc as tm
     tm.start()
     # These lines attempt to filter out profiling memory itself; not clear how well it does that.
     tm.Filter(False, tm.__file__)
     if b_profile_cpu: tm.Filter(False, codetiming.__file__)
+    from profiling import C_mem
     mem = C_mem()
+
 
 # ### Loop over graphs, snapshots, halos, implementing the SAM
 # 
 # Note that loops over graphs can be done in parallel.
 # 
 # Also, F_update_halos needs to be serial, but all halos can be processed in parallel in F_process_halos.
+
+# In[5]:
+
 
 # Loop over graphs
 for i_graph in range(n_graph):
@@ -183,6 +221,18 @@ for i_graph in range(n_graph):
             continue
         if VERBOSITY >= 2: print('Processing snapshot',i_snap,flush=True)
             
+        # These timestepping parameters will be needed in the processing, so save them to commons
+        commons.save('dt_snap',parameters.dt_snap[i_snap])
+        commons.save('dt_halo',parameters.dt_halo[i_snap])
+        commons.save('dt_gal',parameters.dt_gal[i_snap])
+        commons.save('n_dt_halo',parameters.n_dt_halo[i_snap])
+        commons.save('n_dt_gal',parameters.n_dt_gal[i_snap])
+        # This is the ministep, needed to track star formation histories
+        if b_SFH:
+            i_dt=sfh.i_dt_snap[i_snap]-1   # This gives the ministep, BEFORE updating
+            commons.save('i_dt',i_dt)
+            commons.save('i_bin_sfh',sfh.i_bin[i_dt])
+        
         # Initialise halo and subhalo properties.
         # This returns a list of halo and subhalo instances
         # This may be slow: an alternative would be to use np arrays.
@@ -205,15 +255,7 @@ for i_graph in range(n_graph):
         #gc.collect() # garbage collection -- safe but very slow.
 
         # Process the halos
-        # The determination of timesteps could be done at initialisation (in update_parameters)
-        dt_snap=((parameters.snap_table['time_in_years'][i_snap]- \
-            parameters.snap_table['time_in_years'][i_snap-1]) * u.yr / parameters.units_time_internal).value
-        parameters.dt_snap = dt_snap
-        n_dt_halo=int(dt_snap*1.000001/parameters.timestep_halo_internal)+1
-        parameters.n_dt_halo=n_dt_halo
-        parameters.dt_halo=dt_snap/n_dt_halo
-        if VERBOSITY >= 2: print('t_snap, n_dt_halo, dt_halo =',t_snap, n_dt_halo,parameters.dt_halo)
-        for i_dt in range(n_dt_halo):
+        for i_dt_halo in range(parameters.n_dt_halo[i_snap]):
             F_process_halos(halos_this_snap,subs_this_snap,gals_this_snap,graph,parameters)
             
         # Once all halos have been done, output results
@@ -221,7 +263,7 @@ for i_graph in range(n_graph):
         halo_output.append(halos_this_snap,parameters)
         if subs_this_snap != None: sub_output.append(subs_this_snap,parameters)
         if isinstance(gals_this_snap, np.ndarray):
-            gals_this_snap 
+            #if any(gals_this_snap['mass_stars_disc']>parameters.mass_minimum_internal): print('stars exist at time ',parameters.snap_table['time_in_years'][i_snap]/1e9,' Gyr')
             gal_output.append(gals_this_snap,parameters)
             n_gal+=len(gals_this_snap)
             
@@ -239,15 +281,18 @@ for i_graph in range(n_graph):
     del halos_last_snap
     del subs_last_snap
     del gals_last_snap
-    gc.collect()
     if b_profile_cpu: 
         timer.stop(graph_str)
-        if VERBOSITY>1: print(timer.timers[graph_str])
+        if VERBOSITY>1: print('graph processing time / s =',timer.timers[graph_str])
     if b_profile_mem:
         mem.stop(graph_str)
-        if VERBOSITY>1: print(mem.mem[graph_str])
+        if VERBOSITY>1: print('graph memory usage / bytes =',mem.mem[graph_str])
+
 
 # ###  Tidy up and exit
+
+# In[6]:
+
 
 if b_profile_mem: tm_snap = tm.take_snapshot()
 if b_profile_cpu: timer.start('Finalise')
@@ -277,8 +322,26 @@ if b_profile_cpu:
         print('{:s}: {:g}'.format(key,Timer.timers[key]))
     with open(parameters.profile_cpu_file, 'ab') as f:
         pickle.dump(Timer.timers, f)
-        
 if b_profile_mem: 
     mem.dump(parameters.profile_mem_file)
     with open(parameters.profile_mem_file, 'ab') as f:
         pickle.dump(tm_snap, f)
+
+
+# In[8]:
+
+
+parameters.t_snap
+
+
+# In[10]:
+
+
+sfh.t.shape
+
+
+# In[ ]:
+
+
+
+

@@ -7,6 +7,7 @@ from profiling import conditional_decorator
 
 import commons
 b_profile_cpu=commons.load('b_profile_cpu')
+b_SFH=commons.load('b_SFH')
 
 # Import astrophysics modules (could be run-time parameter dependent)
 from cooling import F_halo as F_halo_cooling
@@ -14,6 +15,7 @@ from cooling import F_sub as F_sub_cooling
 from gals import D_gal, F_gal_template
 from star_formation_and_feedback import F_gal_form_stars, F_gal_SNR_feedback
 from mergers import F_merge_gals as F_merge_gals
+if b_SFH: from sfh import F_sfh_update_bins
 
 #------------------------------------------------------------------------------------------------------
 
@@ -63,8 +65,10 @@ def F_halo_reincorporation(halo,parameters):
     -------
     None
     """
+    dt_halo=commons.load('dt_halo')
+    
     t_reinc = parameters.c_Hen15_reinc/halo.mass
-    mass_reinc = halo.mass_gas_eject * (1.-np.exp(-parameters.dt_halo/t_reinc))
+    mass_reinc = halo.mass_gas_eject * (1.-np.exp(-dt_halo/t_reinc))
     mass_metals_reinc = mass_reinc * (halo.mass_metals_gas_eject/halo.mass_gas_eject)
     halo.mass_gas_eject -= mass_reinc
     halo.mass_metals_gas_eject -= mass_metals_reinc
@@ -100,13 +104,14 @@ def F_process_halos(halos,subs,gals,graph,parameters):
         b_gals_exist = True
     else:
         b_gals_exist = False
-    # Set timestep
-    halo=halos[0]
-#     dt=(parameters.snap_table['time_in_years'][halo.snap_ID]- \
-#         parameters.snap_table['time_in_years'][halo.snap_ID-1]) / \
-#         ( parameters.D_param['units']['internal']['time']['Value'] * \
-#           eval(parameters.D_param['units']['internal']['time']['Units']).to(u.yr) )
-    dt_halo=parameters.dt_halo
+
+    # Load the number of timesteps
+    n_dt_halo=commons.load('n_dt_halo')
+    n_dt_gal=commons.load('n_dt_gal')
+    if b_SFH:
+        sfh=parameters.sfh
+        i_dt=commons.load('i_dt')
+    
     for halo in halos:
         if parameters.verbosity>=4: print('Processing halo ',halo.halo_gid)
         if halo.b_done==True:
@@ -128,7 +133,7 @@ def F_process_halos(halos,subs,gals,graph,parameters):
                 if sub_central.gal_central_sid != parameters.NO_DATA_INT:
                     gals[sub_central.gal_central_sid]['v_vir']=sub_central.half_mass_virial_speed
         halo.n_dt+=1
-        if halo.n_dt==parameters.n_dt_halo: halo.b_done=True
+        if halo.n_dt==n_dt_halo: halo.b_done=True
     if subs != None:
         for sub in subs:
             if sub.b_done==True:
@@ -152,14 +157,10 @@ def F_process_halos(halos,subs,gals,graph,parameters):
                 F_sub_cooling(sub,gal,parameters)
                 pass
             sub.n_dt+=1
-            if sub.n_dt==parameters.n_dt_halo: sub.b_done=True
+            if sub.n_dt==n_dt_halo: sub.b_done=True
     if b_gals_exist:
         # May want to introduce a loop over galaxy timesteps here
-        n_dt_gal=int(parameters.dt_halo*1.000001/parameters.timestep_gal_internal)+1
-        parameters.n_dt_gal=n_dt_gal
-        parameters.dt_gal=parameters.dt_halo/n_dt_gal
-        if parameters.verbosity >= 2: print('dt_halo, n_dt_gal, dt_gal =',dt_halo, n_dt_gal, parameters.dt_gal)
-        for i_dt in range(n_dt_gal):
+        for i_dt_gal in range(n_dt_gal):
             for gal in gals:
                 if not gal['b_exists']: continue  #  Galaxies may have merged
                 gal['SFR_dt'] = 0. # This will fail to capture mergers (done above in subs loop) until we have a proper merger time for them.
@@ -174,6 +175,10 @@ def F_process_halos(halos,subs,gals,graph,parameters):
                     else:
                         F_gal_SNR_feedback(mass_stars,gal,subs[sub_sid],halos[halo_sid],parameters)
                         pass
+            if b_SFH:
+                F_sfh_update_bins(gals,sfh,parameters)
+                i_dt+=1
+                commons.save('i_dt',i_dt)
     return None
 
 #------------------------------------------------------------------------------------------------------
@@ -446,12 +451,11 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
             print(gal.dtype)
             print(gal)
             raise AssertionError('Galaxy virial speed is too low')
-    return gals_this_snap
     # Check that all galaxies with cold gas have a disc scale length set
     for gal in gals_this_snap:
-        if gal['mass_gas_cold']>parameters.mass_minimum_interal and gal['radius_gas_cold']<1e-10:
+        if gal['mass_gas_cold']>parameters.mass_minimum_internal and \
+           gal['radius_gas_cold']<parameters.length_minimum_internal:
             print(gal.dtype)
             print(gal)
             raise AssertionError('Galaxy disc scale length not set')
-
-    return None
+    return gals_this_snap

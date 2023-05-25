@@ -224,4 +224,5 @@ class C_parameters:
         # Currently read from disk:
         self.snap_table=np.loadtxt(self.snap_file,usecols=[0,2,4],
             dtype=[('snap_ID',np.int32),('redshift',np.float32),('time_in_years',np.float32)])
+        self.n_snap=len(self.snap_table)
         return None

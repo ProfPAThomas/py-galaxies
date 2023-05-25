@@ -95,6 +95,9 @@ def F_halo(halo,sub,parameters):
     parameters : obj : C_parameters
        Instance of class containing global parameters
     """
+
+    dt_halo=commons.load('dt_halo')
+    
     if parameters.b_lgalaxies:
         """
         Simple model to mimic that of L-Galaxies.  
@@ -113,7 +116,7 @@ def F_halo(halo,sub,parameters):
         sub.half_mass_virial_speed = halo.half_mass_virial_speed
     elif parameters.cooling_model == 'SIS':
         mass_cooled=F_cooling_SIS(halo.mass,halo.tau_dyn,halo.half_mass_radius,halo.mass_gas_hot,halo.mass_metals_gas_hot,
-                                  halo.temperature,sub.temperature,parameters.dt_halo,paraemters.cooling_table)
+                                  halo.temperature,sub.temperature,dt_halo,parameters.cooling_table)
         mass_metals_cooled  = (mass_cooled/halo.mass_gas_hot) * halo.mass_metals_gas_hot
         halo.mass_gas_hot -= mass_cooled
         halo.mass_metals_hot -= mass_metals_cooled
@@ -141,7 +144,7 @@ def F_sub(sub,gal,parameters):
     """
     r_half = sub.half_mass_radius
     v_vir = sub.half_mass_virial_speed
-    dt = parameters.dt_halo
+    dt = commons.load('dt_halo')
     
     # Angular momentum assuming exponential disc is 2vR_dM where R_d is the exponential disk radius
     ang_mom_gas_cold = 2. * gal['mass_gas_cold'] * gal['v_vir'] * gal['radius_gas_cold']
@@ -311,5 +314,3 @@ def F_get_metaldependent_cooling_rate(log10_T,log10_Z,cooling_table):
     log10_Lambda1 = fracT*log10_Lambda_table[i_Z,i_T]+(1-fracT)*log10_Lambda_table[i_Z,i_T-1]
     log10_Lambda = fracZ*log10_Lambda1+(1-fracZ)*log10_Lambda0
     return 10.**log10_Lambda
-
-    

@@ -39,6 +39,8 @@ def F_merge_gals(halo,sub,gals,parameters):
     -------
     None
     """
+    b_SFH=parameters.b_SFH
+
     # Find the most massive galaxy: we will take this to be the one onto which everything accretes
     i_main=np.argmax(gals['mass_baryon'])
     gal_main=gals[i_main]
@@ -106,6 +108,10 @@ def F_merge_gals(halo,sub,gals,parameters):
         gal_main['mass_metals_gas_cold'] += gal_sat['mass_metals_gas_cold']
         gal_main['mass_stars_bulge'] += gal_sat['mass_stars_bulge'] + gal_sat['mass_stars_disc']
         gal_main['mass_metals_stars_bulge'] += gal_sat['mass_metals_stars_bulge'] + gal_sat['mass_metals_stars_disc']
+        if b_SFH:
+            gal_main['mass_stars_bulge_sfh'] += gal_sat['mass_stars_bulge_sfh'] + gal_sat['mass_stars_disc_sfh']
+            gal_main['mass_metals_stars_bulge_sfh'] += gal_sat['mass_metals_stars_bulge_sfh'] +\
+                gal_sat['mass_metals_stars_disc_sfh']
         gal_main['mass_BH'] += gal_sat['mass_BH']
         gal_main['mass_metals_BH'] += gal_sat['mass_metals_BH']
         gal_main['mass_baryon'] += gal_sat['mass_baryon']
@@ -116,6 +122,11 @@ def F_merge_gals(halo,sub,gals,parameters):
         gal_sat['mass_metals_stars_bulge']=0.
         gal_sat['mass_stars_disc']=0.
         gal_sat['mass_metals_stars_disc']=0.
+        if b_SFH:
+            gal_sat['mass_stars_bulge_sfh']=0.
+            gal_sat['mass_metals_stars_bulge_sfh']=0.
+            gal_sat['mass_stars_disc_sfh']=0.
+            gal_sat['mass_metals_stars_disc_sfh']=0.
         gal_sat['mass_BH']=0.
         gal_sat['mass_metals_BH']=0.
         gal_sat['mass_baryon']=0.
@@ -169,14 +180,20 @@ def F_starburst(mass_ratio,gal,parameters):
       The mass of stars formed in the starburst (before recycling).
    """
 
+   b_SFH=parameters.b_SFH
+
+   dt_snap=commons.load('dt_snap')
+   dt_gal=commons.load('dt_gal')
+   if b_SFH: i_bin_sfh=commons.load('i_bin_sfh')
+   
    assert parameters.major_merger_fraction <= mass_ratio <=1, str(parameters.major_merger_fraction)+','+str(mass_ratio)
    mass_stars_imf = parameters.merger_f_burst * mass_ratio**parameters.merger_beta_burst * gal['mass_gas_cold']
 
    if mass_stars_imf < parameters.mass_minimum_internal: return 0.
 
    # Record star formation rates
-   gal['SFR_dt'] += mass_stars_imf/parameters.dt_gal        # zeroed at start of timestep
-   gal['SFR_snap'] += mass_stars_imf/parameters.dt_snap     # This one is cumulative over the snapshot
+   gal['SFR_dt'] += mass_stars_imf/dt_gal        # zeroed at start of timestep
+   gal['SFR_snap'] += mass_stars_imf/dt_snap     # This one is cumulative over the snapshot
    
    # For now assume instantaneous recycling back into the cold gas
    # Then the mass stored in stars is that AFTER recycling, not the initial mass
@@ -188,6 +205,9 @@ def F_starburst(mass_ratio,gal,parameters):
    gal['mass_metals_gas_cold'] -= mass_metals_stars
    gal['mass_stars_bulge'] += mass_stars
    gal['mass_metals_stars_bulge'] += mass_metals_stars
+   if b_SFH:
+       gal['mass_stars_bulge_sfh'][i_bin_sfh-1] += mass_stars
+       gal['mass_metals_stars_bulge_sfh'][i_bin_sfh-1] += mass_metals_stars
 
    # Now we enrich our surroundings with prompt metals returned from the newly formed stars
    # To begin with we will assume that all metal enrichment is prompt and everything goes to cold gas.

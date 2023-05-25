@@ -1,14 +1,23 @@
-# module to save common variables needed on import
+# Module to save common variables that it would be too messy/nit-picky to pass exlicitly.
+# Also, some parameters that are needed on import (actually, only b_profile_cpu).
+# Other parameters (ie things fixed during the run) are stored in C_parameters.
 
 common={}
 
-def save(name,value):
-   common[name]=value
+def save(key,value):
+   common[key]=value
    return None
 
-def load(name):
+def load(key):
    try:
-      return common[name]
+      return common[key]
    except:
-      raise ValueError('name '+name+' does not exist in commons')
+      raise ValueError('name '+key+' does not exist in commons')
 
+def list(key='_all'):
+   if key == '_all':
+      for key,value in common.items():
+         print(key,': ',value)
+   else:
+      print(key,': ',common[key])
+   return None

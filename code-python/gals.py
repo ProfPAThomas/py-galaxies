@@ -56,6 +56,10 @@ v_vir : float
 import h5py
 import numpy as np
 
+import commons
+b_SFH=commons.load('b_SFH')
+if b_SFH: sfh_n_bin=commons.load('sfh.n_bin')
+
 # Create the dtype that we will need to store galaxy properties.
 D_gal=[
    ('graph_ID',np.int32),
@@ -84,8 +88,13 @@ D_gal=[
    ('radius_stars_disc',np.float32), # Exponential disc radius
    ('radius_stars_bulge',np.float32), # Half mass radius
    ('SFR_dt',np.float32),
-   ('SFR_snap',np.float32)
-]
+   ('SFR_snap',np.float32)]
+# Can only append one item at a time :-(
+if b_SFH:
+   D_gal.append(('mass_stars_bulge_sfh',np.float32,sfh_n_bin+1))
+   D_gal.append(('mass_metals_stars_bulge_sfh',np.float32,sfh_n_bin+1))
+   D_gal.append(('mass_stars_disc_sfh',np.float32,sfh_n_bin+1))
+   D_gal.append(('mass_metals_stars_disc_sfh',np.float32,sfh_n_bin+1))
 
 def F_gal_template(parameters):
    """
@@ -128,6 +137,11 @@ def F_gal_template(parameters):
    template['radius_stars_bulge']=0.
    template['SFR_dt']=0.
    template['SFR_snap']=0.
+   if b_SFH:
+      template['mass_stars_bulge_sfh']=0.
+      template['mass_metals_stars_bulge_sfh']=0.
+      template['mass_stars_disc_sfh']=0.
+      template['mass_metals_stars_disc_sfh']=0.
    return template
 
 class C_gal_output:
@@ -186,6 +200,12 @@ class C_gal_output:
       dtype.append(('radius_stars_bulge',np.float32))
       dtype.append(('SFR_dt',np.float32))
       dtype.append(('SFR_snap',np.float32))
+      if b_SFH:
+         # Note: don't include final array entry here, as that is a working value.
+         dtype.append(('mass_stars_bulge_sfh',np.float32,sfh_n_bin))
+         dtype.append(('mass_metals_stars_bulge_sfh',np.float32,sfh_n_bin))
+         dtype.append(('mass_stars_disc_sfh',np.float32,sfh_n_bin))
+         dtype.append(('mass_metals_stars_disc_sfh',np.float32,sfh_n_bin))
       # Create halo io buffer
       self.io_buffer=np.empty(self.n_rec,dtype=dtype)
       # Create HDF5 dataset
@@ -248,6 +268,11 @@ class C_gal_output:
          self.io_buffer[self.i_rec]['radius_stars_bulge']= gals[i_gal]['radius_stars_bulge'] * parameters.length_internal_to_output
          self.io_buffer[self.i_rec]['SFR_dt']=gals[i_gal]['SFR_dt'] * parameters.mass_internal_to_output / parameters.time_internal_to_output
          self.io_buffer[self.i_rec]['SFR_snap']=gals[i_gal]['SFR_snap'] * parameters.mass_internal_to_output / parameters.time_internal_to_output
+         if b_SFH:
+            self.io_buffer[self.i_rec]['mass_stars_bulge_sfh'] = gals[i_gal]['mass_stars_bulge_sfh'][:-1] * parameters.mass_internal_to_output
+            self.io_buffer[self.i_rec]['mass_metals_stars_bulge_sfh'] = gals[i_gal]['mass_metals_stars_bulge_sfh'][:-1] * parameters.mass_internal_to_output
+            self.io_buffer[self.i_rec]['mass_stars_disc_sfh'] = gals[i_gal]['mass_stars_disc_sfh'][:-1] * parameters.mass_internal_to_output
+            self.io_buffer[self.i_rec]['mass_metals_stars_disc_sfh'] = gals[i_gal]['mass_metals_stars_disc_sfh'][:-1] * parameters.mass_internal_to_output
          self.i_rec+=1
          if self.i_rec == self.n_rec: self.flush()
       return None

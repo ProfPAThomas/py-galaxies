@@ -11,9 +11,11 @@ io_files:
   graph_file:   'MergerGraphs/mega_graph_mini_09-11.hdf5'
   snap_file:    'MergerGraphs/snaplist.txt' # Should ideally be stored in graph_file
  output_files:
+  # output_prefix: 'test_'  # Not yet implmented
   halo_file:    'output/python_HaloOutput.hdf5'
   subhalo_file: 'output/python_SubhaloOutput.hdf5'
   galaxy_file:  'output/python_GalaxyOutput.hdf5'
+  sfh_file:     'output/python_SFH.hdf5'
   profile_cpu_file: 'output/python_profile_cpu.pkl'
   profile_mem_file: 'output/python_profile_mem.pkl'
  auxiliary_files:
@@ -29,10 +31,10 @@ diagnostics:
   Value: True
  b_profile_cpu:
   Description: 'Profile cpu-time'
-  Value: False
+  Value: True
  b_profile_mem:
   Description: 'Profile memory'
-  Value: True
+  Value: False
  verbosity:
   Description: 'Level of diagnostic messages: 0 - None; 1/2 - main counters; 3/4/5 - debugging info'
   Value: 2
@@ -144,15 +146,22 @@ model_switches:
  b_halo_angmom:
   Description: 'Do the halo catalogues contain angular momentum?'
   Value:        False
+ b_SFH:
+  Description: 'Save star formation histories?'
+  Value:        True
+ SFH_n_merge:
+  Description: 'Number of SFH bins of a particular size that will trigger merging'
+  Value:        3
   
 model_parameters:
  timestep_halo:
-  Description: 'Minimum timestep size for halo/subhalo operations'
+  Description: 'Minimum timestep size for halo operations'
   Value:        !!float 1e8
   Units:       'u.yr'
  timestep_galaxies:
-  Description: 'Minimum timestep size for galaxy operations'
-  Value:        !!float 1e7
+  # Will be adjusted to the largest value below that specified that is an integral factor of timestep_halo
+  Description: 'Minimum timestep size for subhalo/galaxy operations' 
+  Value:        !!float 3e7
   Units:       'u.yr'
  mass_minimum:
   Description: 'The minimum mass that is considered larger than 0.'
