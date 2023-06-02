@@ -3,4 +3,4 @@ astropy
 codetiming
 h5py
 numpy
-yaml
+pyYAML
