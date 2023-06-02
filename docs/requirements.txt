@@ -1,5 +1,6 @@
 # List of modules that pip needs to install
 astropy
+codetiming
 h5py
 numpy
-
+yaml
