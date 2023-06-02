@@ -4,13 +4,17 @@ To-do
 Major structural development
 ----------------------------
 
-* Add in performance monitoring & test timing.
 * Work out how to interface to C-routines
 * Implement MCMC to optimise parameters
 * Implement multiple metallicities
 * Implement resolved discs
-* Implement star formation and metal enrichment histories
 * Write a galaxy formation primer that gradually switches on the astrophysics, one step at a time, and illustrates the effect on the galaxy population.
+
+Pre-processing development
+--------------------------
+
+* Decide upon a simple, idealised format for py-gal merger graphs/trees input
+* Write helper routines to convert from other tree formats to py-gal input.  In particular, convert Millennium trees.
 
 Minor structural development
 ----------------------------
@@ -49,6 +53,7 @@ Galaxy physics modules to import from L-galaxies
   - implement a beta model for the hot gas distribution.
   - add resolved galactic discs
   - cool in stages and check that this better aligns the instantaneous and averaged cooling rates.
+  - seems to be the CPU bottleneck in the code, so speed up.
   
 * Star formation and feedback:
   
@@ -77,6 +82,7 @@ Galaxy physics modules to import from L-galaxies
 Plotting developments
 ---------------------
 
+* Generic interface to add observations to plots
 * Galaxy stellar mass function
 * Luminosity functions (requires code to generate SEDs from star formation history)
 
