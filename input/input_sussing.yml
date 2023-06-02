@@ -12,12 +12,12 @@ io_files:
   snap_file:    'MergerGraphs/snaplist.txt' # Should ideally be stored in graph_file
  output_files:
   # output_prefix: 'test_'  # Not yet implmented
-  halo_file:    'output/python_HaloOutput.hdf5'
-  subhalo_file: 'output/python_SubhaloOutput.hdf5'
-  galaxy_file:  'output/python_GalaxyOutput.hdf5'
-  sfh_file:     'output/python_SFH.hdf5'
-  profile_cpu_file: 'output/python_profile_cpu.pkl'
-  profile_mem_file: 'output/python_profile_mem.pkl'
+  halo_file:    'output/D1_HaloOutput.hdf5'
+  subhalo_file: 'output/D1_SubhaloOutput.hdf5'
+  galaxy_file:  'output/D1_GalaxyOutput.hdf5'
+  sfh_file:     'output/D1_SFH.hdf5'
+  profile_cpu_file: 'output/D1_profile_cpu.pkl'
+  profile_mem_file: 'output/D1_profile_mem.pkl'
  auxiliary_files:
   cooling_function_file: 'aux_files/Lambda_table.npz'
   

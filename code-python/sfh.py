@@ -8,27 +8,44 @@ from codetiming import Timer
 from profiling import conditional_decorator
 
 import commons
+# Note: because of the code structure, b_profile_cpu takes the default value in commons and is NOT updated by the run-time settings here.  Need to work out how to fix this.
+b_profile_cpu=commons.load('b_profile_cpu')
 
 class C_sfh:
    """
    Class to generate and store the generic star formation history tables.
-   
-   Attributes
-   ----------
    """
    def __init__(self,parameters):
       """
       Generates the reference structure for storing the star formation histories in
       logarithmic bins (for each snapshot/time step combination). In the code galaxy
       structures are adjusted with respect to this structure at each step.
-      t[MAXSNAPS][STEPS][SFH_NBIN] : float
-         Time to present (i.e. z=0 ?) at the low-z edge of the bin (code units)
-      dt[MAXSNAPS][STEPS][SFH_NBIN] : float
-         Time width of the bin (code units)
-      n_bin[MAXSNAPS][STEPS][SFH_NBIN] : int
-         Number of bins merged in each bin (only useful for the merging algorithm)
-      i_bin[MAXSNAPS][STEPS] : int
-         Last active bin
+
+      Arguments
+      ---------
+      parameters : obj : C_parameters
+         Instance of class containing global parameters
+
+      Attributes
+      ----------
+      n_bin : int
+         Number of SFH bins required for output (need n_bin+1 for code execution)
+      t : obj : np.float[n_snap][n_bin]
+         Time to present (i.e. z=0) at the low-z edge of the SFH bin (code units)
+      dt : obj : np.float[n_snap][n_bin]
+         Time width of the SFH bin (code units)
+      n_t : int
+         Total number of galaxy timesteps taken in the code
+      i_dt_snap : obj : np.int[n_snap]
+         Index of first galaxy timestep in each snapshot
+      n_level : int
+         Number of levels in the SFH bin merging hierarchy
+      level : obj : np.int[n_dt,n_bin|n_bin+1]
+         Level in the merging hierarchy of each SFH bin
+      n_bin_in_level : np.int[n_dt,n_level]
+         Number of SFH bins in each level of the merging hierarchy
+      i_bin : obj : np.int[n_dt]
+         Number of SFH bins used at each galaxy timestep
       """
       n_merge=parameters.SFH_n_merge
       self.n_merge=n_merge  # Save here for convenience
@@ -159,9 +176,14 @@ class C_sfh:
 
    def __repr__(self,n_step=[0,7]):
       """
-      Prints out the structure of the first n_step entries in the SFH arrays.
+      Prints out the structure of entries in the SFH arrays.
       Useful mainly as a check that things have been implemented properly.
       Would be nice to produce graphics at some point.
+
+      Arguments
+      ---------
+      n_step : obj : [int,int]
+         Tuple containing the range of entries (galaxy timesteps) to be printed out
       """
       for i_step in range(n_step[0],n_step[1]):
          i_bin=self.i_bin[i_step]
@@ -178,12 +200,14 @@ class C_sfh:
          print('\n')
       return ''
 
+@conditional_decorator(Timer(name='F_sfh_update_bins',logger=None),b_profile_cpu)
 def F_sfh_update_bins(gals,sfh,parameters):
    """
    Merges galaxy bins if required.
-   Parameters
-   ----------
-   gals : obj : np.array(n_gal)
+
+   Arguments
+   ---------
+   gals : obj : np.array[n_gal]
       Structured array of galaxies
    sfh : obj : class C_SFH
       Instance of C_SFH class containing information about the time-binning structure

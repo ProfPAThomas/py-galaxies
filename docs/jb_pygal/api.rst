@@ -2,7 +2,7 @@ The py-galaxies API
 ===================
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4
    :caption: Contents:
 
 Driver routines
@@ -67,4 +67,10 @@ Black holes and AGN
 ^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: bh_agn
+   :members:
+
+Star formation histories
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: sfh
    :members:

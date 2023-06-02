@@ -1,10 +1,11 @@
 # SFH plot parameters
 
 inputFiles:
-  haloFile: 'data/python_HaloOutput.hdf5'
-  subhaloFile: 'data/python_SubhaloOutput.hdf5'
-  galaxyFile: 'data/python_GalaxyOutput.hdf5'
-  sfhFile: 'data/python_SFH.hdf5'
+  haloFile: 'data/D1_HaloOutput.hdf5'
+  subhaloFile: 'data/D1_SubhaloOutput.hdf5'
+  galaxyFile: 'data/D1_GalaxyOutput.hdf5'
+  galaxyFile2: 'data/D2_GalaxyOutput.hdf5'
+  sfhFile: 'data/D1_SFH.hdf5'
 save_prefix: 'python_SFH_'
  
 # The following should really be attributes of the data
@@ -12,10 +13,11 @@ cosmo:
  baryonFraction: 0.155
 
 plots:
- test: True
- sfh_time: True
- sfh_bulge_mass: True
- sfh_disc_mass: True
+ compare_samples: True
+ test: False
+ sfh_time: False
+ sfh_bulge_mass: False
+ sfh_disc_mass: False
  
 graphs:
  graphMin: 0
@@ -24,6 +26,19 @@ graphs:
 snapshots:
  snapMin: 61
  snapMax: 61 # Note - includes last element!
+
+compare_samples:
+ figsize: [12,8]
+ xscale: 'log'
+ yscale: 'log'
+ markerType: '-'
+ xlabel: 'Lookback time / yr' # Units should really be an attribute of the data
+ ylabel: '$\Sigma$SFR / M$_\odot$ yr$^{-1}$'
+ legend:  True
+ label:   'Sample 2'
+ save_png: True
+ save_pdf: False
+ name:    'compare_samples'
 
 test:
  figsize: [12,8]

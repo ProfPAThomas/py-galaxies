@@ -60,7 +60,7 @@ PYTHON_DIR='code-python'
 
 # Development limiter
 n_GRAPH=np.inf
-#n_GRAPH=10       # Change output files to 'test' to avoid over-writing!
+n_GRAPH=500       # Change output files to 'test' to avoid over-writing!
 
 # Verbosity
 VERBOSITY=1 # 1 - Major program steps only; 1/2 - Major/minor Counters; 3/4/5 - Debugging diags.

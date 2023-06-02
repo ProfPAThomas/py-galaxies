@@ -21,3 +21,10 @@ def list(key='_all'):
    else:
       print(key,': ',common[key])
    return None
+
+# Add some entries in an attempt to prevent documentation build failing
+
+common['b_profile_cpu']=False
+common['b_profile_mem']=False
+common['b_SFH']=True
+common['sfh.n_bin']=1000
