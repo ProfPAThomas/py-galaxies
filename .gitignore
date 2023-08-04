@@ -42,5 +42,8 @@ Thumbs.db
 \#*#
 .#*
 
-# Local director pointers
-MergerGraphs
+# Local director pointers #
+###########################
+MergerGraphs/*
+output/*
+
