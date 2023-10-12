@@ -149,7 +149,7 @@ def F_merge_gals(halo,sub,gals,parameters):
             gal_main['mass_BH'] += dm_BH
             gal_main['mass_metals_BH'] += dm_metals_BH
             gal_main['mass_gas_cold'] -= dm_BH
-            gal_main['mass_metals_gas_cold'] += dm_metals_BH
+            gal_main['mass_metals_gas_cold'] -= dm_metals_BH
             
         # Set new sizes for gas disc and stellar bulge
         # Note that the starburst is assumed compact and transfers ZERO angular momentum
