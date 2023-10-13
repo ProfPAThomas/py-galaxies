@@ -65,11 +65,11 @@
 import h5py 
 import numpy as np
 from numpy.lib import recfunctions as rfn
-#import matplotlib.pyplot as plt
-#get_ipython().run_line_magic('matplotlib', 'inline')
-#import seaborn as sns
-#sns.set_context('poster')
-#sns.set_style('whitegrid')
+# import matplotlib.pyplot as plt
+# get_ipython().run_line_magic('matplotlib', 'inline')
+# import seaborn as sns
+# sns.set_context('poster')
+# sns.set_style('whitegrid')
 
 infile='/Users/petert/data/MR/treedata/trees_063.5'
 snapfile='/Users/petert/lgalaxies/Development_Branch/input/MRPlancksnaplist.txt'
@@ -78,16 +78,26 @@ outfile='/Users/petert/data/MR/treedata/pygal_063_5.hdf5'
 # These are parameters/attributes for the Hen15 version of the MR (W1_Planck)
 Hubble_h=0.673
 Omega_m=0.315
-Baryon_fraction=0.155
+Omega_L=1-Omega_m
+baryon_fraction=0.155
 unit_length='Mpc/h'
 unit_mass='1e10 Msun/h'
 unit_speed='km/s'
 unit_time='yr'   # For snapshot table; not otherwise needed
 
+# We need to convert from mass to radius at some stage to estimate the sizes of halos,
+# which is not given in the data.  We can use the formula R ~ (GM_crit200/100H^2)^(1/3)
+# Then if R is in Mpc/h, M is in 1e10 Msun/h and G is in SI units, we have
+# R = ((G kg s^2/m^3) (Msun/kg) / (100 (Mpc/m)) )^(1/3) (M/(Omega_L+Omega_m*(1+z)^3)^(1/3) 
+# R = C_R (M/(Omega_L+Omega_m*(1+z)^3)^(1/3) where
+C_R = (6.67e-11 * 2e30 / (100 * 3.086e22) )**(1./3.)
+
 # Note that inputs get rescaled according to cosmology.
 PartMass=0.0961104   # After scaling
 ScalePos=0.960558
 ScaleMass=1.11671
+# Then presumably velocity dispersion should scale as sqrt(M/R)
+ScaleVelDisp=np.sqrt(ScaleMass/ScalePos)
 
 halo_data_dtype=([
     ('Descendant',np.int32),
@@ -126,20 +136,21 @@ assert len(dummy)==0
 f.close()
 
 # Determine the location of the halos in each tree
-print('n_tree =',n_tree)
-print('n_halo =',n_halo)
-print('n_halo_in_tree =',n_halo_in_tree)
+print(n_tree)
+print(n_halo)
+print(n_halo_in_tree)
 i_first_halo_in_tree=np.zeros(n_tree,int)
 i_first_halo_in_tree[1:]=np.cumsum(n_halo_in_tree)[:-1]
 n_graph=n_tree # Synonyms; use either depending upon context.
 
 # For testing, restrict number of trees
 n_tree_max=n_tree
-#n_tree_max=60
+# n_tree_max=60
 
 n_tree=n_tree_max
 n_graph=n_tree
 n_halo_in_tree=n_halo_in_tree[:n_tree]
+print(n_halo_in_tree[58])
 n_halo=np.sum(n_halo_in_tree)
 halos=halos[:n_halo]
 
@@ -272,7 +283,6 @@ for i_tree in range(n_tree):
 # print('n_halo, count_first, fraction =',n_halo,count_first,count_first/n_halo)
 # print('n_halo, count_100, fraction =',n_halo,count_100,count_100/n_halo)
 # print('len_first_max =',len_first_max)
-
 
 # So we need a way to fix this.
 # 
@@ -431,7 +441,6 @@ n_halo_in_tree=n_halo_in_tree_new
 i_first_halo_in_tree=np.zeros(n_tree,int)
 i_first_halo_in_tree[1:]=np.cumsum(n_halo_in_tree)[:-1]
 
-
 # Now we have some work to do to turn this into halos and subhalos.
 # We will take the halo to be (a copy of) the main (most massive) halo in each FOF group; an alternative would be to use the sum of the halos withing the FOF group, but that leads to major issues with determining properties.  This also matches the current use within L-Galaxies.
 # All L-Galaxies halos are subhalos within py-gal.
@@ -448,7 +457,6 @@ i_first_halo_in_tree[1:]=np.cumsum(n_halo_in_tree)[:-1]
 # plt.plot(halos_new['M_Mean200']**(1./3.),halos_new['VelDisp'],'+')
 # plt.xlabel(r'$M_\mathrm{Mean,200}/10^{10}$M$_\odot$')
 # plt.ylabel(r'$\sigma/$km$\,$s$^{-1}$')
-
 
 # Now need to convert to py-gal format.
 # Have yet to decide what that should be, so let's define it here!
@@ -467,7 +475,7 @@ i_first_halo_in_tree[1:]=np.cumsum(n_halo_in_tree)[:-1]
 #   - n_snap  : number of shapshots in file
 #   - Omega_m : density parameter
 #   - Hubble_h : Hubble parameter at z=0 in units of 100 km/s/Mpc
-#   - Baryon_fraction : Omega_b/Omega_m
+#   - baryon_fraction : Omega_b/Omega_m
 #   - unit_length : description of length unit (to be used to set value in input.yaml)
 #   - unit_mass : description of mass unit (ditto)
 #   - unit_speed : description of speed unit (ditto)
@@ -518,7 +526,6 @@ i_first_halo_in_tree[1:]=np.cumsum(n_halo_in_tree)[:-1]
 #   - sub_half_mass_radius[n_sub] : radius enclosing half the mass
 #   - sub_v_max[n_sub] : maximum circular velocity
 #   - sub_spin[n_sub,3] : specific angular momentum
-#     
 
 # Because the FirstHaloInFOFgroup is not always the main_halo (defined as the one with the greatest Len)
 # then we need to preprocess to store the latter
@@ -561,7 +568,7 @@ f.attrs['n_graph']=n_tree
 f.attrs['n_snap']=n_snap
 f.attrs['Hubble_h']=Hubble_h
 f.attrs['Omega_m']=Omega_m
-f.attrs['Baryon_fraction']=Baryon_fraction
+f.attrs['baryon_fraction']=baryon_fraction
 f.attrs['unit_length']=unit_length
 f.attrs['unit_mass']=unit_mass
 f.attrs['unit_speed']=unit_speed
@@ -600,6 +607,7 @@ for i_graph in range(n_graph):
     halo_pos=np.full([n_halo_in_graph,3],0.)
     halo_vel=np.full([n_halo_in_graph,3],0.)
     halo_rms_speed=np.full(n_halo_in_graph,0.)
+    halo_rms_radius=np.full(n_halo_in_graph,0.)
     halo_half_mass_radius=np.full(n_halo_in_graph,0.)
     halo_v_max=np.full(n_halo_in_graph,0.)
     halo_spin=np.full([n_halo_in_graph,3],0.)
@@ -615,10 +623,12 @@ for i_graph in range(n_graph):
     sub_pos=np.full([n_sub_in_graph,3],0.)
     sub_vel=np.full([n_sub_in_graph,3],0.)
     sub_rms_speed=np.full(n_sub_in_graph,0.)
+    sub_rms_radius=np.full(n_sub_in_graph,0.)
     sub_half_mass_radius=np.full(n_sub_in_graph,0.)
     sub_v_max=np.full(n_sub_in_graph,0.)
     sub_spin=np.full([n_sub_in_graph,3],0.)
     for i_snap in range(n_snap):
+        C_R_snap=C_R*(Omega_L+Omega_m*(1+snap_table[i_snap]['redshift'])**3)**(-1./3.)
         halos_in_snap=halos_in_tree[halos_in_tree['SnapNum']==i_snap]
         n_sub_in_snap=len(halos_in_snap)
         if n_sub_in_snap==0: 
@@ -652,9 +662,16 @@ for i_graph in range(n_graph):
                 i_desc=main_halo['Descendant']
                 if i_desc == -1:
                     pass
+#                     if i_snap != n_snap-1:
+#                         print('***Warning: main halo has no descendant***')
+#                         print('i_graph, i_snap, i_halo_in_graph, i_desc =',i_graph, i_snap, i_halo_in_graph, i_desc)
                 else:
                     halo_first_desc[i_halo_in_graph]=i_halo_desc
                     i_desc_main=halos_in_tree[i_desc]['main_halo']
+#                     if i_desc_main!=i_desc:
+#                         print('***Warning: descendant of main halo may not be a main halo***')
+#                         print('i_graph, i_halo_in_graph, i_halo_desc, i_desc, i_desc_first] =',\
+#                                i_graph, i_halo_in_graph, i_halo_desc, i_desc, i_desc_first)
                     # As this is a descendant halo, not a subhalo, we are free to redefine
                     halo_desc_halo[i_halo_desc]=halos_in_tree[i_desc_main]['loc']  # To be updated later
                     i_halo_desc+=1
@@ -662,10 +679,15 @@ for i_graph in range(n_graph):
                 # In L-Galaxies the main subhalo is declared to be the enclosing FOF halo
                 halo_loc[i_halo_in_graph]=main_halo['loc']
                 halo_mass[i_halo_in_graph]=main_halo['Len']*PartMass
-                halo_pos[i_halo_in_graph]=main_halo['Pos']
-                halo_vel[i_halo_in_graph]=main_halo['Vel']
-                halo_rms_speed[i_halo_in_graph]=main_halo['VelDisp']
-                # halo_half_mass_radius is unfortunately missing
+                halo_pos[i_halo_in_graph]=main_halo['Pos']              # Should this be scaled?
+                halo_vel[i_halo_in_graph]=main_halo['Vel']              # Should this be scaled?
+                # We don't have a radius for halos in the L-Galaxies data, so determine it from the mass
+                # and mean density (assumed to be 200 times the critical density) - see start of code
+                radius=C_R_snap*halo_mass[i_halo_in_graph]**(1./3.)
+                halo_rms_radius[i_halo_in_graph]=radius/np.sqrt(3.)
+                # Assuming an isothermal sphere, then half mass radius is half the total radius
+                halo_half_mass_radius[i_halo_in_graph]=0.5*radius
+                halo_rms_speed[i_halo_in_graph]=np.sqrt(3.)*main_halo['VelDisp']
                 halo_v_max[i_halo_in_graph]=main_halo['Vmax']
                 halo_spin[i_halo_in_graph]=main_halo['Spin']
                 i_halo_in_graph+=1
@@ -683,8 +705,13 @@ for i_graph in range(n_graph):
                     sub_mass[i_sub_in_graph]=sub['Len']*PartMass
                     sub_pos[i_sub_in_graph]=sub['Pos']
                     sub_vel[i_sub_in_graph]=sub['Vel']
-                    sub_rms_speed[i_sub_in_graph]=sub['VelDisp']
-                    # sub_half_mass_radius is unfortunately missing
+                    # We don't have a radius for halos in the L-Galaxies data, so determine it from the mass
+                    # and mean density (assumed to be 200 times the critical density) - see start of code
+                    radius=C_R_snap*sub_mass[i_sub_in_graph]**(1./3.)
+                    sub_rms_radius[i_sub_in_graph]=radius/np.sqrt(3.)
+                    # Assuming an isothermal sphere, then half mass radius is half the total radius
+                    sub_half_mass_radius[i_sub_in_graph]=0.5*radius
+                    sub_rms_speed[i_sub_in_graph]=np.sqrt(3.)*sub['VelDisp']
                     sub_v_max[i_sub_in_graph]=sub['Vmax']
                     sub_spin[i_sub_in_graph]=sub['Spin']
                     i_sub_in_graph+=1
@@ -720,6 +747,8 @@ for i_graph in range(n_graph):
     g.create_dataset('halo_mass',data=halo_mass)
     g.create_dataset('halo_pos',data=halo_pos)
     g.create_dataset('halo_vel',data=halo_vel)
+    g.create_dataset('halo_rms_radius',data=halo_rms_radius)
+    g.create_dataset('halo_half_mass_radius',data=halo_half_mass_radius)
     g.create_dataset('halo_rms_speed',data=halo_rms_speed)
     g.create_dataset('halo_v_max',data=halo_v_max)
     g.create_dataset('halo_spin',data=halo_spin)
@@ -730,9 +759,14 @@ for i_graph in range(n_graph):
     g.create_dataset('sub_desc_contribution',data=sub_desc_contribution[:n_sub_desc])
     g.create_dataset('sub_desc_sub',data=sub_desc_sub[:n_sub_desc])
     g.create_dataset('sub_mass',data=sub_mass)
+    g.create_dataset('sub_rms_radius',data=sub_rms_radius)
+    g.create_dataset('sub_half_mass_radius',data=sub_half_mass_radius)
     g.create_dataset('sub_pos',data=sub_pos)
     g.create_dataset('sub_vel',data=sub_vel)
     g.create_dataset('sub_rms_speed',data=sub_rms_speed)
     g.create_dataset('sub_v_max',data=sub_v_max)
     g.create_dataset('sub_spin',data=sub_spin)
 f.close()
+
+assert (halos['FirstHaloInFOFgroup']!=-1).any()
+

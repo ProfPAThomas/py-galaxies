@@ -468,13 +468,13 @@ where :math:`\mu_\mathrm{disc}+\mu_\mathrm{halo}+\mu_\mathrm{eject}\equiv\mu_\ma
 Hen15
 :::::
 
-The maximum amount of gas reheated is given by :math:`\Delta M_\mathrm{reheat,max}=\mu_\mathrm{reheat,max}\Delta M_*`, where :math:`\mu_\mathrm{reheat}` is an efficiency factor controlled by three parameters of the model:
+The maximum amount of gas reheated is given by :math:`\Delta M_\mathrm{reheat,max}=\mu_\mathrm{reheat,max}\Delta M_*`, where :math:`\mu_\mathrm{reheat,max}` is an efficiency factor controlled by three parameters of the model:
 
 .. math::
 
    \mu_\mathrm{reheat,max}=\epsilon\left[0.5+\left(v_\mathrm{vir}\over v_\mathrm{reheat}\right)^{-\beta1}\right].
 
-Note that Hen15 use the term :math:`\epsilon_\mathrm{disk}` in place of :math:`\mu_\mathrm{reheat}` which is at variance with the terminology introduced above.
+Note that Hen15 use the term :math:`\epsilon_\mathrm{disk}` in place of :math:`\mu_\mathrm{reheat,max}` which is at variance with the terminology introduced above.
 
 The amount of supernova energy that goes into reheated gas is :math:`\Delta E_\mathrm{reheat}=\epsilon_\mathrm{reheat}\Delta E_\mathrm{SNR}`, where once again we have changed the terminology, in this case from :math:`\epsilon_\mathrm{halo}` to :math:`\epsilon_\mathrm{reheat}`, and :math:`\epsilon_\mathrm{reheat}` is given by
 
@@ -483,7 +483,7 @@ The amount of supernova energy that goes into reheated gas is :math:`\Delta E_\m
    \epsilon_\mathrm{reheat}=\eta\left[0.5+\left(v_\mathrm{vir}\over v_\mathrm{eject}\right)^{-\beta2}\right].
 
 
-The specific energy required to reheat the gas is taken to be :math:`{1\over2}v_\mathrm{vir}^2` which means that the maximum amount of gas that can be reheated is given by
+The specific energy required to heat the gas from the disc to the corona is taken to be :math:`{1\over2}v_\mathrm{vir}^2` which means that the maximum amount of gas that can be reheated is given by
 
 .. math::
    \Delta M_\mathrm{SNR}={2\epsilon_\mathrm{reheat}\Delta E_\mathrm{SNR}\over v_\mathrm{vir}^2}.
@@ -493,11 +493,13 @@ That then limits the total amount of gas that can be reheated to
 .. math::
    \Delta M_\mathrm{reheat}=\min(\Delta M_\mathrm{reheat,max},\Delta M_\mathrm{SNR},M_\mathrm{cold gas}).
 
-Finally, any excess energy is used to eject reheated gas from the halo, again assuming that this takes an extra specific energy of :math:`{1\over2}v_\mathrm{vir}^2`:
+Finally, any excess energy is used to eject coronal gas from the halo, again assuming that this takes an extra specific energy of :math:`{1\over2}v_\mathrm{vir}^2`:
 
 .. math::
 
-   \Delta M_\mathrm{eject}=\min(\Delta M_\mathrm{reheat},\Delta M_\mathrm{SNR}-\Delta M_\mathrm{reheat}).
+   \Delta M_\mathrm{eject}=\min(\Delta M_\mathrm{SNR}-\Delta M_\mathrm{reheat},M_\mathrm{hotgas}),
+
+where :math:`M_\mathrm{hotgas}` here is the mass in hot gas *after* the reheating from cold to hot.
 
 
 New model
