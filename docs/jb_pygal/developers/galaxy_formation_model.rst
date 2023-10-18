@@ -438,72 +438,68 @@ and at the time of writing this is the only one implemented.
 Stellar feedback
 ^^^^^^^^^^^^^^^^
 
-Stellar feedback is presumed to be prompt and mostly from radiation pressure around young star-forming regions and Type II supernovae -- there will also be later feedback from AGB winds and Type Ia supernovae, but this will be more isolated and sporadic and it is assumed that the heated gas will quickly cool back onto the cold gas disk (ISM).
+Stellar feedback is presumed to be prompt and mostly from radiation pressure and shocks around young star-forming regions and supernovae, both Type II and Type 1a.  In practice both winds and Type 1a SNR will be delayed, but that model is not yet implemented.
 
-The energy available from supernovae, :math:`\Delta E_\mathrm{SNR}` will be proportional to the mass of stars produced, :math:`\Delta M_*`,
+The total available energy, which we designate :math:`\Delta E_\mathrm{SNR}`, will be proportional to the mass of stars produced, :math:`\Delta M_*`,
 
 .. math::
 
    \Delta E_\mathrm{SNR}={1\over2}\Delta M_*v_\mathrm{SNR}^2,
 
-where :math:`v_\mathrm{SNR}` is a parameter of the model.
+where :math:`v_\mathrm{SNR}` is a parameter of the model.  Note that Hen15 use this symbol to be the total amount of energy that actually goes into heating the gas, which we call :math:`\Delta E_\mathrm{feedback}` below.
 
-This energy is used up in three ways: some will be used up in heating gas that then rapidly cools down and is reassimilated into the cold gas disc (ISM), some will heat gas high enough that it joins the corona (i.e. subhalo hot gas), and some will heat gas to a high enough temperature that it escapes the subhalo altogether (i.e. ejected gas).  To keep the model simple, we place this gas not in the halo (from where it could escape still further) but into an **Ejected** phase that is loosely bound to the halo but not within the virial radius.  That gas will become available for re-accretion onto the halo once its (mean) entropy drops below that of the halo gas.  We write
-
-.. math::
-
-   \Delta E_\mathrm{SNR}=\Delta E_\mathrm{disc}+\Delta E_\mathrm{halo}+\Delta E_\mathrm{eject} =\Delta E_\mathrm{SNR}(\epsilon_\mathrm{disc}+\epsilon_\mathrm{halo}+\epsilon_\mathrm{eject}),
-
-where :math:`\epsilon_\mathrm{disc}+\epsilon_\mathrm{halo}+\epsilon_\mathrm{eject}=1`.  For consistency with previous nomenclature, we write for the total amount of energy used to reheat gas that does not immediately cool back down onto the ISM
-:math:`\epsilon_\mathrm{reheat}=\epsilon_\mathrm{halo}+\epsilon_\mathrm{eject}`.
-
-Similarly, we assume that this energy gets injected into a total amount of gas, :math:`\Delta_\mathrm{heat}` that can be broken up as follows
+This energy is used up in three ways: some will be used up in heating gas that then rapidly cools down and is reassimilated into the cold gas disc (ISM), some will heat gas high enough that it joins the corona (i.e. subhalo hot gas), and some will further heat the coronal gas to a high enough temperature that it escapes the subhalo altogether (i.e. joins the hot gas of the enclosing halo or is ejected from the halo entirely).  To keep the model simple, we place this latter phase not into the halo but into an **Ejected** phase that is loosely bound to the halo but not within the virial radius.  That gas will become available for re-accretion onto the halo once its (mean) entropy drops below that of the halo gas.  We write
 
 .. math::
 
-   \Delta M_\mathrm{heat}=\Delta M_\mathrm{disc}+\Delta M_\mathrm{halo}+\Delta M_\mathrm{eject} =\Delta M_\mathrm{heat}(\mu_\mathrm{disc}+\mu_\mathrm{halo}+\mu_\mathrm{eject}),
+   \Delta E_\mathrm{SNR}=\Delta E_\mathrm{lost}+\Delta E_\mathrm{reheat}+\Delta E_\mathrm{eject} =\Delta E_\mathrm{SNR}(\epsilon_\mathrm{lost}+\epsilon_\mathrm{reheat}+\epsilon_\mathrm{eject}),
 
-where :math:`\mu_\mathrm{disc}+\mu_\mathrm{halo}+\mu_\mathrm{eject}\equiv\mu_\mathrm{disc}+\mu_\mathrm{reheat}=1`.
+where :math:`\epsilon_\mathrm{lost}+\epsilon_\mathrm{reheat}+\epsilon_\mathrm{eject}=1`.  Excluding the lost energy then :math:`\Delta E_\mathrm{feedback}=\epsilon_\mathrm{feedback}\Delta E_\mathrm{SNR}` where :math:`\epsilon_\mathrm{feedback}=\epsilon_\mathrm{reheat}+\epsilon_\mathrm{eject}`.
+
 
 Hen15
 :::::
 
-The maximum amount of gas reheated is given by :math:`\Delta M_\mathrm{reheat,max}=\mu_\mathrm{reheat,max}\Delta M_*`, where :math:`\mu_\mathrm{reheat,max}` is an efficiency factor controlled by three parameters of the model:
+The maximum amount of gas that can be reheated is given by :math:`\Delta M_\mathrm{reheat,max}=\mu_\mathrm{reheat,max}\Delta M_*`, where :math:`\mu_\mathrm{reheat,max}` is an efficiency factor controlled by three parameters of the model:
 
 .. math::
 
    \mu_\mathrm{reheat,max}=\epsilon\left[0.5+\left(v_\mathrm{vir}\over v_\mathrm{reheat}\right)^{-\beta1}\right].
 
-Note that Hen15 use the term :math:`\epsilon_\mathrm{disk}` in place of :math:`\mu_\mathrm{reheat,max}` which is at variance with the terminology introduced above.
+Note that Hen15 use the term :math:`\epsilon_\mathrm{disk}` in place of :math:`\mu_\mathrm{reheat,max}`; we prefer to use symbols with :math:`\mu` to represent mass, but we have kept the use of :math:`\epsilon` as a normalisation parameter on the rhs of the above equation to be consistent with their terminology.
 
-The amount of supernova energy that goes into reheated gas is :math:`\Delta E_\mathrm{reheat}=\epsilon_\mathrm{reheat}\Delta E_\mathrm{SNR}`, where once again we have changed the terminology, in this case from :math:`\epsilon_\mathrm{halo}` to :math:`\epsilon_\mathrm{reheat}`, and :math:`\epsilon_\mathrm{reheat}` is given by
+The amount of energy that is available for feedback is likewise a function of halo size set by three parameters:
 
 .. math::
 
-   \epsilon_\mathrm{reheat}=\eta\left[0.5+\left(v_\mathrm{vir}\over v_\mathrm{eject}\right)^{-\beta2}\right].
+   \epsilon_\mathrm{feedback}=\eta\left[0.5+\left(v_\mathrm{vir}\over v_\mathrm{eject}\right)^{-\beta2}\right].
 
 
 The specific energy required to heat the gas from the disc to the corona is taken to be :math:`{1\over2}v_\mathrm{vir}^2` which means that the maximum amount of gas that can be reheated is given by
 
 .. math::
-   \Delta M_\mathrm{SNR}={2\epsilon_\mathrm{reheat}\Delta E_\mathrm{SNR}\over v_\mathrm{vir}^2}.
+   \Delta M_\mathrm{feedback}={2\epsilon_\mathrm{feedback}\Delta E_\mathrm{SNR}\over v_\mathrm{vir}^2}.
 
-That then limits the total amount of gas that can be reheated to
+That then limits the total amount of gas that is actually reheated to
 
 .. math::
-   \Delta M_\mathrm{reheat}=\min(\Delta M_\mathrm{reheat,max},\Delta M_\mathrm{SNR},M_\mathrm{cold gas}).
+   \Delta M_\mathrm{reheat}=\min(\Delta M_\mathrm{reheat,max},\Delta M_\mathrm{feedback},M_\mathrm{cold gas}).
 
 Finally, any excess energy is used to eject coronal gas from the halo, again assuming that this takes an extra specific energy of :math:`{1\over2}v_\mathrm{vir}^2`:
 
 .. math::
 
-   \Delta M_\mathrm{eject}=\min(\Delta M_\mathrm{SNR}-\Delta M_\mathrm{reheat},M_\mathrm{hotgas}),
+   \Delta M_\mathrm{eject}=\min(\Delta M_\mathrm{feedback}-\Delta M_\mathrm{reheat},M_\mathrm{hotgas}),
 
 where :math:`M_\mathrm{hotgas}` here is the mass in hot gas *after* the reheating from cold to hot.
+
+In the Hen15 model, metals are first fully mixed with the cold gas, before reheating.  Then the reheated gas is fully mixed with the hot gas before ejection occurs.  These assumptions result in prompt enrichment of the ISM which can be delayed if metals are preferentially ejected, as in later versions of the model.
 
 
 New model
 :::::::::
+
+***This all needs checking carefully, especially as I have changed the nomencalture above.***
 
 Our new model is **not yet implemented** and its premises will need testing against ability to reproduce the observations.  It is similar in spirit to Hen15 but with the following changes:
 
