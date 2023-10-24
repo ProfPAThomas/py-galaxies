@@ -176,7 +176,7 @@ def F_sub(sub,gal,parameters):
         if mass_cooled > -1e-10:
             mass_cooled = 0.
         else:
-            raise valueError('negative amount of gas cooled')
+            raise ValueError('negative amount of gas cooled')
     
     mass_metals_cooled  = (mass_cooled/sub.mass_gas_hot) * sub.mass_metals_gas_hot
     sub.mass_gas_hot -= mass_cooled
@@ -194,7 +194,7 @@ def F_sub(sub,gal,parameters):
     else:
         gal['radius_gas_cold'] = 0. # Set to arbitrary value
         
-    # We will transfer gas from the hot gas, even if it releases more energy than required to prevent cooling
+    # We will transfer gas from the hot gas to the BH, even if it releases more energy than required to prevent cooling
     dm_metals_BH  = (dm_BH/sub.mass_gas_hot) * sub.mass_metals_gas_hot
     sub.mass_gas_hot -= dm_BH
     sub.mass_metals_gas_hot -= dm_metals_BH

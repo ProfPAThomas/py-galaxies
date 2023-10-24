@@ -1,10 +1,10 @@
 # Galaxy plot parameters
 
 inputFiles:
-  haloFile: 'data/AGNfeed_HaloOutput.hdf5'
-  subhaloFile: 'data/AGNfeed_SubhaloOutput.hdf5'
-  galaxyFile: 'data/AGNfeed_GalaxyOutput.hdf5'
-save_prefix: 'AGNfeed_gal_'
+  haloFile: 'data/test_HaloOutput.hdf5'
+  subhaloFile: 'data/test_SubhaloOutput.hdf5'
+  galaxyFile: 'data/test_GalaxyOutput.hdf5'
+save_prefix: 'test_gal_'
  
 # The following should really be attributes of the data
 cosmo:
@@ -16,16 +16,16 @@ plots:
  blackHole_stars: False
  coldGas_halo: False
  coldGas_subhalo: False
- coldGasMetallicity: False
- coldGasRadius: False
+ coldGasMetallicity: True
+ coldGasRadius: True
  SFR: True
  sSFR: True
  stellarMass_halo: False
  stellarMass_subhalo: False
  stellarHaloMassRatio: False
  stellarSubhaloMassRatio: False
- stellarDiscRadius: False
- stellarDiscMetallicity: False
+ stellarDiscRadius: True
+ stellarDiscMetallicity: True
 
 graphs:
  graphMin: 0

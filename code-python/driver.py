@@ -159,7 +159,6 @@ def F_process_halos(halos,subs,gals,graph,parameters):
             sub.n_dt+=1
             if sub.n_dt==n_dt_halo: sub.b_done=True
     if b_gals_exist:
-        # May want to introduce a loop over galaxy timesteps here
         for i_dt_gal in range(n_dt_gal):
             for gal in gals:
                 if not gal['b_exists']: continue  #  Galaxies may have merged
@@ -171,10 +170,8 @@ def F_process_halos(halos,subs,gals,graph,parameters):
                     halo_sid=gal['halo_sid']
                     if sub_sid==parameters.NO_DATA_INT:
                         F_gal_SNR_feedback(mass_stars,gal,halos[halo_sid],halos[halo_sid],parameters)
-                        pass
                     else:
                         F_gal_SNR_feedback(mass_stars,gal,subs[sub_sid],halos[halo_sid],parameters)
-                        pass
             if b_SFH:
                 F_sfh_update_bins(gals,sfh,parameters)
                 i_dt+=1
@@ -431,7 +428,11 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
                 print('gals[''mass_baryon''] =',gals_this_snap[sub.gal_start_sid:sub.gal_end_sid]['mass_baryon'])
                 print('sub.mass_gas_hot =',sub.mass_gas_hot)
                 print('sub.mass_stars =',sub.mass_stars)
-                raise AssertionError('subhalo baryon mass discrepency',
+                halo=halos_this_snap[sub.halo_sid]
+                print('halo.mass_gas_eject =',halo.mass_gas_eject)
+                print('halo.mass_gas_hot =',halo.mass_gas_hot)
+                print('halo.mass_stars =',halo.mass_stars)
+                raise AssertionError('subhalo baryon mass discrepancy',
                     sub.graph_ID,sub.snap_ID,sub.sub_sid,sub.mass_baryon,sub.sum_mass_baryon(gals_this_snap))
     # Check that all halos are assigned to a halo
     for gal in gals_this_snap:

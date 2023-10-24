@@ -88,9 +88,12 @@ def F_merge_gals(halo,sub,gals,parameters):
         else:
             # Major merger.  All stars in main galaxy end up in bulge
             mass_bulge_main = gal_main['mass_stars_disc'] +gal_main['mass_stars_bulge']
-            radius_half_main = (1.68*gal_main['mass_stars_disc']*gal_main['radius_stars_disc'] + \
-                                gal_main['mass_stars_bulge']*gal_main['radius_stars_bulge']) / \
-                               mass_bulge_main
+            if mass_bulge_main >  parameters.mass_minimum_internal:
+                radius_half_main = (1.68*gal_main['mass_stars_disc']*gal_main['radius_stars_disc'] + \
+                                    gal_main['mass_stars_bulge']*gal_main['radius_stars_bulge']) / \
+                                    mass_bulge_main
+            else:
+                radius_half_main = 0.
         PE_bulge = 0.
         if radius_half_main > parameters.length_minimum_internal:
             PE_bulge += mass_bulge_main**2/radius_half_main
@@ -155,6 +158,7 @@ def F_merge_gals(halo,sub,gals,parameters):
         # Note that the starburst is assumed compact and transfers ZERO angular momentum
         if gal_main['mass_gas_cold']>parameters.mass_minimum_internal:
             gal_main['radius_gas_cold']=ang_mom_gas_cold/(2. * gal_main['mass_gas_cold'] * gal_main['v_vir'])
+            assert gal_main['radius_gas_cold']>0.
         if gal_main['mass_stars_bulge']>parameters.mass_minimum_internal:
             gal_main['radius_stars_bulge']=gal_main['mass_stars_bulge']**2/PE_bulge
             
