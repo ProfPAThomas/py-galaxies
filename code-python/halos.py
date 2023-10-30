@@ -122,16 +122,16 @@ class C_halo:
       self.graph_ID = graph_ID
       self.snap_ID = snap_ID
       self.halo_gid = halo_gid
-      self.halo_sid = self.halo_gid - graph.halo_start_gid[snap_ID]
+      self.halo_sid = self.halo_gid - graph.snap_first_halo_gid[snap_ID]
       self.n_desc = graph.n_desc[halo_gid]
-      self.desc_start_gid = graph.desc_start_gid[halo_gid]
+      self.desc_start_gid = graph.halo_first_desc_gid[halo_gid]
       self.desc_end_gid = self.desc_start_gid + self.n_desc
-      self.mass = graph.mass[halo_gid]
-      self.pos = graph.mean_pos[halo_gid]
-      self.vel = graph.mean_vel[halo_gid]
-      self.half_mass_radius = graph.half_mass_radius[halo_gid]
-      self.rms_radius = graph.rms_radius[halo_gid]
-      self.rms_speed = graph.rms_speed[halo_gid]
+      self.mass = graph.halo_mass[halo_gid]
+      self.pos = graph.halo_mean_pos[halo_gid]
+      self.vel = graph.halo_mean_vel[halo_gid]
+      self.half_mass_radius = graph.halo_half_mass_radius[halo_gid]
+      self.rms_radius = graph.halo_rms_radius[halo_gid]
+      self.rms_speed = graph.halo_rms_speed[halo_gid]
       # Derived quantities
       # Using v^2=GM/r but for half mass
       self.half_mass_virial_speed = (0.5*parameters.c_G*self.mass/self.half_mass_radius)**(0.5)
@@ -152,13 +152,13 @@ class C_halo:
       self.b_done = False # Has this halo been fully processed or not.
 
       # Subhalos
-      self.n_sub = graph.n_sub_halo[halo_gid]
+      self.n_sub = graph.halo_n_sub[halo_gid]
       self.sub_start_gid=parameters.NO_DATA_INT  # Updated below if n_sub>0
       # Copy in only those properties that we will use within the halo class
       if self.n_sub>0:
-         sub_offset = graph.sub_start_gid[snap_ID]
+         sub_offset = graph.snap_first_sub_gid[snap_ID]
          # Many of the following could be looked up as required but useful to define them here for quick reference
-         self.sub_start_gid = graph.sub_start_halo_gid[halo_gid]
+         self.sub_start_gid = graph.halo_first_sub_gid[halo_gid]
          self.sub_start_sid = self.sub_start_gid-sub_offset
          self.sub_end_gid = self.sub_start_gid+self.n_sub
          self.sub_end_sid = self.sub_start_sid+self.n_sub
@@ -296,7 +296,7 @@ class C_halo_output:
       self.halo_file = h5py.File(parameters.halo_file,'w')
       # Counter for and max number of records in io buffer
       self.i_rec = 0
-      self.n_rec = parameters.D_param['performance']['n_HDF5_io_rec']['Value']
+      self.n_rec = parameters.n_HDF5_io_rec
       # dtype of io buffer
       dtype=[]
       dtype.append(('graph_ID',np.int32))

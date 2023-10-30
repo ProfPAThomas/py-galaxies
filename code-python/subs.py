@@ -99,11 +99,11 @@ class C_sub:
       self.graph_ID = graph_ID
       self.snap_ID = snap_ID
       self.halo_gid = graph.sub_host_gid[sub_gid]
-      self.halo_sid = self.halo_gid - graph.halo_start_gid[snap_ID]
+      self.halo_sid = self.halo_gid - graph.snap_first_halo_gid[snap_ID]
       self.sub_gid = sub_gid
-      self.sub_sid = self.sub_gid - graph.sub_start_gid[snap_ID]
+      self.sub_sid = self.sub_gid - graph.snap_first_sub_gid[snap_ID]
       self.n_desc = graph.sub_n_desc[sub_gid]
-      self.desc_start_gid = graph.sub_desc_start_gid[sub_gid]
+      self.desc_start_gid = graph.sub_first_desc_gid[sub_gid]
       self.desc_end_gid = self.desc_start_gid+self.n_desc
       self.desc_halo_sid = parameters.NO_DATA_INT # main descendant of host halo
 
@@ -111,7 +111,7 @@ class C_sub:
       self.mass = graph.sub_mass[sub_gid]
       self.pos = graph.sub_pos[sub_gid]
       self.vel = graph.sub_vel[sub_gid]
-      self.rms_speed = graph.rms_speed[sub_gid]
+      self.rms_speed = graph.sub_rms_speed[sub_gid]
       self.half_mass_radius = graph.sub_half_mass_radius[sub_gid]
       self.half_mass_virial_speed = (0.5*parameters.c_G*self.mass/self.half_mass_radius)**(0.5)
       # Derived properties
@@ -229,7 +229,7 @@ class C_sub_output:
       self.sub_file = h5py.File(parameters.subhalo_file,'w')
       # Counter for and max number of records in io buffer
       self.i_rec = 0
-      self.n_rec = parameters.D_param['performance']['n_HDF5_io_rec']['Value']
+      self.n_rec = parameters.n_HDF5_io_rec
       # dtype of io buffer
       dtype=[]
       dtype.append(('graph_ID',np.int32))

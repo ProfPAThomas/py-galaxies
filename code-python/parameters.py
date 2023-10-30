@@ -48,27 +48,29 @@ class C_parameters:
             Value = value['Value']
             exec('self.'+str(key)+'=Value')
             print('self.'+str(key)+' =',eval('self.'+str(key)))
-        # Cosmological parameters (ideally would be in graph input files)
-        for key, value in self.D_param['cosmology'].items():
+        # Numerics
+        for key, value in self.D_param['numerics'].items():
             Value = value['Value']
-            Units = value['Units']
-            if value['Units']=='None':
-                exec('self.'+str(key)+'=Value')
-            else:
-                exec('self.'+str(key)+'=Value*eval(Units)')
+            exec('self.'+str(key)+'=Value')
             print('self.'+str(key)+' =',eval('self.'+str(key)))
-        cosmology = FlatLambdaCDM(H0=self.H0, Om0=self.omega_m, Tcmb0=2.725)
+        # Cosmological parameters (ideally would be in graph input files)
+        # But if not, read from input file
+        if 'cosmology' in self.D_param.keys():
+            for key, value in self.D_param['cosmology'].items():
+                Value = value['Value']
+                Units = value['Units']
+                if value['Units']=='None':
+                    exec('self.'+str(key)+'=Value')
+                else:
+                    exec('self.'+str(key)+'=Value*eval(Units)')
+                print('self.'+str(key)+' =',eval('self.'+str(key)))
         # Halo model
         for key, value in self.D_param['halo_model'].items():
             Value = value['Value']
             exec('self.'+str(key)+'=Value')
             print('self.'+str(key)+' =',eval('self.'+str(key)))
-        # Performance
-        for key, value in self.D_param['performance'].items():
-            Value = value['Value']
-            exec('self.'+str(key)+'=Value')
-            print('self.'+str(key)+' =',eval('self.'+str(key)))        #
         # Units (see also conversion factors below)
+        # Should probably read this from input file, but format would be messy
         for io_type, value in self.D_param['units'].items():
             for quantity, props in value.items():
                 Value = props['Value']
@@ -214,15 +216,25 @@ class C_parameters:
         -------
            None
         """
-        for key, value in graph_file['Header'].attrs.items():
+        # Read in attributes.
+        for key, value in graph_file.attrs.items():
             if self.b_display_parameters: print(key,value)
             exec('self.'+key+'=value')
-        # Store the total number of graphs in the input file:
-        self.n_graph=len(graph_file['graph_lengths'])
-        # Put code in here to either copy table of snapshot redshifts/times from graph_file,
-        # Or calculate them if that does not exist.
-        # Currently read from disk:
-        self.snap_table=np.loadtxt(self.snap_file,usecols=[0,2,4],
-            dtype=[('snap_ID',np.int32),('redshift',np.float32),('time_in_years',np.float32)])
-        self.n_snap=len(self.snap_table)
+        try:
+            self.n_graph
+        except:
+            raise IndexError('n_graph is not set as an attribute in the input graph file.')
+        try:
+            self.n_snap
+        except:
+            raise IndexError('n_snap is not set as an attribute in the input graph file.')
+        # Fix to correct my typo (can be removed when graph file is regenerated)
+        self.baryon_fraction=self.Baryon_fraction
+        # Read in snap table.
+        # Should really check that the desired columns exist; will assume for now that they do.
+        self.snap_table=graph_file['snap_table'][:]
+        # Set cosmological model
+        if not 'self.H0' in locals(): self.H0=self.Hubble_h*100.
+        cosmology = FlatLambdaCDM(H0=self.H0, Om0=self.Omega_m, Tcmb0=2.725)
+
         return None
