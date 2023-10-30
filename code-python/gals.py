@@ -176,7 +176,7 @@ class C_gal_output:
       self.gal_file = h5py.File(parameters.galaxy_file,'w')
       # Counter for and max number of records in io buffer
       self.i_rec = 0
-      self.n_rec = parameters.D_param['performance']['n_HDF5_io_rec']['Value']
+      self.n_rec = parameters.n_HDF5_io_rec
       # dtype of io buffer
       dtype=[]
       dtype.append(('graph_ID',np.int32))

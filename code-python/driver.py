@@ -244,17 +244,17 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
                 # For now just skip this halo; might want in future to log these occurrences
                 # Note that any orphan galaxies will cease to exist, gal['b_exists'] == False
                 continue
-            fractions=graph.desc_contribution[desc_start_gid:desc_end_gid]/ \
-                np.sum(graph.desc_contribution[desc_start_gid:desc_end_gid])
+            fractions=graph.halo_desc_contribution[desc_start_gid:desc_end_gid]/ \
+                np.sum(graph.halo_desc_contribution[desc_start_gid:desc_end_gid])
             # The main descendant is the one that inherits the greatest contribution
-            desc_main_sid=graph.desc_IDs_gid[desc_start_gid+np.argmax(fractions)]-halo_offset
+            desc_main_sid=graph.halo_desc_IDs_gid[desc_start_gid+np.argmax(fractions)]-halo_offset
             halo.desc_main_sid=desc_main_sid
             # assert desc_main_sid < parameters.n_graph
             # All orphans gals go to main descendant so increase relevant orphan count
             halos_this_snap[desc_main_sid].n_orphan+=halo.n_orphan
             # Now loop over descendants transferring properties to them:
             for i_desc in range(desc_start_gid,desc_end_gid):
-                desc_halo=halos_this_snap[graph.desc_IDs_gid[i_desc]-halo_offset]
+                desc_halo=halos_this_snap[graph.halo_desc_IDs_gid[i_desc]-halo_offset]
                 # assert desc_halo_gid == desc_halo.halo_gid
                 if parameters.verbosity>=5: print('Processing descendant',desc_halo.halo_gid)
                 # Distribute mass to descendants in proportion to fractional contributions
