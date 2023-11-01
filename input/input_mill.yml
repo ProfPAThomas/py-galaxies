@@ -8,7 +8,7 @@
 
 io_files:
  input_files:
-  graph_file:   'MergerGraphs/Mill/mega_graph_mini_09-11.hdf5'
+  graph_file:   'MergerGraphs/Mill/pygal_063_5.hdf5'
   snap_file:    'MergerGraphs/Mill/snaplist.txt' # Should ideally be stored in graph_file
  output_files:
   # output_prefix: 'test_'  # Not yet implmented
@@ -39,33 +39,21 @@ diagnostics:
   Description: 'Level of diagnostic messages: 0 - None; 1/2 - main counters; 3/4/5 - debugging info'
   Value: 2
 
-# Should be attributes in the graph input file
-cosmology:
- omega_m:        
-  Description: 'Matter density parameter'
-  Value:        0.30
-  Units:       'None'
- H0:
-  Description: 'Hubble parameter at z=0'
-  Value:        70.
-  Units:       'u.km/(u.s*u.Mpc)'
- baryon_fraction:
-  Description: 'Baryon fraction'
-  Value:        0.155
-  Units:       'None'
+numerics:
+ NO_DATA_INT:
+  Description: 'Because python treats -1 as the final index, use this to initialise null integers'
+  Value:        -4294967296
+ n_HDF5_io_rec:
+  Description: 'Size of HDF5 io buffer (number of records)'
+  Value:        1000
   
 halo_model:
  halo_type:
   Description: 'Spherical overdensity (SO) or MEGA'
-  Value:       'MEGA'
+  Value:       'SO'
  halo_overdensity:  
   Description: 'Halo overdensity relative to the critical density (not relevant for MEGA)'
   Value:        200
-
-performance:
- n_HDF5_io_rec:
-  Description: 'Size of HDF5 io buffer (number of records)'
-  Value:        1000
 
 # Units expressed in terms that astropy understands
 # The internal units are self-consistent in that, e.g., speed_unit=length_unit/time_unit.
@@ -80,7 +68,7 @@ units:
    Units:       'u.Mpc'
   mass:
    Description: 'Mass unit in graph input data'
-   Value:        1
+   Value:        !!float 1.43e10
    Units:       'c.M_sun'  # Should there be a factor of h^{-1}?
   speed:
    Description: 'Speed unit in graph input data'
