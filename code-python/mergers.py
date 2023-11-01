@@ -157,10 +157,13 @@ def F_merge_gals(halo,sub,gals,parameters):
         # Set new sizes for gas disc and stellar bulge
         # Note that the starburst is assumed compact and transfers ZERO angular momentum
         if gal_main['mass_gas_cold']>parameters.mass_minimum_internal:
-            gal_main['radius_gas_cold']=ang_mom_gas_cold/(2. * gal_main['mass_gas_cold'] * gal_main['v_vir'])
+            gal_main['radius_gas_cold']=max(ang_mom_gas_cold/(2. * gal_main['mass_gas_cold'] * gal_main['v_vir']),parameters.radius_maximum_internal)
             assert gal_main['radius_gas_cold']>0.
         if gal_main['mass_stars_bulge']>parameters.mass_minimum_internal:
-            gal_main['radius_stars_bulge']=gal_main['mass_stars_bulge']**2/PE_bulge
+            if PE_bulge>0:
+                gal_main['radius_stars_bulge']=gal_main['mass_stars_bulge']**2/PE_bulge
+            else:
+                gal_main['radius_stars_bulge']=0.
             
     return None
 

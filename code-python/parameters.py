@@ -138,6 +138,8 @@ class C_parameters:
         self.mass_minimum_internal = (self.mass_minimum/self.units_mass_internal).si.value
         # The minimum length (values below this are regarded as not set)
         self.length_minimum_internal = (self.length_minimum/self.units_length_internal).si.value
+        # The maximum size of galaxy discs, both gas and stellar
+        self.radius_maximum_internal = (u.Mpc/self.units_length_internal).si.value
         # Quantities that need to be in internal code units for use in functions
         self.Hen15_v_eject_internal = (self.Hen15_v_eject/self.units_speed_internal).si.value
         self.Hen15_v_reheat_internal = (self.Hen15_v_reheat/self.units_speed_internal).si.value
