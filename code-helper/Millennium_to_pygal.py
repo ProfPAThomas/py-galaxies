@@ -136,8 +136,8 @@ assert len(dummy)==0
 f.close()
 
 # Determine the location of the halos in each tree
-print(n_tree)
-print(n_halo)
+print('n_tree =',n_tree)
+print('n_halo =',n_halo)
 print(n_halo_in_tree)
 i_first_halo_in_tree=np.zeros(n_tree,int)
 i_first_halo_in_tree[1:]=np.cumsum(n_halo_in_tree)[:-1]
@@ -145,26 +145,34 @@ n_graph=n_tree # Synonyms; use either depending upon context.
 
 # For testing, restrict number of trees
 n_tree_max=n_tree
-# n_tree_max=60
+#n_tree_max=125
 
 n_tree=n_tree_max
 n_graph=n_tree
 n_halo_in_tree=n_halo_in_tree[:n_tree]
-print(n_halo_in_tree[58])
 n_halo=np.sum(n_halo_in_tree)
 halos=halos[:n_halo]
 
-# We will need to know the location of each halo within its tree.
+# We will need to know the location of each halo within the whole dataset and within its tree
 # This may seem trivial, but we are going to loop in a different order
+halos=rfn.append_fields(halos,'file_loc',np.full(len(halos),-1),dtypes=np.int32,usemask=False)
+# Add column for location within tree
 halos=rfn.append_fields(halos,'loc',np.full(len(halos),-1),dtypes=np.int32,usemask=False)
+# Add column to say where this halo points to (might not be new version of itself, if it has been eliminated)
+halos=rfn.append_fields(halos,'new_loc',np.full(len(halos),-1),dtypes=np.int32,usemask=False)
 
 # Add column to store location of main halo (not always the same as FirstHaloInFOFgroup)
 halos=rfn.append_fields(halos,'main_halo',np.full(len(halos),-1),dtypes=np.int32,usemask=False)
+
+# Add column to say whether halo has been included in new tree
+halos=rfn.append_fields(halos,'included',np.full(len(halos),False),dtypes=bool,usemask=False)
+
 
 # We will also need information from the snap table
 snap_table=np.loadtxt(snapfile,usecols=[0,2,4],skiprows=1,
     dtype=[('snap_ID',np.int32),('redshift',np.float32),('time_in_years',np.float32)])
 n_snap=len(snap_table)
+print('n_snap =',n_snap)
 
 # Because the FirstHaloInFOFgroup is not always the main_halo (defined as the one with the greatest Len)
 # then we need to preprocess to store the latter.  We don't need to do that here.
@@ -296,15 +304,15 @@ for i_tree in range(n_tree):
 halos_new=np.empty(int(1.5*n_halo),dtype=halos.dtype)
 n_halo_in_tree_new=np.zeros(n_tree,dtype=np.int32)
 pointer_offset=2*n_halo # Used to distinguish pointers relative to new tree from those relative to old tree
+print('pointer_offset =',pointer_offset)
+# Store original location in halo array in case we need to look up in copies
+halos['file_loc']=np.arange(n_halo)
 
 i_halo_new=0
 for i_tree in range(n_tree):
     # Mappings from location in old tree to new one
-    # Set to be -1 just in case reference is made to a halo that is eliminated.  I don't think it should be!
-    pointer_new=np.full(n_halo_in_tree[i_tree]+1,-2,dtype=np.int32)
-    pointer_new[-1]=-1 # Because an index of -1 is the last entry in the array!
     tree_offset=i_halo_new
-    i_halo_in_tree=0 # Will increment as add new halos
+    i_halo_in_tree_new=0 # Will increment as add new halos
     # The following line appears to give a view even though ipython returns `False` on an `is` assertion.
     halos_in_tree=halos[i_first_halo_in_tree[i_tree]:i_first_halo_in_tree[i_tree]+n_halo_in_tree[i_tree]]
     halos_in_tree['loc']=np.arange(n_halo_in_tree[i_tree],dtype=np.int32)
@@ -314,124 +322,173 @@ for i_tree in range(n_tree):
     for i_snap in range(n_snap-1,-1,-1):
         # This time the following statement appears to give a copy rather than a view, which is not
         # surprising given the complex nature of the indexing.
+        # So updating halos_in_snap will not change the original, instead we need to refer back to the original array.
         halos_in_snap=halos_in_tree[halos_in_tree['SnapNum']==i_snap]
         n_halo_in_snap=len(halos_in_snap)
+        i_halo_new_prior_to_snap=i_halo_new
         if n_halo_in_snap>0:
             if i_snap==n_snap-1: # last snapshot; accept all halos
-                halos_new[i_halo_new:i_halo_new+n_halo_in_snap]=halos_in_snap
-                pointer_new[halos_in_snap['loc']]=np.arange(i_halo_in_tree,i_halo_in_tree+n_halo_in_snap,dtype=int)
-                i_halo_new+=n_halo_in_snap
-                i_halo_in_tree+=n_halo_in_snap
+                # I thought that I could do this with an array update, but problems with copying mean that it is safer to do as a loop
+                for halo in halos_in_snap:
+                    halos_new[i_halo_new]=halo
+                    file_loc=halo['file_loc']
+                    halos[file_loc]['new_loc']=i_halo_in_tree_new
+                    halos[file_loc]['included']=True
+                    i_halo_new+=1
+                    i_halo_in_tree_new+=1
             else:
                 for halo in halos_in_snap:
-                    if halo['Descendant']==-1: # Halo has no descendant; eliminate it from consideration
+                    file_loc=halo['file_loc']
+                    descendant=halo['Descendant'] # descendant location in old tree
+                    if descendant==-1: # Halo has no descendant; eliminate it from consideration
                         if halo['Len']>=100:
                             print('Warning: halo of particle number {:d} has no descendant'.format(halo['Len']))
                     else:
-                        halo_desc=halos_in_tree[halo['Descendant']] # Because pointers are relative to the tree
-                        if pointer_new[halo_desc['loc']]==-2: # Descendant has been eliminated from new tree
+                        halo_desc=halos_in_tree[descendant] # Because pointers are relative to the tree
+                        assert descendant==halo_desc['loc']
+                        if halo_desc['included']==False: # Descendant has been eliminated from new tree
                             if halo['Len']>=100:
                                 print('Warning: halo of particle number {:d} has eliminated descendant'.format(halo['Len']))
                         elif halo_desc['SnapNum']==halo['SnapNum']+1: # All is as it should be
                             halos_new[i_halo_new]=halo
-                            pointer_new[halo['loc']]=i_halo_in_tree
+                            assert halos_new[i_halo_new]['Descendant']!=-1
+                            halos[file_loc]['new_loc']=i_halo_in_tree_new
+                            halos[file_loc]['included']=True
                             i_halo_new+=1
-                            i_halo_in_tree+=1
+                            i_halo_in_tree_new+=1
                         else: # We have skipped a snapshot; introduce an intermediate halo
                             # First add in existing halo
                             halos_new[i_halo_new]=halo
-                            pointer_new[halo['loc']]=i_halo_in_tree 
-                            descendant=halo['Descendant'] # Will need to remember old descendant location in tree
-                            # Recast descendant link.
+                            assert halos_new[i_halo_new]['Descendant']!=-1
+                            halos[file_loc]['new_loc']=i_halo_in_tree_new
+                            halos[file_loc]['included']=True
+                            # Recast descendant link to point to new halo, about to be created.
                             # This is relative to the new tree, so give offset to distinguish that: correct later.
-                            halos_new[i_halo_new]['Descendant']=pointer_offset+i_halo_in_tree+1
+                            halos_new[i_halo_new]['Descendant']=pointer_offset+i_halo_in_tree_new+1
                             i_halo_new+=1
-                            i_halo_in_tree+=1
-                            # We need now to determine the location in the halo list of the descendant;
-                            # Remember that 'descendant' is location in the original tree
-                            descendant_halo=halos_in_tree[descendant] # This is the existing halo, not the new copy.
+                            i_halo_in_tree_new+=1
                             # Now reset the progenitor of the original descendant
                             # *** Not yet done as not needed for py-gal ***
                             # The complication is to know where the descendant is in the new listing
                             # Next create the new one.  Note that it does not matter that this may break the snapshot ordering: that will be corrected when we generate the pygal dataset
+                            assert -1<descendant<n_halo_in_tree[i_tree]
                             halos_new[i_halo_new]['Descendant']=descendant
                             halos_new[i_halo_new]['FirstProgenitor']=-1 # Not following
                             halos_new[i_halo_new]['NextProgenitor']=-1 # Not following
-                            halos_new[i_halo_new]['FirstHaloInFOFgroup']=pointer_offset+i_halo_in_tree # Itself
+                            halos_new[i_halo_new]['FirstHaloInFOFgroup']=pointer_offset+i_halo_in_tree_new # Itself
                             halos_new[i_halo_new]['NextHaloInFOFgroup']=-1 # Place in its own FOFgroup
-                            halos_new[i_halo_new]['Len']=(halo['Len']+descendant_halo['Len'])//2
-                            halos_new[i_halo_new]['M_Mean200']=(halo['M_Mean200']+descendant_halo['M_Mean200'])/2.
-                            halos_new[i_halo_new]['M_Crit200']=(halo['M_Crit200']+descendant_halo['M_Crit200'])/2.
-                            halos_new[i_halo_new]['M_TopHat']=(halo['M_TopHat']+descendant_halo['M_TopHat'])/2.
-                            halos_new[i_halo_new]['Pos'][:]=(halo['Pos'][:]+descendant_halo['Pos'][:])/2.
-                            halos_new[i_halo_new]['Vel'][:]=(halo['Vel'][:]+descendant_halo['Vel'][:])/2.
+                            halos_new[i_halo_new]['Len']=(halo['Len']+halo_desc['Len'])//2
+                            halos_new[i_halo_new]['M_Mean200']=(halo['M_Mean200']+halo_desc['M_Mean200'])/2.
+                            halos_new[i_halo_new]['M_Crit200']=(halo['M_Crit200']+halo_desc['M_Crit200'])/2.
+                            halos_new[i_halo_new]['M_TopHat']=(halo['M_TopHat']+halo_desc['M_TopHat'])/2.
+                            halos_new[i_halo_new]['Pos'][:]=(halo['Pos'][:]+halo_desc['Pos'][:])/2.
+                            halos_new[i_halo_new]['Vel'][:]=(halo['Vel'][:]+halo_desc['Vel'][:])/2.
                             # Velocity dispersion and velocity should go as sqrt(M/r) or M^{1/3}
-                            halos_new[i_halo_new]['VelDisp']=((halo['VelDisp']**3+descendant_halo['VelDisp']**3)/2.)**(1./3.)
-                            halos_new[i_halo_new]['Vmax']=((halo['Vmax']**3+descendant_halo['Vmax']**3)/2.)**(1./3.)
+                            halos_new[i_halo_new]['VelDisp']=((halo['VelDisp']**3+halo_desc['VelDisp']**3)/2.)**(1./3.)
+                            halos_new[i_halo_new]['Vmax']=((halo['Vmax']**3+halo_desc['Vmax']**3)/2.)**(1./3.)
                             # Take a mass-weighted average spin
-                            halos_new[i_halo_new]['Spin'][:]=(halo['Spin'][:]*halo['Len']+descendant_halo['Spin'][:]*descendant_halo['Len'])/ \
-                                                             (halo['Len']+descendant_halo['Len'])
+                            halos_new[i_halo_new]['Spin'][:]=(halo['Spin'][:]*halo['Len']+halo_desc['Spin'][:]*halo_desc['Len'])/ \
+                                                             (halo['Len']+halo_desc['Len'])
                             halos_new[i_halo_new]['MostBoundID']=-1
                             halos_new[i_halo_new]['SnapNum']=i_snap+1
                             halos_new[i_halo_new]['FileNr']=halo['FileNr']
                             halos_new[i_halo_new]['SubhaloIndex']=-1 # Pointer to location in subfind output
-                            halos_new[i_halo_new]['SubHalfMass']=(halo['SubHalfMass']+descendant_halo['SubHalfMass'])/2.
+                            halos_new[i_halo_new]['SubHalfMass']=(halo['SubHalfMass']+halo_desc['SubHalfMass'])/2.
+                            halos_new[i_halo_new]['loc']=-1 # To indicate that it is a new halo
                             i_halo_new+=1
-                            i_halo_in_tree+=1
-            # At this point in the new tree, some halos will have been omitted.
-            # That means that some of the FOF pointers may be pointing to non-existant halos.
-            # So we need to look through all the (old) FOF groups and remake them eliminating the missing halos.
-            # Each FOF group has a distinct first subfind halo:
-            i_first_halos=set(halos_in_snap['FirstHaloInFOFgroup'])
-            assert len(i_first_halos)>0
-            for i_first_halo in i_first_halos:
-                # Find the first true halo in the FOF group
-                i_first_halo_corrected=i_first_halo
-                while pointer_new[i_first_halo_corrected]==-2:
-                    i_first_halo_corrected=halos_in_tree[i_first_halo_corrected]['NextHaloInFOFgroup']
-                pointer_new[i_first_halo]=pointer_new[i_first_halo_corrected] # Have corrected first halo
-                # Now run through rest of tree updating NextHaloInFOFgroup pointers to exclude eliminated halos
-                i_next_halo=halos_in_tree[i_first_halo]['NextHaloInFOFgroup']
-                while i_next_halo != -1:
-                    i_next_halo_corrected=i_next_halo
-                    while pointer_new[i_next_halo_corrected]==-2:
-                        i_next_halo_corrected=halos_in_tree[i_next_halo_corrected]['NextHaloInFOFgroup']
-                    pointer_new[i_next_halo]=pointer_new[i_next_halo_corrected]
-                    i_next_halo=halos_in_tree[i_next_halo_corrected]['NextHaloInFOFgroup']
-    n_halo_in_tree_new[i_tree]=i_halo_in_tree
+                            i_halo_in_tree_new+=1
+                assert (halos_new[i_halo_new_prior_to_snap:i_halo_new]['Descendant']!=-1).all()
+                # At this point in the new tree, some halos will have been omitted.
+                # That means that some of the FOF pointers may be pointing to non-existent halos.
+                # So we need to look through all the (old) FOF groups and remake them eliminating the missing halos.
+                # The way that the code does this is to loop through all FOF groups, renaming the FirstHalo and NextHalo 'new_loc'
+                # pointers to point to the next included halo.
+                # Each FOF group has a distinct first subfind halo:
+                i_first_halos=set(halos_in_snap['FirstHaloInFOFgroup'])
+                assert len(i_first_halos)>0
+                for i_first_halo in i_first_halos:
+                    # Find the first true halo in the FOF group
+                    i_first_halo_corrected=i_first_halo
+                    while halos_in_tree[i_first_halo_corrected]['included']==False:
+                        i_first_halo_corrected=halos_in_tree[i_first_halo_corrected]['NextHaloInFOFgroup']
+                        if i_first_halo_corrected==-1: break
+                    # If i_first_halo_corrected is -1 then this FOF group has been eliminated altogether, so simply omit
+                    if i_first_halo_corrected==-1: continue
+                    # Otherwise, redirect old first halo to the new version of a halo that we have kept.
+                    # Then, when we update all the pointers, it will pick up the correct first halo.
+                    halos_in_tree[i_first_halo]['new_loc']=halos_in_tree[i_first_halo_corrected]['new_loc']
+                    assert halos_in_tree[i_first_halo_corrected]['included']==True
+                    assert halos_in_tree[i_first_halo_corrected]['FirstHaloInFOFgroup']==i_first_halo
+                    assert halos_in_tree[i_first_halo]['new_loc']>-1
+                    # Now run through rest of tree updating NextHaloInFOFgroup pointers to exclude eliminated halos
+                    # This is where the NextHalo pointer currently points to
+                    i_next_halo=halos_in_tree[i_first_halo_corrected]['NextHaloInFOFgroup']
+                    # We need to change it to point to the new location of the next included halo
+                    while i_next_halo != -1:
+                        i_next_halo_corrected=i_next_halo
+                        while halos_in_tree[i_next_halo_corrected]['included']==False:
+                            i_next_halo_corrected=halos_in_tree[i_next_halo_corrected]['NextHaloInFOFgroup']
+                            if i_next_halo_corrected==-1: break
+                        if i_next_halo_corrected==-1:
+                            # When looked up, the NextHalo will have an index of -1 in the new structure
+                            halos_in_tree[i_next_halo]['new_loc']=-1
+                            i_next_halo=-1
+                        else:
+                            # The next halo now links to the next included halo in the new structure.
+                            halos_in_tree[i_next_halo]['new_loc']=halos_in_tree[i_next_halo_corrected]['new_loc']
+                            i_next_halo=halos_in_tree[i_next_halo_corrected]['NextHaloInFOFgroup']
+    n_halo_in_tree_new[i_tree]=i_halo_in_tree_new
     # Now need to run through and correct all the pointers
     for halo in halos_new[tree_offset:i_halo_new]:
         pointer_old=halo['Descendant']
         if pointer_old==-1:
-            halo['Descendant']=-1
-        elif pointer_old<pointer_offset:
-            assert pointer_new[pointer_old]!=-2
-            halo['Descendant']=pointer_new[pointer_old]
+            assert halo['SnapNum']==n_snap-1
+            pass
         else:
-            halo['Descendant']=pointer_old-pointer_offset
+            if pointer_old>=pointer_offset:
+                halo['Descendant']-=pointer_offset
+            else:
+                assert halos_in_tree[pointer_old]['included']==True
+                halo['Descendant']=halos_in_tree[pointer_old]['new_loc']
+        assert halo['SnapNum']==n_snap-1 or halo['Descendant']>-1
         halo['FirstProgenitor']=-1
         halo['NextProgenitor']=-1
         pointer_old=halo['FirstHaloInFOFgroup']
         if pointer_old==-1:
-            raise valueError("halo['FirstHaloInFOFgroup']=-1")
-        elif pointer_old<pointer_offset:
-            assert pointer_new[pointer_old]!=-2
-            halo['FirstHaloInFOFgroup']=pointer_new[pointer_old]
+            raise ValueError("halo['FirstHaloInFOFgroup']=-1")
         else:
-            halo['FirstHaloInFOFgroup']=pointer_old-pointer_offset
+            if pointer_old>=pointer_offset:
+                halo['FirstHaloInFOFgroup']-=pointer_offset
+            else:
+                halo['FirstHaloInFOFgroup']=halos_in_tree[pointer_old]['new_loc']
+                if not halo['FirstHaloInFOFgroup']>-1:
+                    print('i_tree =',i_tree)
+                    print('pointer_old =',pointer_old)
+                    print('halo =',halo)
+                    print('halos[halo[''file_loc'']] =',halos[halo['file_loc']])
+                    print('halos_in_tree[pointer_old] =',halos_in_tree[pointer_old])
+                    print(halos_in_tree.dtype)
+                    print('halo[''FirstHaloInFOFgroup''] =',halo['FirstHaloInFOFgroup'])
+                    raise ValueError('Invalid value for FirstHaloInFOFgroup')
         pointer_old=halo['NextHaloInFOFgroup']
         if pointer_old==-1:
-            halo['NextHaloInFOFgroup']=-1
-        elif pointer_old<pointer_offset:
-            assert pointer_new[pointer_old]!=-2
-            halo['NextHaloInFOFgroup']=pointer_new[pointer_old]
+            pass
         else:
-            halo['NextHaloInFOFgroup']=pointer_old-pointer_offset
+            if pointer_old>=pointer_offset:
+                halo['NextHaloInFOFgroup']-=pointer_offset
+            else:
+                halo['NextHaloInFOFgroup']=halos_in_tree[pointer_old]['new_loc']
 n_halo_new=i_halo_new
 print('n_halo, n_halo_new =',n_halo,n_halo_new)
 halos_new=halos_new[:n_halo_new]
 assert np.sum(n_halo_in_tree_new)==n_halo_new
 assert (halos_new['FirstHaloInFOFgroup']!=-1).all()
+for i_halo_new in range(n_halo_new):
+    if halos_new[i_halo_new]['SnapNum']!=n_snap-1 and halos_new[i_halo_new]['Descendant']<0:
+        print('i_halo_new =',i_halo_new)
+        print(halos_new[i_halo_new])
+        print(halos_new.dtype)
+        raise ValueError('invalid descendant')
 
 # Done in separate cell so don't always have to execute
 # halos_old=halos.copy()
