@@ -44,6 +44,7 @@ def F_merge_gals(halo,sub,gals,parameters):
     # Find the most massive galaxy: we will take this to be the one onto which everything accretes
     i_main=np.argmax(gals['mass_baryon'])
     gal_main=gals[i_main]
+
     # The central galaxy mass may change as a result of mergers, so use the initial one to separate minor/major
     gal_main_mass_baryon=gal_main['mass_baryon']
     # At this point rename the central galaxy to be the most massive one
@@ -70,13 +71,17 @@ def F_merge_gals(halo,sub,gals,parameters):
         
         # Store quantities needed to determine the final gas disc and stellar bulge sizes
         ang_mom_gas_cold = 2. * (gal_main['mass_gas_cold']*gal_main['v_vir']*gal_main['radius_gas_cold'] + \
-                                 gal_sat['mass_gas_cold'] * gal_sat['v_vir'] * gal_sat['radius_gas_cold'])
+                                 gal_sat['mass_gas_cold'] *gal_sat['v_vir'] *gal_sat['radius_gas_cold'])
+        # For debugging
+        ang_mom_gas_cold_start=ang_mom_gas_cold
+        mass_gas_cold_start=gal_main['mass_gas_cold']
+        radius_gas_cold_start=gal_main['radius_gas_cold']
         # Mass-weighted half mass radii (for exp disc 1.68*R_d; for Jaffe R)
         mass_bulge_sat = gal_sat['mass_stars_disc']+gal_sat['mass_stars_bulge']
         # Not sure how there can be no stars in the satellite, but there can be
         if mass_bulge_sat > parameters.mass_minimum_internal:
-           radius_half_sat = (1.68*gal_sat['mass_stars_disc']*gal_sat['radius_stars_disc'] + \
-                                gal_sat['mass_stars_bulge']*gal_sat['radius_stars_bulge']) / \
+           radius_half_sat = (1.68*gal_sat['mass_stars_disc'] *gal_sat['radius_stars_disc'] + \
+                                   gal_sat['mass_stars_bulge']*gal_sat['radius_stars_bulge']) / \
                           mass_bulge_sat
         else:
            radius_half_sat = 0.
@@ -89,8 +94,8 @@ def F_merge_gals(halo,sub,gals,parameters):
             # Major merger.  All stars in main galaxy end up in bulge
             mass_bulge_main = gal_main['mass_stars_disc'] +gal_main['mass_stars_bulge']
             if mass_bulge_main >  parameters.mass_minimum_internal:
-                radius_half_main = (1.68*gal_main['mass_stars_disc']*gal_main['radius_stars_disc'] + \
-                                    gal_main['mass_stars_bulge']*gal_main['radius_stars_bulge']) / \
+                radius_half_main = (1.68*gal_main['mass_stars_disc'] *gal_main['radius_stars_disc'] + \
+                                         gal_main['mass_stars_bulge']*gal_main['radius_stars_bulge']) / \
                                     mass_bulge_main
             else:
                 radius_half_main = 0.
@@ -136,12 +141,15 @@ def F_merge_gals(halo,sub,gals,parameters):
         gal_sat['b_exists']=False
 
         # Perform starburst
-        if mass_ratio >= parameters.major_merger_fraction: 
+        if gal_main['mass_gas_cold']>=parameters.mass_minimum_internal and mass_ratio >= parameters.major_merger_fraction: 
             # Performs starburst and transfers stellar disc to bulge
+            # Note that the starburst will likely be compact but in the first instance we assume
+            # that it follows the profile of the disc, so the angular momentum is reduced in proportion
+            mass_gas_cold_before_starburst=gal_main['mass_gas_cold']        
             mass_starburst = F_starburst(mass_ratio,gal_main,parameters)
-            # Note that the starburst is assumed compact and transfers ZERO angular momentum
             # Feedback associated with starburst
             F_gal_SNR_feedback(mass_starburst,gal_main,sub,halo,parameters)
+            ang_mom_gas_cold *= gal_main['mass_gas_cold']/mass_gas_cold_before_starburst
         
         # BH growth: could be absorbed into above but cleaner to do it here
         # There is no BH feedback associated with mergers
@@ -157,8 +165,9 @@ def F_merge_gals(halo,sub,gals,parameters):
         # Set new sizes for gas disc and stellar bulge
         # Note that the starburst is assumed compact and transfers ZERO angular momentum
         if gal_main['mass_gas_cold']>parameters.mass_minimum_internal:
-            gal_main['radius_gas_cold']=max(ang_mom_gas_cold/(2. * gal_main['mass_gas_cold'] * gal_main['v_vir']),parameters.radius_maximum_internal)
+            gal_main['radius_gas_cold']=ang_mom_gas_cold/(2. * gal_main['mass_gas_cold'] * gal_main['v_vir'])
             assert gal_main['radius_gas_cold']>0.
+        
         if gal_main['mass_stars_bulge']>parameters.mass_minimum_internal:
             if PE_bulge>0:
                 gal_main['radius_stars_bulge']=gal_main['mass_stars_bulge']**2/PE_bulge
@@ -172,7 +181,7 @@ def F_starburst(mass_ratio,gal,parameters):
    """
    Major mergers of galaxies trigger a burst of star formation that goes into the bulge of the remnant.
 
-   The starburst is assumed compact and transfers zero angular momentum.
+   The starburst will likely be compact but in the first instance we take it to follow the profile of the disc.
 
    Arguments
    ---------

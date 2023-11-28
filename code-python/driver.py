@@ -343,7 +343,13 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
             n_orphan=halo.n_orphan
             if n_orphan > 0:
                 # match up orphans
-                desc_halo=halos_this_snap[halo.desc_main_sid]
+                try:
+                    desc_halo=halos_this_snap[halo.desc_main_sid]
+                except:
+                    print('halo =',halo)
+                    print('halo.desc_start_gid =',halo.desc_start_gid)
+                    print('halo.desc_end_gid =',halo.desc_end_gid)
+                    assert False
                 assert desc_halo != parameters.NO_DATA_INT
                 # The is the location of orphan galaxies in the previous snapshot
                 gal_last_start_sid=halo.orphan_start_sid
@@ -429,7 +435,10 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
     # In principle subhalos should aready have the correct baryon mass: this is a check
     for sub in subs_this_snap:
         if sub.mass_baryon > parameters.mass_minimum_internal:
-            # Had to relax condition from 1e-4 to 1e-2 to accommodate Mill tree errors
+            # Had to relax condition from 1e-4 to 1e-2 to accommodate Mill tree errors.
+            # So probably still a bug in my conversion code.
+            # But at this point I am not inclined to waste any more time trying to fix it.
+            # (some subhalo pointers are -1!)
             if np.abs(sub.mass_baryon/sub.sum_mass_baryon(gals_this_snap)-1.)>1e-2:
                 print('gals[''mass_baryon''] =',gals_this_snap[sub.gal_start_sid:sub.gal_end_sid]['mass_baryon'])
                 print('sub.mass_gas_hot =',sub.mass_gas_hot)

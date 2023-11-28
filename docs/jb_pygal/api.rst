@@ -8,8 +8,20 @@ The py-galaxies API
 Driver routines
 ---------------
 
+Parameters
+^^^^^^^^^^
+
 .. automodule:: parameters
    :members:
+
+Commons
+^^^^^^^
+
+.. automodule:: commons
+   :members:
+
+Main driver routine
+^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: driver
    :members:

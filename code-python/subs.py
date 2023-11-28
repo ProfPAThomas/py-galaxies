@@ -9,41 +9,40 @@ class C_sub:
    """
     A container for the properties needed for each subhalo.
    
-    No sophisticated methods, it just truncates the GraphProperites class to 
-    ensure data from the current generation is selected.
+    No sophisticated methods, it just extracted the relevant properties from the graph.
 
     All physical quantities are in internal code units.
     
     Attributes
     ----------
     graph_ID : int
-        The graph_ID (from HDF5 group).
+        The graph_ID within the input file.
     snap_ID : int
          The snapshot ID currently being processed.
     halo_gid : int
-        The halo ID relative to the graph of the host halo.
+        The host halo location within the graph.
     halo_sid : int
-        The halo ID relative to the snapshot.
+        The host halo location within the snapshot.
     sub_gid : int
-        The subhalo ID relative to the graph of the subhalo currently being processed.
+        The subhalo location within the graph.
     sub_sid : int
-        The subhalo ID relative to the snapshot.
+        The subhalo location within the snapshot.
     b_done : bool
         Whether or not the subhalo has been fully processed.
+    desc_end_gid : int
+        The index relative to the graph at which this subhalo's descendents end.
+    desc_halo_sid : int
+        The index relative to the next snapshot of the descendant of the host halo of this subhalo.
+    desc_start_gid : int
+        The index relative to the graph at which this subhalo's descendents start.
     gal_central_sid : int
         The location in the current galaxy array of the most massive galaxy in the subhalo.
     gal_end_sid : int
         The location in the current galaxy array of the last galaxy in the subhalo (+1 because of python indexing)
     gal_next_sid : int
-        Galaxy counter used when updating galaxies within the halo
+        Galaxy counter used when updating galaxies.
     gal_start_sid : int
         The location in the current galaxy array of the first galaxy in the subhalo
-    desc_end_gid : int
-        The index relative to the graph at which this subhalo's descendents end.
-    desc_halo_sid : int
-        The index relative to the snapshot of the host halo of this subhalo.
-    desc_start_gid : int
-        The index relative to the graph at which this subhalo's descendents start.
     half_mass_radius : float
         The radius containing half the total mass in the DM-only sim
     half_mass_virial_speed : float
@@ -54,42 +53,43 @@ class C_sub:
         Mass of baryons within the subhalo, inclusive of galaxies
     mass_gas_hot : float
         The mass of hot gas
-    mass_stars : float
-        The mass of stars
     mass_metals_gas_hot : float
         The mass of metals in hot gas
     mass_metals_stars : float
         The mass of metals in stars
+    mass_stars : float
+        The mass of stars
     n_desc : int
         The number of direct descendants.
     n_dt : int
         Number of times that this halo has been processed this snapshot
     n_gal : int
-        The number of galaxies in the halo, inclusive of subhalos
+        The number of galaxies in the subhalo.
     pos : float[3]
         The position of the subhalo.
     rms_speed : float
-        The rms speed in the DM-only sim.
+        The rms speed of the subhalo in the DM-only sim.
     tau_dyn : float
-        The dynamical time at twice the half-mass radius
+        The dynamical time at twice the half-mass radius.
     temperature : float
-        The temperature as derived from the virial speed
+        The virial temperature as derived from the virial speed.
     vel : float[3]
-        Velocity of the subhalo
+        The velocity of the subhalo.
  
     """   
    def __init__(self,graph_ID,snap_ID,sub_gid,graph,parameters):
       """
-       Clipping graph properties to the correct generation for halo use.
+       Read in the subhalo properties from the graph, including ranges for descendants;
+       initialise galaxy counters.
     
        Parameters
        ----------
        graph_ID : int
-           The graph_ID (from HDF5 group).
+           The graph_ID within the input data file.
        snap_ID : int
            The snapshot ID currently being processed.
        sub_gid : int
-           The subhalo ID relative to the graph of the subhalo currently being processed.
+           The subhalo ID relative to the graph.
        graph : obj : C_graph
            The graph containing this halo.
        parameters : obj : C_parameters
@@ -105,7 +105,7 @@ class C_sub:
       self.n_desc = graph.sub_n_desc[sub_gid]
       self.desc_start_gid = graph.sub_first_desc_gid[sub_gid]
       self.desc_end_gid = self.desc_start_gid+self.n_desc
-      self.desc_halo_sid = parameters.NO_DATA_INT # main descendant of host halo
+      self.desc_halo_sid = parameters.NO_DATA_INT
 
       # Intrinsic properties
       self.mass = graph.sub_mass[sub_gid]

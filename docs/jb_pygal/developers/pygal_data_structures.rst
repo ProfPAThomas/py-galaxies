@@ -9,137 +9,132 @@ Some terminology
 py-galaxies builds galaxies within distinct **merger graphs** whose nodes are located at a sequence of **snapshots**.  Unlike merger trees, where nodes have a single descendent, graphs can branch and lead to multiple descendants.
 
 The nodes are constructed from friends of friends halos using two different linking lengths, corresponding to two different overdensities.  This leads to a structure in which one set of nodes is spatially nested within the other.
+The large linking length, (relatively) low density nodes are **halos**: these correspond to virialised, collapsed regions (groups, clusters).  The short linking length, high density nodes are **subhalos**: these are the locations where galaxies may form.  Ideally, each halo in the input graph should have at least one subhalo; however the code provides the option to create dummy subhalos with properties identical to that of the halo, should any subhalos be missing, by setting :code:`b_create_missing_subhalos` to :code:`True` in the input yaml file; if this input parameter is absent or set to :code:`False` then the code will otherwise abort.  The halo within which each subhalo resides is the **host halo**; within any given subhalo this can simply be referred to as 'the' halo.  Usually, but not always, there will be a subhalo close to the dynamical centre of each halo: this is the **central subhalo**; the others are **satellite subhalos**.
 
-The large linking length, (relatively) low density nodes are **halos**: these correspond to virialised, collapsed regions (groups, clusters).  The short linking length, high density nodes are **subhalos**: these are the locations where galaxies may form.  The halo within which each subhalo resides is the **host halo**; within any given subhalo this can simply be referred to as 'the' halo.  Usually, but not always, there will be a subhalo close to the dynamical centre of each halo: this is the **central subhalo**; the others are **satellite subhalos**.
-
-**Galaxies** form initially within subhalos, but may become orphans if their subhalo is tidally destroyed in the subsequent evolution; if that happens, they are passed on to the relevant host halo.
+**Galaxies** form initially within subhalos, but may become **orphans** if their subhalo is tidally destroyed in the subsequent evolution; if that happens, they are passed on to the relevant host halo.
 
 Through merging, it is possible that subhalos may contain more than one galaxy.  One of these will be deemed to be the **central galaxy**; the others are **satellite galaxies**.
 
 Data structures
 ---------------
 
-The input data for graphs and their enclosed halos and subhalos comes from MEGA.  The datasets are described in the subsection on Graphs below.
+The input data for graphs and their enclosed halos and subhalos is designed to match that of MEGA.  Helper scripts are provided in the folder code-helper to convert other tree data into the required format.  The data format is described in the section on :doc:`mega`.
 
 Each graph is handled separately.
 
 Processing loops over snapshots, from past to present.
 
-Within each snapshot, halos, subhalo and galaxies are stored as python lists.  When passing forward information from one snapshot to the next, two copies of these lists are required: one for the progenitor and one for the new snapshot; for subsequent processing, only the current snapshot is required.
+Within each snapshot, halos and subhalos are stored as python lists of halo and subhalo class instances.  When passing forward information from one snapshot to the next, two copies of these lists are required: one for the progenitor and one for the new snapshot; for subsequent processing, only the current snapshot is required.
 
 halos and subhalos are therefore stored in two different kinds of structures within which they are indexed differently:
 
-* MEGA input files: ``_gid`` is the location relative to the graph datasets.
+* MEGA input files and graphs: ``_gid`` is the location relative to the graph datasets.
 * snapshot lists: ``_sid`` is the location relative to the first halo/subhalo in the list.
 
-These are related by constant offsets:
+These are related by constant offsets: ``_gid = graph.snap_first_(sub)_gid[snap_ID] + _sid``
 
-* ``halo_offset = graph.halo_start_gid[snap_ID]``
-* ``sub_offset = graph.sub_start_gid[snap_ID]``
+Galaxies are stored in numpy arrays, with again 2 copies being required.  Unlike (sub)halos, their number can vary, and they can move between subhalos and halos.  Therefore, the ordering of galaxies from one snapshot to the next may change, and some book-keeping is required to keep track of which galaxies belong to which (sub)halo.
 
-Galaxies are only stored in numpy arrays.  Moreover, their number can vary, and they can move between subhalos and halos.  Therefore, the ordering of galaxies from one snapshot to the next may change, and some book-keeping is required to keep track of which galaxies belong to which (sub)halo.
+The API section contains full details of the graph, halo, subhalo and galaxy data structures.  Here we just outline the main variables used in book-keeping.
 
 Graphs
 ^^^^^^
 
-The MEGA output stores data within graphs.  Each graph then contains a (large) number of datasets.  We list here only the ones required for traversal of the resulting halo and subhalo structures.
-
-* Header:
-  These are not currently read in but could be used to trim the set of graphs that are processed.
+* Graph and snapshot properties:
   
-  - graph_lengths: the number of shapshots of each graph that contain haloss.
-  - root_nparts: the number of particles in the root (final snapshot) of each graph.
-  - nhalos_in_graph: total number of halos in each graph.
-  - sub_graph_lengths: the number of shapshots of each graph that contain subhalos.
-  - sub_nhalos_in_graph: total number of subhalos in each graph.
-    
-* Graphs [listed as numbers]
-  Note that the subhalo datasets exist only if there are subhalos present within the graph.  We list here the *name within the MEGA file* and the **internal name within the graph class** in py-galaxies.
-  
-  - attributes:
-    
-    + *length* - number of snapshots with halos in.
-    + *nhalos_in_graph* | **n_halo** - the number of halos in the graph.
-    + *root_mass* | **root_mass** - the number of particles in the most massive halo in the final snapshot.
-    + *sub_length* - the number of snapshots that contain subhalos.
-    + *sub_nhalos_in_graph* | **n_sub** - the number of subhalos in the graph.
-    + *sub_root_mass* - the number of particles in the most massive subhalo in the final snapshot.
+  *  graph_ID (int) : The unique identifier of the graph within the file.
+  *  n_gal (int) : Running total of the number of galaxies created by py-galaxies when processing the graph.
+  *  snap_n_halo (int[n_snap]) : The number of halos in each snapshot.
+  *  snap_first_halo_gid (int[n_snap]) : The first halo in each snapshot, relative to the graph.
+  *  snap_n_sub (int[n_snap]) : The number of subhalos in each snapshot.
+  *  snap_first_sub_gid (int[n_snap]) : The first subhalo in each snapshot, relative to the graph.
 
-  - *generation_length* | **n_halo_snap** - the number of halos in each snapshot (set to NO_DATA_INT if no halos).
-  - *generation_start_index* | **halo_start_gid** - the first halo in each snapshot.
-  - *ndesc* | **n_desc** - the number of descendents of each halo.
-  - *desc_start_index* | **desc_start_gid** - the first descendent halo (within the following dataset - the descendent halos are not guaranteed to be in halo order, or even unique)).
-  - *direct_desc_ids* | **desc_IDs_gid** - a list of descendant halos for each halo.
-  - *nprog* | **n_prog** - the number of progenitors of each halo.
-  - *prog_start_index* | **prog_start_gid** - the first progenitor halo.
-  - *sub_generation_length* | **n_sub_snap** - the number of subhalos in each snapshot.
-  - *sub_generation_start_index* | **sub_start_gid** - the first subhalo for each snapshot.
-  - *nsubhalo* | **n_sub_halo** - the number of subhalos within each halo.
-  - *subhalo_start_index* | **sub_start_gid** - the first subhalo within each halo.
-  - *host_halo* | **sub_host_gid** - the host halo of each subhalo.
-  - *sub_ndesc* | **n_desc** - the number of descendants of each subhalo.
-  - *sub_desc_start_index* | **sub_desc_start_gid** - the first descendant subhalo for each subhalo (within the following dataset - the descendent subhalos are not guaranteed to be in subhalo order, or even unique).
-  - *sub_direct_desc_ids* | **sub_desc_IDs_gid** - a list of descendent subhalos for each subhalo.
+* Halo properties:
+  
+  *  halo_desc_contribution (float[halo_n_desc]) : The particle contributions to descendant halos.
+  *  halo_desc_IDs_gid (int[halo_n_desc]) : The locations in the graph of all descendant halos of each halo.
+  *  halo_first_desc_gid (int[n_halo]) : The locations in the graph of the first descendant halo of each halo.
+  *  halo_first_sub_gid (float[n_halo]) : The locations in the graph of first subhalo in each halo.
+  *  halo_n_desc (float[n_halo]) : The number of descendants of each halo.
+  *  halo_n_sub (float[n_halo]) : The number of subhalos of each halo
+
+* Subhalo properties:
+  
+  *  sub_desc_contribution (float[n_desc_sub]) : The particle contributions to descendant subhalos.
+  *  sub_desc_IDs_gid  (int[n_desc_sub]) : The locations in the graph of all descendant subhalos.
+  *  sub_first_desc_gid (int[n_sub]): The locations in the graph of the first descendant subhalo of each subhalo.
+  *  sub_host_gid (int[n_sub]) : The host halo of each subhalo.
+  *  sub_n_desc (float[n_sub]) : The number of descendants of each subhalo.
 
 Halos
 ^^^^^
 
-Halos are instances of the halo class, contained in a python list ``halos_this_snap``.  At the end of processing each snapshot, this is copied into ``halos_last_snap`` to enable forward propagation between snapshots.  The relationship between location in the graph files ``_gid`` and the snapshot lists ``_sid`` is a simple offset ``halo_offset = graph.halo_start_gid[snap_ID]``.
+Halos are instances of the C_halo class, contained in a python list ``halos_this_snap``.  At the end of processing each snapshot, this is copied into ``halos_last_snap`` to enable forward propagation between snapshots.  Thus a maximum of two snapshots are required at any given time.
 
 We mention here only those attributes that are related to traversal of the resulting subhalo and galaxy structures.
 
 Galaxies create the most book-keeping.  Within the galaxy array, we first store galaxies associated with each subhalo of a given halo, then follow that by the orphan halos associated with that halo.  Orphans can be passed on from progenitors, but also from subhalos in the previous snapshot that have no descendants.
 
-* Halos:
+* Halo identifiers:
 
-  - halo_offset - to relate location in graph to that in snapshot
-  - n_desc - number of descendant halos
-  - desc_start_gid - first descendant halo
-  - desc_end_gid - last descendant halo +1 (python indexing)
-  - desc_main_sid - main (most massive) descendant halo, for galaxy propagation
+  - graph_ID (str) : The graph_ID (from HDF5 group).
+  - snap_ID (int) : The snapshot ID currently being processed.
+  - halo_gid (int) : The halo location within the graph of the halo currently being processed.
+  - halo_sid (int) : The halo location within the snapshot of the halo currently being processed.
 
 * Subhalos:
 
-  - sub_offset - relate location in graph to that in snapshot
-  - n_sub - number of subhalos
-  - sub_start_(gid|sid) - first subhalo
-  - sub_end_(gid|sid) - last subhalo +1 (python indexing)
-  - sub_central_(gid|sid) - the central subhalo of this halo, if any
+  - n_sub (int) : The number of subhalos of this halo.
+  - sub_start_(gid|sid) : The location of the first subhalo of this halo.
+  - sub_end_(gid|sid) : The location of the last subhalo of this halo +1 (python indexing).
+  - sub_central_(gid|sid) : The central subhalo of this halo, if any.
 
+* Descendants:
+
+  - n_desc (int) : The number of descendant halos.
+  - desc_start_gid (int) : The location of the first descendant halo in the descendant arrays
+  - desc_end_gid (int) : The location of the last descendant halo in the descendant arrays +1 (python indexing)
+  - desc_main_sid (int) : The location of the main (most massive) descendant halo in the following snapshot halo list, for galaxy propagation.
+    
 * Galaxies:
 
-  - n_gal - the number of galaxies in this halo + all subhalos.
-  - gal_start_(sid|gid) - location of the first galaxy in this halo in the galaxies (snapshot list | graph).
-  - n_orphan - the number of galaxies not associated with subhalos.
-  - orphan_start_sid - the location of the first orphan galaxy in the galaxies snapshot list.
-  - orphan_next_sid - keeps track of the next available location to store orphans in the galaxy array.
+  - n_gal (int) : The number of galaxies in this halo + all subhalos.
+  - gal_start_(sid|gid) (int) : The location of the first galaxy in this halo relative to the snapshot and to the graph.
+  - n_orphan (int) : the number of galaxies not associated with subhalos.
+  - orphan_start_sid (int) : The location of the first orphan galaxy in the galaxies array.
+  - orphan_next_sid (int) : The next available location to store orphans in the galaxy array.
 
  
 Subhalos
 ^^^^^^^^
 
-Subhalos are instances of the sub class, contained in a python list ``subs_this_snap``.  At the end of processing each snapshot, this is copied into ``subs_last_snap`` to enable forward propagation between snapshots.  The relationship between location in the graph files ``_gid`` and the snapshot lists ``_sid`` is a simple offset ``sub_offset = graph.sub_start_gid[snap_ID]``.
+Subhalos are instances of the C_sub class, contained in a python list ``subs_this_snap``.  At the end of processing each snapshot, this is copied into ``subs_last_snap`` to enable forward propagation between snapshots.
 
 We mention here only those attributes that are related to traversal of the halo and galaxy structures.
 
-Galaxies create the most book-keeping.  Within the galaxy array, we first store galaxies associated with each subhalo of a given halo, then follow that by the orphan halos associated with that halo.  Orphans can be passed on from progenitors, but also from subhalos in the previous snapshot that have no descendants.
+* Subhalo identifiers:
 
-* Halos:
+  - graph_ID (str) : The graph_ID (from HDF5 group).
+  - snap_ID (int) : The snapshot ID currently being processed.
+  - halo_gid (int) : The location within the graph of the host halo.
+  - halo_sid (int) : The location within the snapshot of the host halo.
+  - sub_gid (int) : The subhalo location within the graph.
+  - sub_sid (int) : The subhalo location within the snapshot.
 
-  - halo_(gid|sid) - the host halo of this subhalo
-  - desc_halo_sid - main descendant of host halo, which will receive this subhalos contents, should this subhalo have no descendant.
+* Descendants:
 
-* Subhalos
+  - n_desc (int) : The number of descendant halos.
+  - desc_start_gid (int) : The location of the first descendant subhalo in the descendant arrays
+  - desc_end_gid (int) : The location of the last descendant subhalo in the descendant arrays +1 (python indexing)
+  - desc_halo_sid (int) : The location of the descendant halo of the host halo in the following snapshot halo list, for galaxy propagation.
     
-  - n_desc - the number of descendant subhalos.
-  - desc_start_gid - first descendant subhalo
-  - desc_end_gid - last descendant subhalo +1 (python indexing)
+* Galaxies:
 
-* Galaxies
-
-  - n_gal - the number of galaxies in this halo + all subhalos.
-  - gal_start_sid - location of the first galaxy in this subhalo in the galaxies snapshot list.
-  - gal_next_sid - keeps track of the next available location to store inherited galaxies in the galaxy array.
+  - n_gal (int) : The number of galaxies in this halo + all subhalos.
+  - gal_start_sid (int) : The location of the first galaxy in this halo relative to the snapshot.
+  - gal_end_sid (int) : The location of the last galaxy in this halo relative to the snapshot +1 (python indexing).
+  - gal_next_sid (int) : Galaxy counter used when updating galaxies.
+  - gal_central_sid (iint) : The location in the current galaxy array of the most massive galaxy in the subhalo.
 
 Galaxies
 ^^^^^^^^
@@ -148,17 +143,21 @@ Galaxies are stored in a numpy array for each snapshot.  That array contains the
 
 * Graph, halos & subhalos
 
-  - halo_(gid|sid) - the location of the host halo in the graph and snapshot datasets.
-  - sub_(gid|sid) - the location of the host subhalo in the graph and snapshot datasets.
+  - graph_ID (str) : The graph_ID (from HDF5 group).
+  - snap_ID (int) : The snapshot ID currently being processed.
+  - halo_gid (int) : The location within the graph of the host halo.
+  - halo_sid (int) : The location within the snapshot of the host halo.
+  - sub_gid (int) : The subhalo location within the graph.
+  - sub_sid (int) : The subhalo location within the snapshot.
 
 We also give galaxies unique labels within the graph, and track their merging tree (as galaxies cannot split, we do not need a graph).  As we have a tree, we can use the usual pointers, stored within the galaxy array.
     
 * Galaxies
   
-  - gal_gid - overall counter of the id of this galaxy within all galaxies for this graph.
-  - desc_gid - the descendant galaxy in the next snapshot.
-  - first_prog_gid - the galaxy in the previous snapshot from which this galaxy derives.
-  - next_prog_gid - the next galaxy in this snapshot that merges with the same descendant.
+  - gal_gid (int) : The location of this galaxy within all galaxies for this graph.
+  - desc_gid (int) : The location of the descendant galaxy within all galaxies for this graph.
+  - first_prog_gid (int) : The location within all galaxies for this graph of the progenitor galaxy in the previous snapshot from which this galaxy derives.
+  - next_prog_gid (int) : The location within all galaxies for this graph of the next galaxy in this snapshot that merges with the same descendant.
 
 
 Structure of the output files

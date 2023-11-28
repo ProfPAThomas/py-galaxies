@@ -21,49 +21,49 @@ class C_halo:
    snap_ID : int
        The snapshot ID currently being processed.
    halo_gid : int
-       The halo ID within the graph of the halo currently being processed.
+       The halo location within the graph of the halo currently being processed.
    halo_sid : int
-       The halo ID within the snapshot of the halo currently being processed.
+       The halo location within the snapshot of the halo currently being processed.
    b_done : bool
        Whether or not the halo has been fully processed.
+   desc_end_gid : int
+       The index at which this halo's descendents end (+1 as is usual for python).
    desc_main_sid : int
-       The main descendant location in this snapshot
+       The main descendant location in this snapshot (ie in halos_this_snap).
    desc_start_gid : int
        The index at which this halo's descendents start.
-   desc_end_gid : int
-       The index at which this halo's descendents end.
    half_mass_radius : float
-       The radius containing half the total mass in the DM-only sim
+       The radius containing half the total mass of the halo in the DM-only sim.
    half_mass_virial_speed : float
-       The circular speed at the half-mass radius
+       The circular speed at the half-mass radius.
    mass : float
-       The DM-only mass of halo.
-   mass_from_progenitors : float 
-       Total DM-only mass of all the progenitor halos.
+       The DM-only mass of this halo.
    mass_baryon : float
-       Mass of baryons within the halo, inclusive of subhalos and galaxies
+       Mass of baryons within the halo, inclusive of subhalos and galaxies.
    mass_baryon_from_progenitors : float
        Total mass of all the baryons contained within the progenitor halos.
+   mass_from_progenitors : float 
+       Total DM-only mass of all the progenitor halos.
    mass_gas_eject : float
        The mass of ejected gas
    mass_gas_hot : float
-       The mass of hot gas
+       The mass of hot gas in the halo, exclusive of subhalos.
    mass_stars : float
-       The mass of stars
+       The mass of stars in the halo, exclusive of subhalos.
    mass_metals_gas_eject : float
-       The mass of metals in ejected gas
+       The mass of metals in ejected gas.
    mass_metals_gas_hot : float
-       The mass of metals in hot gas
+       The mass of metals in hot gas in the halo, exclusive of subhalos.
    mass_metals_stars : float
-       The mass of metals in stars
+       The mass of metals in stars in the halo, exclusive of subhalos.
    n_desc : int
-       The number of direct descendants.
+       The number of direct descendants of this halo
    n_dt : int
        Number of times that this halo has been processed this snapshot
    n_gal : int
        The number of galaxies in the halo, inclusive of subhalos
    n_orphan : int
-       The number of orphan galaxies (i.e. excluding those in subhalos)
+       The number of orphan galaxies (i.e. galaxies not contained in subhalos)
    n_sub : int
        The number of subhalos.
    orphan_start_sid : int
@@ -72,8 +72,10 @@ class C_halo:
        To track the processing of orphan galaxies during the halo_update phase.
    pos : float[3]
        The position of the halo.
+   rms_radius : float
+       The rms radius of the halo particles in the DM-only sim.
    rms_speed : float
-       The rms speed in the DM-only sim.
+       The rms speed of the halo particles in the DM-only sim.
    sub_central_gid : int
        The location in the graph of the subhalo at the centre of the halo (if any)
    sub_central_sid : int
@@ -93,16 +95,16 @@ class C_halo:
    sub_start_sid : int
        The location in the snapshot of the first subhalo
    tau_dyn : float
-       The dynamical time at twice the half-mass radius
+       Twice the dynamical time at the half-mass radius (= dynamical time at twice the half mass radius for isothermal sphere).
    temperature : float
-       The temperature as derived from the virial speed
+       The temperature as derived from the virial speed.
    vel : float[3]
        Velocity of the halo
    """
    
    def __init__(self,graph_ID,snap_ID,halo_gid,graph,parameters):
       """
-       Clipping graph properties to the correct generation for halo use.
+       Read in the halos properties from the graph, including ranges for decendants, subhalos and galaxies.
     
        Parameters
        ----------
@@ -123,7 +125,7 @@ class C_halo:
       self.snap_ID = snap_ID
       self.halo_gid = halo_gid
       self.halo_sid = self.halo_gid - graph.snap_first_halo_gid[snap_ID]
-      self.n_desc = graph.n_desc[halo_gid]
+      self.n_desc = graph.halo_n_desc[halo_gid]
       self.desc_start_gid = graph.halo_first_desc_gid[halo_gid]
       self.desc_end_gid = self.desc_start_gid + self.n_desc
       self.mass = graph.halo_mass[halo_gid]
@@ -271,7 +273,7 @@ class C_halo_output:
       HDF5 file for halo output
    i_rec : int
       Counter for how many records have been created.
-   io_buffer : obj " D_gal[n_rec]
+   io_buffer : obj : D_gal[n_rec]
       Storage for halo records prior to outputting. 
    n_rec : int
       Number records to be buffered before outputting.

@@ -190,11 +190,7 @@ def F_sub(sub,gal,parameters):
     # Accreted angular momentum for SIS is (1/2)RVM*lambda where lambda=parameters.halo_angular_momentum
     if gal['mass_gas_cold'] > parameters.mass_minimum_internal:
         ang_mom_gas_cold += mass_cooled * v_vir * r_half * parameters.halo_angular_momentum
-        # Try/except because I am trapping FPEs
-        try:
-            gal['radius_gas_cold'] = ang_mom_gas_cold / (2 * gal['mass_gas_cold'] * v_vir)
-        except:
-            gal['radius_gas_cold'] = parameters.radius_maximum_internal
+        gal['radius_gas_cold'] = ang_mom_gas_cold / (2 * gal['mass_gas_cold'] * gal['v_vir'])
     else:
         gal['radius_gas_cold'] = 0. # Set to arbitrary value
         

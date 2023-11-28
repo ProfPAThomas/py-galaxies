@@ -10,6 +10,11 @@ import commons
 def F_set_dt(parameters):
    """
    Sets the number and size of the timesteps.
+
+   Attributes
+   ----------
+   parameters : obj : C_parameters
+       Instance of class containing global parameters
    """
    snap_table=parameters.snap_table
    n_snap=parameters.n_snap

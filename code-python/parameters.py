@@ -230,8 +230,6 @@ class C_parameters:
             self.n_snap
         except:
             raise IndexError('n_snap is not set as an attribute in the input graph file.')
-        # Fix to correct my typo (can be removed when graph file is regenerated)
-        self.baryon_fraction=self.Baryon_fraction
         # Read in snap table.
         # Should really check that the desired columns exist; will assume for now that they do.
         self.snap_table=graph_file['snap_table'][:]
