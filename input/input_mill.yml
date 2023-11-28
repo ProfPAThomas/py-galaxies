@@ -12,12 +12,12 @@ io_files:
   snap_file:    'MergerGraphs/Mill/snaplist.txt' # Should ideally be stored in graph_file
  output_files:
   # output_prefix: 'test_'  # Not yet implmented
-  halo_file:    'output/Mill/test_HaloOutput.hdf5'
-  subhalo_file: 'output/Mill/test_SubhaloOutput.hdf5'
-  galaxy_file:  'output/Mill/test_GalaxyOutput.hdf5'
-  sfh_file:     'output/Mill/test_SFH.hdf5'
-  profile_cpu_file: 'output/Mill/test_profile_cpu.pkl'
-  profile_mem_file: 'output/Mill/test_profile_mem.pkl'
+  halo_file:    'output/Mill/cpu_HaloOutput.hdf5'
+  subhalo_file: 'output/Mill/cpu_SubhaloOutput.hdf5'
+  galaxy_file:  'output/Mill/cpu_GalaxyOutput.hdf5'
+  sfh_file:     'output/Mill/cpu_SFH.hdf5'
+  profile_cpu_file: 'output/Mill/cpu_profile_cpu.pkl'
+  profile_mem_file: 'output/Mill/cpu_profile_mem.pkl'
  auxiliary_files:
   cooling_function_file: 'aux_files/Lambda_table.npz'
   
@@ -31,7 +31,7 @@ diagnostics:
   Value: True
  b_profile_cpu:
   Description: 'Profile cpu-time'
-  Value: False
+  Value: True
  b_profile_mem:
   Description: 'Profile memory'
   Value: False
@@ -69,7 +69,7 @@ units:
   mass:
    Description: 'Mass unit in graph input data'
    Value:        !!float 1.43e10
-   Units:       'c.M_sun'  # Should there be a factor of h^{-1}?
+   Units:       'c.M_sun'
   speed:
    Description: 'Speed unit in graph input data'
    Value:        1
