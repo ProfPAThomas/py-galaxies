@@ -69,7 +69,6 @@ class C_graph:
       """
       self.graph_ID = graph_ID
       graph = open_graph_file['graph_'+str(graph_ID)]
-
       # Attributes of graph
       for key,value in graph.attrs.items():
          exec('self.'+key+'=value')
@@ -91,6 +90,7 @@ class C_graph:
       self.halo_n_sub = graph['halo_n_sub'][:]
       self.halo_rms_radius = graph['halo_rms_radius'][:] * parameters.length_input_to_internal
       self.halo_rms_speed = graph['halo_rms_speed'][:] * parameters.speed_input_to_internal
+
       # Halo properties, variable length arrays (because of possible graph branching)
       self.halo_desc_contribution = graph['halo_desc_contribution'][:]
       self.halo_desc_IDs_gid = graph['halo_desc_halo'][:]
@@ -113,6 +113,7 @@ class C_graph:
       self.sub_pos = graph['sub_pos'][:] * parameters.length_input_to_internal
       self.sub_vel = graph['sub_vel'][:]* parameters.speed_input_to_internal
       self.sub_rms_speed = graph['sub_rms_speed'][:] * parameters.speed_input_to_internal
+
       # Galaxies
       self.n_gal=0
 

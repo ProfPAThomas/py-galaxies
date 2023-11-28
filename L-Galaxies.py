@@ -31,11 +31,16 @@
 
 # Imports of generic python routines
 
+#get_ipython().run_line_magic('load_ext', 'autoreload')
+#get_ipython().run_line_magic('autoreload', '2')
+
 import astropy.constants as c
 import astropy.units as u
 #import gc
 import h5py
+#h5py.enable_ipython_completer()
 import numpy as np
+np.seterr(all='raise')
 import pickle
 import sys
 # Switch on traceback for warnings
@@ -60,10 +65,12 @@ PYTHON_DIR='code-python'
 
 # Development limiter
 n_GRAPH=np.inf
-n_GRAPH=500       # Change output files to 'test' to avoid over-writing!
+n_GRAPH=1000       # Change output files to 'test' to avoid over-writing!
+n_GRAPH_START=0
+#n_GRAPH_START=58
 
 # Verbosity
-VERBOSITY=1 # 1 - Major program steps only; 1/2 - Major/minor Counters; 3/4/5 - Debugging diags.
+VERBOSITY=0 # 1 - Major program steps only; 1/2 - Major/minor Counters; 3/4/5 - Debugging diags.
 
 # List of runtime parameters
 FILE_PARAMETERS='input/input.yml'
@@ -152,8 +159,9 @@ if b_profile_cpu:
     timer.start('Initialisation')
 
 # Create counter to locate graphs within the galaxy output file
-n_graph=min(parameters.n_graph,n_GRAPH)
-n_gal_graph_start=np.full(n_graph,parameters.NO_DATA_INT,dtype=np.int32)
+n_graph_start=n_GRAPH_START
+n_graph=min(parameters.n_graph-n_GRAPH_START,n_GRAPH)
+n_gal_graph_start=np.full(n_graph_start+n_graph,parameters.NO_DATA_INT,dtype=np.int32)
 n_gal=0
 
 # Create cooling table
@@ -201,7 +209,7 @@ if b_profile_mem:
 
 
 # Loop over graphs
-for i_graph in range(n_graph):
+for i_graph in range(n_graph_start,n_graph_start+n_graph):
     if VERBOSITY >= 1: print('Processing graph',i_graph,flush=True)
     graph_str = 'Graph{:03d}'.format(i_graph)
     if b_profile_mem: mem.start(graph_str)
@@ -215,8 +223,9 @@ for i_graph in range(n_graph):
     halos_last_snap = None
     subs_last_snap = None
     gals_last_snap = None
-    for i_snap in graph.snap_ID:
-        if i_snap == parameters.NO_DATA_INT: 
+    for i_snap in range(parameters.n_snap):
+        n_halo_in_snap=graph.snap_n_halo[i_snap]
+        if n_halo_in_snap == 0:
             assert halos_last_snap == None
             continue
         if VERBOSITY >= 2: print('Processing snapshot',i_snap,flush=True)
@@ -237,12 +246,9 @@ for i_graph in range(n_graph):
         # This returns a list of halo and subhalo instances
         # This may be slow: an alternative would be to use np arrays.
         halos_this_snap = [C_halo(i_graph,i_snap,i_halo,graph,parameters) for i_halo in 
-                         graph.halo_start_gid[i_snap]+range(graph.n_halo_snap[i_snap])]
-        subs_this_snap = None
-        if graph.n_sub > 0:
-            if graph.n_sub_snap[i_snap] > 0:
-                subs_this_snap = [C_sub(i_graph,i_snap,i_sub,graph,parameters) 
-                                     for i_sub in graph.sub_start_gid[i_snap]+range(graph.n_sub_snap[i_snap])]
+                          graph.snap_first_halo_gid[i_snap]+range(graph.snap_n_halo[i_snap])]
+        subs_this_snap = [C_sub(i_graph,i_snap,i_sub,graph,parameters) for i_sub in 
+                         graph.snap_first_sub_gid[i_snap]+range(graph.snap_n_sub[i_snap])]
         
         # Propagate information from progenitors to this generation
         # Done as a push rather than a pull because sharing determined by progenitor
@@ -291,7 +297,7 @@ for i_graph in range(n_graph):
 
 # ###  Tidy up and exit
 
-# In[6]:
+# In[ ]:
 
 
 if b_profile_mem: tm_snap = tm.take_snapshot()
@@ -326,22 +332,4 @@ if b_profile_mem:
     mem.dump(parameters.profile_mem_file)
     with open(parameters.profile_mem_file, 'ab') as f:
         pickle.dump(tm_snap, f)
-
-
-# In[8]:
-
-
-parameters.t_snap
-
-
-# In[10]:
-
-
-sfh.t.shape
-
-
-# In[ ]:
-
-
-
 
