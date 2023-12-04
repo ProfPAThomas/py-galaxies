@@ -12,7 +12,8 @@ b_profile_cpu=commons.load('b_profile_cpu')
 
 #-------------------------------------------------------------------------------------------------------------
 
-@conditional_decorator(Timer(name='F_gal_form_stars',logger=None),b_profile_cpu)
+#@conditional_decorator(Timer(name='F_gal_form_stars',logger=None),b_profile_cpu)
+#@profile
 def F_gal_form_stars(gal,parameters):
    """
    Creates stars from gas in the cold gas disc.
@@ -30,6 +31,16 @@ def F_gal_form_stars(gal,parameters):
       The mass of stars formed (before recycling).
    """
 
+   # To see if speeds things up by reducing lookups:
+   # Before this routine took 136 seconds; after it took 108 seconds.
+   # So it helps but is not enough in itself; will have to move to C.
+   gal_mass_gas_cold=gal['mass_gas_cold']
+   gal_mass_metals_gas_cold=gal['mass_metals_gas_cold']
+   gal_mass_stars_disc=gal['mass_stars_disc']
+   gal_radius_gas_cold=gal['radius_gas_cold']
+   gal_radius_stars_disc=gal['radius_stars_disc']
+   gal_v_vir=gal['v_vir']
+   
    b_SFH=parameters.b_SFH
    
    # The timestep
@@ -37,12 +48,15 @@ def F_gal_form_stars(gal,parameters):
    if b_SFH: i_bin_sfh=commons.load('i_bin_sfh')
    
    # We will need this later to set the new disc scale length
-   ang_mom_stars_disc = 2. * gal['mass_stars_disc'] * gal['v_vir'] * gal['radius_stars_disc']
+   #ang_mom_stars_disc = 2. * gal['mass_stars_disc'] * gal['v_vir'] * gal['radius_stars_disc']
+   ang_mom_stars_disc = 2. * gal_mass_stars_disc * gal_v_vir * gal_radius_stars_disc
 
    # Determine the mass of stars formed before (mass_stars_imf) and after (mass_stars) prompt recycling
    sfr_model=parameters.sfr_model
    if sfr_model == "Unresolved":
-      mass_stars_imf=F_star_formation_unresolved(gal['mass_gas_cold'],gal['radius_gas_cold'],gal['v_vir'], \
+      #mass_stars_imf=F_star_formation_unresolved(gal['mass_gas_cold'],gal['radius_gas_cold'],gal['v_vir'], \
+      #                                       dt_gal,parameters.sfr_efficiency,parameters.c_sfr_Mcrit)
+      mass_stars_imf=F_star_formation_unresolved(gal_mass_gas_cold,gal_radius_gas_cold,gal_v_vir, \
                                              dt_gal,parameters.sfr_efficiency,parameters.c_sfr_Mcrit)
    else:
       raise valueError('sfr model '+sfr_model+' not yet implemented')
@@ -58,9 +72,12 @@ def F_gal_form_stars(gal,parameters):
 
    # Need generic routine (as in L-Galaxies) to do these mass transfers, especially when get many components
    mass_metals_stars = mass_stars * (gal['mass_metals_gas_cold'] / gal['mass_gas_cold'])
-   gal['mass_gas_cold'] -= mass_stars
-   gal['mass_metals_gas_cold'] -= mass_metals_stars
-   gal['mass_stars_disc'] += mass_stars
+   #gal['mass_gas_cold'] -= mass_stars
+   #gal['mass_metals_gas_cold'] -= mass_metals_stars
+   #gal['mass_stars_disc'] += mass_stars
+   gal_mass_gas_cold -= mass_stars
+   gal_mass_metals_gas_cold -= mass_metals_stars
+   gal_mass_stars_disc += mass_stars
    gal['mass_metals_stars_disc'] += mass_metals_stars
    if b_SFH:
          gal['mass_stars_disc_sfh'][i_bin_sfh-1] += mass_stars
@@ -69,13 +86,24 @@ def F_gal_form_stars(gal,parameters):
    # Now we enrich our surroundings with prompt metals returned from the newly formed stars
    # To begin with we will assume that all metal enrichment is prompt and everything goes to cold gas.
    # (The return of gas mass to the cold gas has been handled by the recycling fraction above.)
-   gal['mass_metals_gas_cold'] += parameters.sfr_yield * mass_stars_imf
-   if gal['mass_metals_gas_cold']>gal['mass_gas_cold']*0.2:
+   #gal['mass_metals_gas_cold'] += parameters.sfr_yield * mass_stars_imf
+   gal_mass_metals_gas_cold += parameters.sfr_yield * mass_stars_imf
+   #if gal['mass_metals_gas_cold']>gal['mass_gas_cold']*0.2:
+   if gal_mass_metals_gas_cold>gal['mass_gas_cold']*0.2:
       print('Warning, high Z for cold gas: mass, Z =',gal['mass_gas_cold'],gal['mass_metals_gas_cold']/gal['mass_gas_cold'])
 
    # We want to model the size of the stellar disc.  We do this using angular momentum (assuming exponential in shape)
-   ang_mom_stars_disc += mass_stars * gal['v_vir'] * gal['radius_gas_cold']
-   gal['radius_stars_disc'] = ang_mom_stars_disc / (2 * gal['mass_stars_disc'] * gal['v_vir'])      
+   #ang_mom_stars_disc += mass_stars * gal['v_vir'] * gal['radius_gas_cold']
+   ang_mom_stars_disc += mass_stars * gal_v_vir * gal_radius_gas_cold
+   #gal['radius_stars_disc'] = ang_mom_stars_disc / (2 * gal['mass_stars_disc'] * gal['v_vir'])
+   gal_radius_stars_disc = ang_mom_stars_disc / (2 * gal_mass_stars_disc * gal_v_vir)
+
+   gal['mass_gas_cold']=gal_mass_gas_cold
+   gal['mass_metals_gas_cold']=gal_mass_metals_gas_cold
+   gal['mass_stars_disc']=gal_mass_stars_disc
+   gal['radius_gas_cold']=gal_radius_gas_cold
+   gal['radius_stars_disc']=gal_radius_stars_disc
+   gal['v_vir']=gal_v_vir
 
    return mass_stars_imf
 

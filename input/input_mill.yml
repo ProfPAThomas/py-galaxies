@@ -31,7 +31,7 @@ diagnostics:
   Value: True
  b_profile_cpu:
   Description: 'Profile cpu-time'
-  Value: True
+  Value: False
  b_profile_mem:
   Description: 'Profile memory'
   Value: False
@@ -42,7 +42,7 @@ diagnostics:
 numerics:
  NO_DATA_INT:
   Description: 'Because python treats -1 as the final index, use this to initialise null integers'
-  Value:        -4294967296
+  Value:        -2147483648
  n_HDF5_io_rec:
   Description: 'Size of HDF5 io buffer (number of records)'
   Value:        1000
@@ -125,6 +125,9 @@ units:
 #---------------------------------------------------------
 
 model_switches:
+ b_create_missing_subhalos:
+  Description: 'Will add a subhalo where none exists in a halo (otherwise code aborts)'
+  Value:        True
  b_HOD:
   Description: 'Halo occupation description for stars (as primitive test)'
   Value:        False

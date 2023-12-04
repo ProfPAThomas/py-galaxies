@@ -70,12 +70,12 @@ class C_cooling:
         import astropy.constants as c
         import astropy.units as u
         data=np.load(parameters.cooling_function_file)
-        self.log10_T_table=data['log10_T']+np.log10(u.K/parameters.units_temperature_internal)  # Converted to code units
+        self.log10_T_table=(data['log10_T']+np.log10(u.K/parameters.units_temperature_internal).si.value)  # Converted to code units
         self.log10_Z_table=data['log10_Z']
         # The first correction term converts to code units, and the second provides a dimensionless factor to reduce the cooling time
         # formula to dt=T/Lambda
         self.log10_Lambda_table=data['log10_Lambda'] + np.log10(
-            (u.erg*u.cm**3 / (u.s*parameters.units_lambda_internal)).si.value ) - \
+            (u.erg*u.cm**3 / (u.s*parameters.units_lambda_internal)).si.value) - \
             np.log10(parameters.c_cooling)
         # Fudge to test cooling
         # self.log10_Lambda_table -= 0.3
@@ -153,7 +153,7 @@ def F_sub(sub,gal,parameters):
     if sub.mass_gas_hot <= parameters.mass_minimum_internal:
         return None
     if parameters.cooling_model == 'SIS':
-        gal_temperature=1e4*u.K/parameters.units_temperature_internal  # Cool down to 1e4 K
+        gal_temperature=parameters.temperature_1e4K_internal # Cool down to 1e4 K
         mass_cooled=F_cooling_SIS(sub.mass,sub.tau_dyn,sub.half_mass_radius,sub.mass_gas_hot,sub.mass_metals_gas_hot,
                                   sub.temperature,gal_temperature,dt,parameters.cooling_table)
     else:

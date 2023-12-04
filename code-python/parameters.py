@@ -131,6 +131,8 @@ class C_parameters:
         # Also, parameters that are not read in do not have the internal label.
         # However, it feels wrong to redefine input variables, so will stick with adding _internal label to input parameters.
         # This should only arise for quantities in the parameter class instance.
+        # This is used as a minimum temperature for cooling
+        self.temperature_1e4K_internal=(1e4*u.K/self.units_temperature_internal).si.value
         # These are the minimum allowable timesteps for mini-steps
         self.timestep_halo_internal = (self.timestep_halo / self.units_time_internal).si.value
         self.timestep_gal_internal = (self.timestep_galaxies / self.units_time_internal).si.value

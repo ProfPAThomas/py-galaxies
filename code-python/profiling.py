@@ -60,6 +60,7 @@ class C_timer:
       if name=='': raise AttributeError('No name supplied to C_timer.start()')
       try:
          entry=self.timers[name]
+         # Note that the following line will not halt the code as contained in a try statement!
          if entry['n_start']>entry['n_stop']: raise RuntimeError('timer '+name+' already started')
          entry[n_start] += 1
       except:
