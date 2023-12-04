@@ -12,7 +12,7 @@ b_profile_cpu=commons.load('b_profile_cpu')
 
 #-------------------------------------------------------------------------------------------------------------
 
-#@conditional_decorator(Timer(name='F_gal_form_stars',logger=None),b_profile_cpu)
+@conditional_decorator(Timer(name='F_gal_form_stars',logger=None),b_profile_cpu)
 #@profile
 def F_gal_form_stars(gal,parameters):
    """

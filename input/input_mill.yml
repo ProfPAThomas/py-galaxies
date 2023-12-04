@@ -31,7 +31,7 @@ diagnostics:
   Value: True
  b_profile_cpu:
   Description: 'Profile cpu-time'
-  Value: False
+  Value: True
  b_profile_mem:
   Description: 'Profile memory'
   Value: False

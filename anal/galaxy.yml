@@ -11,7 +11,7 @@ cosmo:
  baryonFraction: 0.155
 
 plots:
- baryonFraction: True
+ baryonFraction: False
  bulgeFraction: True
  blackHole_stars: True
  coldGas_halo: True
@@ -39,7 +39,7 @@ baryonFraction:
  figsize: [12,8]
  xscale: 'log'
  yscale: 'linear'
- markerType: ','
+ markerType: '.'
  xlabel: '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
  ylabel: 'Baryon fraction'
  legend:  True
@@ -52,7 +52,7 @@ blackHole_stars:
  figsize: [12,8]
  xscale: 'log'
  yscale: 'log'
- markerType: ','
+ markerType: '.'
  xlabel: '$M_*$ / M$_\odot$' # Units should really be an attribute of the data
  ylabel: '$M_\mathrm{BH}$ / M$_\odot$'
  legend:   False
@@ -65,7 +65,7 @@ bulgeFraction:
  figsize: [12,8]
  xscale: 'log'
  yscale: 'linear'
- markerType: ','
+ markerType: '.'
  xlabel: '$M_*$ / M$_\odot$' # Units should really be an attribute of the data
  ylabel: 'Bulge/total stellar fraction'
  legend:   False
@@ -78,7 +78,7 @@ coldGas_halo:
  figsize: [12,8]
  xscale: 'log'
  yscale: 'log'
- markerType: ','
+ markerType: '.'
  xlabel: '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
  ylabel: '$M_\mathrm{cold gas}$ / M$_\odot$'
  legend:   True
@@ -91,7 +91,7 @@ coldGas_subhalo:
  figsize: [12,8]
  xscale: 'log'
  yscale: 'log'
- markerType: ','
+ markerType: '.'
  xlabel: '$M_\mathrm{subhalo}$ / M$_\odot$' # Units should really be an attribute of the data
  ylabel: '$M_\mathrm{cold gas}$ / M$_\odot$'
  legend:   True
@@ -104,7 +104,7 @@ coldGasRadius:
  figsize: [12,8]
  xscale: 'log'
  yscale: 'log'
- markerType: ','
+ markerType: '.'
  xlabel: '$M_*$ / M$_\odot$'
  ylabel: '$R_\mathrm{d,cold gas}$ / kpc'
  legend:   False
@@ -117,7 +117,7 @@ stellarDiscRadius:
  figsize: [12,8]
  xscale: 'log'
  yscale: 'log'
- markerType: ','
+ markerType: '.'
  xlabel: '$M_*$ / M$_\odot$' # Units should really be an attribute of the data
  ylabel: '$R_\mathrm{d,stellar disc}$ / kpc'
  legend:   False
@@ -130,7 +130,7 @@ stellarMass_halo:
  figsize: [12,8]
  xscale: 'log'
  yscale: 'log'
- markerType: ','
+ markerType: '.'
  xlabel: '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
  ylabel: '$M_\mathrm{stars}$ / M$_\odot$'
  legend:   True
@@ -143,7 +143,7 @@ stellarMass_subhalo:
  figsize: [12,8]
  xscale: 'log'
  yscale: 'log'
- markerType: ','
+ markerType: '.'
  xlabel: '$M_\mathrm{subhalo}$ / M$_\odot$' # Units should really be an attribute of the data
  ylabel: '$M_\mathrm{stars}$ / M$_\odot$'
  legend:   True
@@ -156,7 +156,7 @@ stellarHaloMassRatio:
  figsize: [12,8]
  xscale: 'log'
  yscale: 'log'
- markerType: ','
+ markerType: '.'
  xlabel: '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
  ylabel: '$M_\mathrm{stars}$ / $M_\mathrm{halo}$'
  legend:   True
@@ -169,7 +169,7 @@ stellarSubhaloMassRatio:
  figsize: [12,8]
  xscale: 'log'
  yscale: 'log'
- markerType: ','
+ markerType: '.'
  xlabel: '$M_\mathrm{subhalo}$ / M$_\odot$' # Units should really be an attribute of the data
  ylabel: '$M_\mathrm{stars}$ / $M_\mathrm{subhalo}$'
  legend:   True
@@ -182,7 +182,7 @@ coldGasMetallicity:
  figsize: [12,8]
  xscale: 'log'
  yscale: 'linear'
- markerType: ','
+ markerType: '.'
  xlabel: '$M_*$ / M$_\odot$' # Units should really be an attribute of the data
  ylabel: '$Z_\mathrm{cold gas}$'
  legend:   False
@@ -195,7 +195,7 @@ SFR:
  figsize: [12,8]
  xscale: 'log'
  yscale: 'log'
- markerType: ','
+ markerType: '.'
  xlabel: '$M_*$ / M$_\odot$'
  ylabel: 'SFR / M$_\odot$ yr$^{-1}$'
  legend:   True
@@ -208,7 +208,7 @@ sSFR:
  figsize: [12,8]
  xscale: 'log'
  yscale: 'log'
- markerType: ','
+ markerType: '.'
  xlabel: '$M_*$ / M$_\odot$'
  ylabel: 'SFR / yr$^{-1}$'
  legend:   True
@@ -221,7 +221,7 @@ stellarDiscMetallicity:
  figsize: [12,8]
  xscale: 'log'
  yscale: 'linear'
- markerType: ','
+ markerType: '.'
  xlabel: '$M_*$ / M$_\odot$' # Units should really be an attribute of the data
  ylabel: '$Z_\mathrm{stellar disc}$'
  legend:   False

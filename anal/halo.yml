@@ -1,10 +1,8 @@
 # Halo plot parameters
 
 inputFiles:
-#  haloFile: 'data/SNRfeedHaloOutput.hdf5'
-# save_prefix: 'SNRfeed_halo_'
- haloFile: 'data/AGNfeed_HaloOutput.hdf5'
-save_prefix: 'AGNfeed_halo_'
+ haloFile: 'data/test_HaloOutput.hdf5'
+save_prefix: 'test_halo_'
  
 # The following should really be attributes of the data
 cosmo:

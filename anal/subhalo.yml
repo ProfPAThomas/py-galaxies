@@ -4,18 +4,18 @@ inputFiles:
 #  subhaloFile: 'data/nofeedSubhaloOutput.hdf5'
 #  galaxyFile:  'data/nofeedGalaxyOutput.hdf5'
 # save_prefix: 'test_sub_'
- haloFile: 'data/AGNfeed_HaloOutput.hdf5'
- subhaloFile: 'data/AGNfeed_SubhaloOutput.hdf5'
- galaxyFile:  'data/AGNfeed_GalaxyOutput.hdf5'
-save_prefix: 'AGNfeed_sub_'
+ haloFile: 'data/test_HaloOutput.hdf5'
+ subhaloFile: 'data/test_SubhaloOutput.hdf5'
+ galaxyFile:  'data/test_GalaxyOutput.hdf5'
+save_prefix: 'test_sub_'
 
 # The following should really be attributes of the data
 cosmo:
  baryonFraction: 0.155
 
 plots:
- velocityDispersion: False
- virialTemperature: False
+ velocityDispersion: True
+ virialTemperature: True
  virialSpeedVersusHalo: True
  baryonFraction: False # Not yet included in output file
  hotGas: True
