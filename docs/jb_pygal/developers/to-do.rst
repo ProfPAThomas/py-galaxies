@@ -73,6 +73,7 @@ Plotting developments
 * Generic interface to add observations to plots
 * Galaxy stellar mass function
 * Luminosity functions (requires code to generate SEDs from star formation history)
+* Stellar to halo mass ratio
 
 Documentation
 -------------
@@ -91,4 +92,4 @@ Known issues
 
   - produces the very occasional halo that is not in the final snapshot yet has halo.desc_start_gid=-1 (these should have been eliminated).  A specific example is Millennium input tree #5, graph_ID = 122 , snap_ID = 47 , halo_gid = 945.
 
-  - produces many halos with baryon fractions exceeding the universal value, including one as large as 15.
+  - produces many halos with baryon fractions exceeding the universal value, including one as large as 15 -- review the baryon fraction calculation.

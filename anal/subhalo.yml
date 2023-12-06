@@ -4,10 +4,10 @@ inputFiles:
 #  subhaloFile: 'data/nofeedSubhaloOutput.hdf5'
 #  galaxyFile:  'data/nofeedGalaxyOutput.hdf5'
 # save_prefix: 'test_sub_'
- haloFile: 'data/test_HaloOutput.hdf5'
- subhaloFile: 'data/test_SubhaloOutput.hdf5'
- galaxyFile:  'data/test_GalaxyOutput.hdf5'
-save_prefix: 'test_sub_'
+ haloFile: 'data/python_HaloOutput.hdf5'
+ subhaloFile: 'data/python_SubhaloOutput.hdf5'
+ galaxyFile:  'data/python_GalaxyOutput.hdf5'
+save_prefix: 'python_sub_'
 
 # The following should really be attributes of the data
 cosmo:
@@ -16,7 +16,7 @@ cosmo:
 plots:
  velocityDispersion: True
  virialTemperature: True
- virialSpeedVersusHalo: True
+ virialSpeedVersusHalo: False
  baryonFraction: False # Not yet included in output file
  hotGas: True
  hotGasMetallicity: True

@@ -1,8 +1,8 @@
 # Halo plot parameters
 
 inputFiles:
- haloFile: 'data/test_HaloOutput.hdf5'
-save_prefix: 'test_halo_'
+ haloFile: 'data/python_HaloOutput.hdf5'
+save_prefix: 'python_halo_'
  
 # The following should really be attributes of the data
 cosmo:
