@@ -19,6 +19,7 @@ plots:
  coldGasMetallicity: True
  coldGasRadius: True
  SFR: True
+ SFR_SFR: True
  sSFR: True
  stellarMass_halo: True
  stellarMass_subhalo: True
@@ -199,10 +200,23 @@ SFR:
  xlabel: '$M_*$ / M$_\odot$'
  ylabel: 'SFR / M$_\odot$ yr$^{-1}$'
  legend:   True
- label:   'In last timestep'
+ label:   'End of snapshot'
  save_png: True
  save_pdf: False
  name:    'SFR'
+
+SFR_SFR:
+ figsize: [12,8]
+ xscale: 'log'
+ yscale: 'log'
+ markerType: '.'
+ xlabel: 'SFR / M$_\odot$ yr$^{-1}$'
+ ylabel: 'SFR / M$_\odot$ yr$^{-1}$'
+ legend:   True
+ label:   'End of snapshot'
+ save_png: True
+ save_pdf: False
+ name:    'SFR_SFR'
 
 sSFR:
  figsize: [12,8]
@@ -210,9 +224,9 @@ sSFR:
  yscale: 'log'
  markerType: '.'
  xlabel: '$M_*$ / M$_\odot$'
- ylabel: 'SFR / yr$^{-1}$'
+ ylabel: 'sSFR / yr$^{-1}$'
  legend:   True
- label:   'In last timestep'
+ label:   'End of snapshot'
  save_png: True
  save_pdf: False
  name:    'sSFR'

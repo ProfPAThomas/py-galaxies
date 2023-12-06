@@ -56,7 +56,7 @@ virialTemperature:
 baryonFraction:
  figsize:  [12,8]
  xscale:  'log'
- yscale:  'linear'
+ yscale:  'log'
  markerType: '.'
  xlabel:  '$M_\mathrm{halo}$ / M$_\odot$' # Units should really be an attribute of the data
  ylabel:  'Baryon fraction'

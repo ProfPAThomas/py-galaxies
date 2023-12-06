@@ -65,7 +65,7 @@ PYTHON_DIR='code-python'
 
 # Development limiter
 n_GRAPH=np.inf
-n_GRAPH=1000       # Change output files to 'test' to avoid over-writing!
+#n_GRAPH=1000       # Change output files to 'test' to avoid over-writing!
 n_GRAPH_START=0
 #n_GRAPH_START=58
 
@@ -100,6 +100,8 @@ commons.save('verbosity',parameters.verbosity)
 graph_file=h5py.File(parameters.graph_file,'r')
 # Update parameters with attributes from graph_file
 parameters.F_update_parameters(graph_file)
+n_graph=parameters.n_graph
+n_snap=parameters.n_snap
 
 # Need to set the timesteps now, because that information is needed to determine the structure of
 # the halo & subhalo classes and especially the galaxy arrays.
@@ -107,7 +109,7 @@ parameters.F_update_parameters(graph_file)
 from misc import F_set_dt
 F_set_dt(parameters)
 if VERBOSITY >=2:
-    for i_snap in range(len(parameters.snap_table)):
+    for i_snap in range(n_snap):
         print('i_snap, n_dt_halo, dt_halo, n_dt_gal, dt_gal')
         print(i_snap, parameters.n_dt_halo[i_snap], parameters.dt_halo[i_snap], parameters.n_dt_gal[i_snap], parameters.dt_gal[i_snap])
 # This generates a class instance that holds the structure of the SFH arrays at all different timesteps
@@ -160,7 +162,7 @@ if b_profile_cpu:
 
 # Create counter to locate graphs within the galaxy output file
 n_graph_start=n_GRAPH_START
-n_graph=min(parameters.n_graph-n_GRAPH_START,n_GRAPH)
+n_graph=min(n_graph-n_GRAPH_START,n_GRAPH)
 n_gal_graph_start=np.full(n_graph_start+n_graph,parameters.NO_DATA_INT,dtype=np.int32)
 n_gal=0
 
@@ -236,6 +238,7 @@ for i_graph in range(n_graph_start,n_graph_start+n_graph):
         commons.save('dt_gal',parameters.dt_gal[i_snap])
         commons.save('n_dt_halo',parameters.n_dt_halo[i_snap])
         commons.save('n_dt_gal',parameters.n_dt_gal[i_snap])
+            
         # This is the ministep, needed to track star formation histories
         if b_SFH:
             i_dt=sfh.i_dt_snap[i_snap]-1   # This gives the ministep, BEFORE updating
@@ -259,9 +262,10 @@ for i_graph in range(n_graph_start,n_graph_start+n_graph):
         del subs_last_snap
         del gals_last_snap
         #gc.collect() # garbage collection -- safe but very slow.
-
+        
         # Process the halos
         for i_dt_halo in range(parameters.n_dt_halo[i_snap]):
+            commons.save('i_dt_halo',i_dt_halo)
             F_process_halos(halos_this_snap,subs_this_snap,gals_this_snap,graph,parameters)
             
         # Once all halos have been done, output results
@@ -269,7 +273,6 @@ for i_graph in range(n_graph_start,n_graph_start+n_graph):
         halo_output.append(halos_this_snap,parameters)
         if subs_this_snap != None: sub_output.append(subs_this_snap,parameters)
         if isinstance(gals_this_snap, np.ndarray):
-            #if any(gals_this_snap['mass_stars_disc']>parameters.mass_minimum_internal): print('stars exist at time ',parameters.snap_table['time_in_years'][i_snap]/1e9,' Gyr')
             gal_output.append(gals_this_snap,parameters)
             n_gal+=len(gals_this_snap)
             
@@ -297,7 +300,7 @@ for i_graph in range(n_graph_start,n_graph_start+n_graph):
 
 # ###  Tidy up and exit
 
-# In[ ]:
+# In[6]:
 
 
 if b_profile_mem: tm_snap = tm.take_snapshot()

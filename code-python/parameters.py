@@ -40,9 +40,16 @@ class C_parameters:
         self.D_param = yaml.load(open(param_file),Loader=yaml.Loader)
         # I/O files
         for key, value in self.D_param['io_files'].items():
-            for file_type, file_name in value.items():
-                exec('self.'+str(file_type)+'=file_name')
-                print('self.'+str(file_type)+' =',eval('self.'+str(file_type)))
+            if key=='output_files':
+                output_prefix = value['output_prefix']
+                for file_type, file_name in value.items():
+                    if file_type != 'output_prefix':
+                        exec('self.'+str(file_type)+'=output_prefix+file_name')
+                        print('self.'+str(file_type)+' =',eval('self.'+str(file_type)))
+            else:
+                for file_type, file_name in value.items():
+                    exec('self.'+str(file_type)+'=file_name')
+                    print('self.'+str(file_type)+' =',eval('self.'+str(file_type)))
         # Diagnostics
         for key, value in self.D_param['diagnostics'].items():
             Value = value['Value']

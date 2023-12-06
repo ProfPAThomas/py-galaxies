@@ -19,40 +19,14 @@ if b_SFH: from sfh import F_sfh_update_bins
 
 #------------------------------------------------------------------------------------------------------
 
-@conditional_decorator(Timer(name='F_halo_set_baryon_fraction',logger=None),b_profile_cpu)
-def F_halo_set_baryon_fraction(halo,parameters):
-    """
-    Updates the baryon content to be the universal mean, or the sum of the baryon content from
-    the progenitors, whichever is larger (so that baryons are not lost).
-
-    Any excess baryons arrive in the form of base_metallicity hot gas.
-
-    Arguments
-    ---------
-    halo : obj : C_halo
-       The halo currently being processed.
-    parameters : obj : C_parameters
-       Instance of class containing global parameters
-
-    Returns
-    -------
-    None
-    """  
-    delta_baryon=max(0.,parameters.baryon_fraction*max(halo.mass,halo.mass_from_progenitors)-halo.mass_baryon)
-    halo.mass_baryon+=delta_baryon
-    halo.mass_gas_hot+=delta_baryon
-    halo.mass_metals_gas_hot+=delta_baryon*parameters.base_metallicity
-    return None
-
-#------------------------------------------------------------------------------------------------------
-
 @conditional_decorator(Timer(name='F_halo_reincorporation',logger=None),b_profile_cpu)
 def F_halo_reincorporation(halo,parameters):
     """
     Reincorporation of ejected gas.
 
     Currently just assumes Hen15 model.
-    Might be better to pass dt_halo and c_reinc explicitly
+    Might be better to pass dt_halo and c_reinc explicitly.
+    Assumes that the minimum reincorporation timescale is the dynamical timescale, tau_dyn.
 
     Arguments
     ---------
@@ -67,7 +41,7 @@ def F_halo_reincorporation(halo,parameters):
     """
     dt_halo=commons.load('dt_halo')
     
-    t_reinc = parameters.c_Hen15_reinc/halo.mass
+    t_reinc = max(parameters.c_Hen15_reinc/halo.mass,halo.tau_dyn)
     mass_reinc = halo.mass_gas_eject * (1.-np.exp(-dt_halo/t_reinc))
     mass_metals_reinc = mass_reinc * (halo.mass_metals_gas_eject/halo.mass_gas_eject)
     halo.mass_gas_eject -= mass_reinc
@@ -99,7 +73,7 @@ def F_process_halos(halos,subs,gals,graph,parameters):
     None
     """
 
-    # Set flag for existencs (or otherwise) of galaxies.
+    # Set flag for existence (or otherwise) of galaxies.
     if isinstance(gals, np.ndarray):
         b_gals_exist = True
     else:
@@ -117,10 +91,7 @@ def F_process_halos(halos,subs,gals,graph,parameters):
         if halo.b_done==True:
             raise RuntimeError('halo '+str(halo.halo_gid)+' in graph '+str(halo.graph_ID)+' already processed.')
         # Accretion onto halos.
-        # First determine current baryon mass, then call function to set to universal value.
-        # The rate could be calculated once at the beginning of a step, but probably very quick
-        halo.set_mass_baryon(subs,gals)
-        F_halo_set_baryon_fraction(halo,parameters)
+        halo.accrete_primordial_gas(parameters.base_metallicity)
         # Reincorporation of ejected gas
         if halo.mass_gas_eject > parameters.mass_minimum_internal: F_halo_reincorporation(halo,parameters)
         # Cooling of gas from halo onto central subhalo (or, in L-Galaxies mode, the most massive subhalo)
@@ -134,6 +105,9 @@ def F_process_halos(halos,subs,gals,graph,parameters):
                     gals[sub_central.gal_central_sid]['v_vir']=sub_central.half_mass_virial_speed
         halo.n_dt+=1
         if halo.n_dt==n_dt_halo: halo.b_done=True
+    # Cooling of subhalos should probably be done on the galaxy timestep, in tandem with galaxy processing:
+    # in a sense the characteristic time of a subhalo is the same as that of a galaxy, as they represent galaxy halos.
+    # However, change in SFR over snap suggests that it would make very little difference and would slow down code.
     if subs != None:
         for sub in subs:
             if sub.b_done==True:
@@ -143,19 +117,10 @@ def F_process_halos(halos,subs,gals,graph,parameters):
                 F_merge_gals(halos[sub.halo_sid],sub,gals[sub.gal_start_sid:sub.gal_end_sid],parameters)
             # Not all subhalos may have hot gas
             if sub.mass_gas_hot > parameters.mass_minimum_internal:
-                # debug code
                 gal=gals[sub.gal_central_sid]
-                if gal['b_exists']==False:
-                    print('gal.dtype =',gal.dtype)
-                    print('gal =',gal)
-                    print('sub.sub_gid, sub.sub_sid =',sub.sub_gid,sub.sub_sid)
-                    print('sub.halo_gid, sub.halo_sid =',sub.halo_gid,sub.halo_sid)
-                    print('sub.gal_start_sid, sub.gal_end_sid =',sub.gal_start_sid, sub.gal_end_sid)
-                    raise AssertionError('Subhalo central galaxy does not exist')
                 # Cooling of hot gas in subhalo onto galaxy
                 # This also includes radio mode BH growth and feedback
                 F_sub_cooling(sub,gal,parameters)
-                pass
             sub.n_dt+=1
             if sub.n_dt==n_dt_halo: sub.b_done=True
     if b_gals_exist:
@@ -176,6 +141,7 @@ def F_process_halos(halos,subs,gals,graph,parameters):
                 F_sfh_update_bins(gals,sfh,parameters)
                 i_dt+=1
                 commons.save('i_dt',i_dt)
+            if i_dt_gal==0 and commons.load('i_dt_halo')==0: gal['SFR_dt_start']=gal['SFR_dt'].copy() # This will contain the mergers
     return None
 
 #------------------------------------------------------------------------------------------------------
@@ -418,6 +384,7 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
     gals_this_snap['graph_ID']=graph.graph_ID
     gals_this_snap['snap_ID']=halos_this_snap[0].snap_ID
     gals_this_snap['gal_sid']=np.arange(len(gals_this_snap))
+    gals_this_snap['SFR_snap']=0.  # Needs to be zeroed as accumulates over snapshot timesteps.
     # Need to set central galaxies for each subhalo as these are the ones that are accrete gas.
     # Also, newly created galaxies (no progenitors) come into existance at this point.
     for sub in subs_this_snap: 
@@ -430,7 +397,14 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
         gal_central['halo_sid']=sub.halo_sid
         # The central galaxies have their virial speed updated; the others keep their inherited virial speed
         gals_this_snap[sub.gal_central_sid]['v_vir']=sub.half_mass_virial_speed
-     
+
+    # Finally, set the accretion rate required to bring the halos up to the universal mean over the
+    # course of a snapshot interval.
+    n_dt_halo=commons.load('n_dt_halo')
+    for halo in halos_this_snap:
+        # This halo method works out the current inherited baryon content
+        halo.set_mass_baryon(subs_this_snap,gals_this_snap,parameters.baryon_fraction,n_dt_halo)
+
     # Some sanity checks
     # In principle subhalos should aready have the correct baryon mass: this is a check
     for sub in subs_this_snap:

@@ -13,16 +13,12 @@ Major structural development
 Pre-processing development
 --------------------------
 
-* Decide upon a simple, idealised format for py-gal merger graphs/trees input
-* Write helper routines to convert from other tree formats to py-gal input.  In particular, convert Millennium trees.
+* Write helper routines to convert from other tree formats to py-gal input.  A version now exists for Millennium trees but the resultant processing generates many odd-looking halos.
 
 Minor structural development
 ----------------------------
 
-* Pre-processing merger graph to:
-  
-  - ensure every halo has a subhalo (introduce dummy subhalos as necessary)
-  - eliminate halos that have no descendants
+* (Possibly) cool from subhalos onto the central galaxy every galaxy timestep (currently done every halo timestep).
 
 * Option to pre-process merger graph to convert it to a tree:
   
@@ -30,8 +26,6 @@ Minor structural development
   - could possibly be a run-time option within L-Galaxies (give everything to main descendant) but should work out of the box with tree as input.
   
 * Code to locate the central subhalo (if any) in a halo.
-
-* (Probably) code to add a dummy subhalo if running in L-Galaxies model (or even if not, might allow higher resolution).
 
 * Need angular momentum of halos from merger graph:
 
@@ -57,12 +51,6 @@ Galaxy physics modules to import from L-galaxies
   
 * Star formation and feedback:
   
-  - implement a version with no resolved discs:
-
-    + basic implementation done
-    + need to add in calculation of SFR
-    + need to test
-    
   - add resolved galactic discs with inflow of gas
 
 * AGN accretion and feedback:
@@ -72,8 +60,8 @@ Galaxy physics modules to import from L-galaxies
 * Galaxy merging:
   Basic version with instantaneous merging implemented
   
-  - need better merger graphs so 
-  - triggering starburst (does this need to be explicit, or can it arise naturally from contraction of disc?)
+  - ideally need a way of dtermining merger time.
+  - triggering starburst (does this need to be explicit, or can it arise naturally from contraction of disc?).
 
 * Stripping:
 
@@ -86,7 +74,21 @@ Plotting developments
 * Galaxy stellar mass function
 * Luminosity functions (requires code to generate SEDs from star formation history)
 
+Documentation
+-------------
+
+* Eliminate warnings and errors in documentation generation.
+
 Testing
 -------
 
-* Check where the crazily large gas disc sizes come from.
+* Determine the cause of halos with excessively large baryon fractions -- should probably wait until we have better input graphs.
+
+Known issues
+------------
+
+* code-helper/Millennium_to_pygal.py
+
+  - produces the very occasional halo that is not in the final snapshot yet has halo.desc_start_gid=-1 (these should have been eliminated).  A specific example is Millennium input tree #5, graph_ID = 122 , snap_ID = 47 , halo_gid = 945.
+
+  - produces many halos with baryon fractions exceeding the universal value, including one as large as 15.

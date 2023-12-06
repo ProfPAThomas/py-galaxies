@@ -26,6 +26,8 @@ class C_halo:
        The halo location within the snapshot of the halo currently being processed.
    b_done : bool
        Whether or not the halo has been fully processed.
+   delta_baryon_dthalo : float
+       The accretion needed per halo timestep to bring the baryon content up to the universal mean.
    desc_end_gid : int
        The index at which this halo's descendents end (+1 as is usual for python).
    desc_main_sid : int
@@ -104,20 +106,20 @@ class C_halo:
    
    def __init__(self,graph_ID,snap_ID,halo_gid,graph,parameters):
       """
-       Read in the halos properties from the graph, including ranges for decendants, subhalos and galaxies.
+      Read in the halos properties from the graph, including ranges for decendants, subhalos and galaxies.
     
-       Parameters
-       ----------
-       graph_ID : str
-           The graph_ID (from HDF5 group).
-       snap_ID : int
-           The snapshot ID currently being processed.
-       halo_gid : int
-           The halo ID currently being processed, relative to the graph.
-       graph : an instance of the class C_graph
-           The graph containing this halo.
-       parameters : an instance of the class C_parameters
-           The global parameters for this SAM run.
+      Parameters
+      ----------
+      graph_ID : str
+          The graph_ID (from HDF5 group).
+      snap_ID : int
+          The snapshot ID currently being processed.
+      halo_gid : int
+          The halo ID currently being processed, relative to the graph.
+      graph : an instance of the class C_graph
+          The graph containing this halo.
+      parameters : an instance of the class C_parameters
+          The global parameters for this SAM run.
            
       """
       # Read in halo properties from graph instance.  These should already be in internal code units.
@@ -197,23 +199,26 @@ class C_halo:
       print('halo_gid =',self.halo_gid,flush=True)
       return ''
 
-   def orphan_count(self,n_orphan):
+   def accrete_primordial_gas(self,base_metallicity):
       """
-      Returns the current orphan galaxy location counter and then updates it.
+      Updates the baryon content as calcuated previously in the halo set_mass_baryon method.
+      Any excess baryons arrive in the form of base_metallicity hot gas.
 
-      Parameters
-      ----------
-      n_orphan : int
-         The number of orphans to add to the halo
+      Arguments
+      ---------
+      base_metallicity : float
+         The metallicity of pristine, infalling gas.
 
       Returns
       -------
-      int
-         The current orphan count for this snapshot of the graph
+      None
       """
-      orphan_next_sid = self.orphan_next_sid
-      self.orphan_next_sid += n_orphan
-      return orphan_next_sid
+      delta_mass=self.delta_baryon_dthalo
+      self.mass_baryon+=delta_mass
+      self.mass_gas_hot+=delta_mass
+      self.mass_metals_gas_hot+=delta_mass*base_metallicity
+
+      return None
 
    def gal_loc(self,gal_start0_sid,gal_start_sid):
       """
@@ -236,30 +241,58 @@ class C_halo:
       self.orphan_next_sid = self.orphan_start_sid # Will be used to keep track of orphans during update_halo phase
       return gal_start_sid+self.n_orphan
     
-   def set_mass_baryon(self,subs,gals):
-     """
-     Calculates and updates the total baryonic mass of the subhalo, inclusive of subhalos and galaxies
+   def orphan_count(self,n_orphan):
+      """
+      Returns the current orphan galaxy location counter and then updates it.
 
-     Parameters
-     ----------
-     subs : obj: C_sub[n_sub]
+      Parameters
+      ----------
+      n_orphan : int
+         The number of orphans to add to the halo
+
+      Returns
+      -------
+      int
+         The current orphan count for this snapshot of the graph
+      """
+      orphan_next_sid = self.orphan_next_sid
+      self.orphan_next_sid += n_orphan
+      return orphan_next_sid
+
+   def set_mass_baryon(self,subs,gals,baryon_fraction,n_dt_halo):
+      """
+      Calculates and updates the total baryonic mass of the subhalo, inclusive of subhalos and galaxies.
+      Also determines the accretion required to bring the halo up to the universal mean baryon fraction, 
+      or the sum of the baryon content from the progenitors, whichever is larger (so that baryons are not lost).
+
+      Parameters
+      ----------
+      subs : obj: C_sub[n_sub]
         The subhalo instances contained within this halo
-     gals : obj: D_gal[n_gal]
-        The galaxies  contained within this halo, inclusive of subhalos
+      gals : obj: D_gal[n_gal]
+         The galaxies  contained within this halo, inclusive of subhalos
+      baryon_fraction : float
+         The universal baryon fraction.
+      n_dt_halo : int
+         The number of halo timesteps in this snapshot interval.
 
-     Returns
-     -------
-     None
-     """
-     self.mass_baryon = self.mass_gas_hot + self.mass_gas_eject + self.mass_stars
-     for i_sub in range(self.n_sub): 
-        self.mass_baryon += subs[self.sub_start_sid+i_sub].mass_baryon
-     # The orphan galaxies are not included in the subhalo baryon count, so add them in here
-     if self.n_orphan >0:
-        self.mass_baryon += np.sum(gals[self.orphan_start_sid:self.orphan_start_sid+self.n_orphan]['mass_gas_cold'])
-        self.mass_baryon += np.sum(gals[self.orphan_start_sid:self.orphan_start_sid+self.n_orphan]['mass_stars_bulge'])
-        self.mass_baryon += np.sum(gals[self.orphan_start_sid:self.orphan_start_sid+self.n_orphan]['mass_stars_disc'])
-     return None
+      Returns
+      -------
+      None
+      """
+      self.mass_baryon = self.mass_gas_hot + self.mass_gas_eject + self.mass_stars
+      for i_sub in range(self.n_sub): 
+         self.mass_baryon += subs[self.sub_start_sid+i_sub].mass_baryon
+      # The orphan galaxies are not included in the subhalo baryon count, so add them in here
+      if self.n_orphan >0:
+         self.mass_baryon += np.sum(gals[self.orphan_start_sid:self.orphan_start_sid+self.n_orphan]['mass_gas_cold'])
+         self.mass_baryon += np.sum(gals[self.orphan_start_sid:self.orphan_start_sid+self.n_orphan]['mass_stars_bulge'])
+         self.mass_baryon += np.sum(gals[self.orphan_start_sid:self.orphan_start_sid+self.n_orphan]['mass_stars_disc'])
+         
+      # The amount of accretion needed per halo timestep to bring the baryon content up to the universal mean over a snapshot interval.
+      self.delta_baryon_dthalo=max(0.,baryon_fraction*max(self.mass,self.mass_from_progenitors)-self.mass_baryon)/float(n_dt_halo)
+
+      return None
 
 
 class C_halo_output:

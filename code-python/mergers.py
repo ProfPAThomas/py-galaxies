@@ -208,8 +208,8 @@ def F_starburst(mass_ratio,gal,parameters):
    if mass_stars_imf < parameters.mass_minimum_internal: return 0.
 
    # Record star formation rates
-   gal['SFR_dt'] += mass_stars_imf/dt_gal        # zeroed at start of timestep
-   gal['SFR_snap'] += mass_stars_imf/dt_snap     # This one is cumulative over the snapshot
+   #gal['SFR_dt'] += mass_stars_imf/dt_gal        # zeroed at start of timestep
+   #gal['SFR_snap'] += mass_stars_imf/dt_snap     # This one is cumulative over the snapshot
    
    # For now assume instantaneous recycling back into the cold gas
    # Then the mass stored in stars is that AFTER recycling, not the initial mass

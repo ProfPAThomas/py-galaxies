@@ -11,13 +11,13 @@ io_files:
   graph_file:   'MergerGraphs/Sussing/mega_graph_mini_09-11.hdf5'
   snap_file:    'MergerGraphs/Sussing/snaplist.txt' # Should ideally be stored in graph_file
  output_files:
-  # output_prefix: 'test_'  # Not yet implmented
-  halo_file:    'output/Sussing/test_HaloOutput.hdf5'
-  subhalo_file: 'output/Sussing/test_SubhaloOutput.hdf5'
-  galaxy_file:  'output/Sussing/test_GalaxyOutput.hdf5'
-  sfh_file:     'output/Sussing/test_SFH.hdf5'
-  profile_cpu_file: 'output/Sussing/test_profile_cpu.pkl'
-  profile_mem_file: 'output/Sussing/test_profile_mem.pkl'
+  output_prefix: 'output/Sussing/newtest_' # Destination directory and prefix for all output
+  halo_file:    'HaloOutput.hdf5'
+  subhalo_file: 'SubhaloOutput.hdf5'
+  galaxy_file:  'GalaxyOutput.hdf5'
+  sfh_file:     'SFH.hdf5'
+  profile_cpu_file: 'profile_cpu.pkl'
+  profile_mem_file: 'profile_mem.pkl'
  auxiliary_files:
   cooling_function_file: 'aux_files/Lambda_table.npz'
   
