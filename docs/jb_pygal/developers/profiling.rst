@@ -3,7 +3,7 @@ Profiling
 
 This page outlines the profiling of the code and documents the attempts to improve both CPU and memory usage.
 
-I am really not sure what tools to use for the best here.  One thing is certain, this needs to be done at the command line to avoid bloating the code: in particular `jupyter notebook` is horrendously memory guzzling.  The inbuilt profiling tools are controlled by runtime boolean parameters `b_profile_cpu` and `b_profile_mem`.
+I am really not sure what tools to use for the best here.  One thing is certain, this needs to be done at the command line to avoid bloating the code: in particular :code:`jupyter notebook` is horrendously memory guzzling.  The inbuilt profiling tools are controlled by runtime boolean parameters :code:`b_profile_cpu` and :code:`b_profile_mem`.
 
 
 CPU time
@@ -11,7 +11,7 @@ CPU time
 
 See `https://realpython.com/python-timer/#the-python-timer-code <https://realpython.com/python-timer/#the-python-timer-code>`_ for hints.
 
-Of the three methods described below, I have found `cProfile` to be the most useful: it does not require editing of the code and it produces a modest-sized profile file.
+Of the three methods described below, I have found :code:`cProfile` to be the most useful: it does not require editing of the code and it produces a modest-sized profile file.
 
 cProfile
 ^^^^^^^^
@@ -133,9 +133,14 @@ with methods:
 * `start(name)` – adds an entry to the dictionary with key `name`, or reopens an existing one.
 * `stop(name)` – accumulates the time spent in cpu_time_total.
   
-This routine should be relatively lightweight.  It is used to track the time taken to process each graph.  The following plots show the 
+This routine should be relatively lightweight.  It is used to track the time taken to process each graph.  The following plots show the distribution of process times on the first 1000 graphs in Millennium File 5.
 
-
+.. image:: figs/cpu_timer_graphs.png
+   :width: 49%
+   :alt: CPU time taken to process the first 1000 halos in Millennium File 5
+.. image:: figs/cpu_timer_graphs_cum.png
+   :width: 49%
+   :alt: Cumulative CPU time taken to process the first 1000 halos in Millennium File 5
 
 
 codetiming.Timer
@@ -145,5 +150,17 @@ codetiming.Timer
 
 This can be used as a decorator to profile individual python functions.  It is useful but the output seems incredibly bloated.  For example, on processing just 1000 halos it produces an output file that is 300MB in size.  
 
+The following plot shows the function process times on the first 1000 graphs in Millennium File 5.  Note that these times are *inclusive* of subfunctions.  
 
+.. image:: figs/cpu_timer_funcs.png
+   :width: 99%
+   :alt: Function time taken to process the first 1000 halos in Millennium File 5, inclusive of subfunctions.
 
+Somewhat surprisingly, :code:`F_sfh_update_bins` does not appear in this listing, even though :code:`cProfile` has it as the second most CPU-hungry routine.
+
+Overall, :code:`cProfile` seems to be much less resource-hungry and more useful.
+
+Memory usage
+------------
+
+To follow once CPU optimisation is complete.  The expectation, however, is that :code:`py-galaxies` should be memory efficient as it only loads in halos, subhalos and galaxies for two snapshots of a single graph at a time.

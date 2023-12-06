@@ -65,7 +65,7 @@ PYTHON_DIR='code-python'
 
 # Development limiter
 n_GRAPH=np.inf
-#n_GRAPH=1000       # Change output files to 'test' to avoid over-writing!
+n_GRAPH=1000       # Change output files to 'test' to avoid over-writing!
 n_GRAPH_START=0
 #n_GRAPH_START=58
 
