@@ -93,7 +93,7 @@ The metallicity and exponential disc radius of the cold gas contained within gal
    :width: 49%
    :alt: The stellar content of galaxies at the current day versus the mass of the host halo
 
-These plot shows the stellar content of galaxies versus that of the subhalo (left) and halo (right).  For these Millennium trees the only difference is that the right hand plot shows additional `orphan` galaxies whose host (sub)halo has been disrupted: ie where halos have merged together.
+These plot shows the stellar content of galaxies versus that of the subhalo (left) and halo (right).  For these Millennium trees the main difference is that the right hand plot shows additional `orphan` galaxies whose host (sub)halo has been disrupted: ie where halos have merged together.
 
 .. image:: figs/pre_CPU_optimisation/python_gal_stars_halo_ratio.png
    :width: 99%
@@ -115,6 +115,27 @@ This plot shows the star formation rate of galaxies at the beginning, end and av
    :alt: The specific star formation rate of galaxies versus their stellar mass.
 
 The specific star formation rate of galaxies shows a plausible behaviour, declining with increasing stellar mass.  The relatively high rates in galaxies with :math:`M_*<10^{8}\mathrm{M}_\odot` should probably not be taken too seriously.
+
+.. image:: figs/pre_CPU_optimisation/python_gal_bulge_fraction.png
+   :width: 99%
+   :alt: The fraction of stars in the bulge of each galaxy at the current day.
+
+The fraction of stars in the bulge of each galaxy at the current day climbs strongly with stellar mass, as is to be expected.  The decline at very high masses is a known feature that more recent versions of L-Galaxies tried to address.
+
+.. image:: figs/pre_CPU_optimisation/python_gal_stellar_disc_Z.png
+   :width: 49%
+   :alt: The metallicity of stars in the disc of galaxies at the current day.
+.. image:: figs/pre_CPU_optimisation/python_gal_stellar_disc_radius.png
+   :width: 49%
+   :alt: The exponential disc radius of stars in galaxies at the current day.
+
+As for the cold gas, the metallicity and exponential disc radius of the stellar disc of galaxies at the current day both look very reasonable except for the eight galaxies around :math:`M\sim10^{9}\mathrm{M}_\odot` which have very large radii: I assume that this is a tree error.
+
+.. image:: figs/pre_CPU_optimisation/python_gal_BH_stars.png
+   :width: 99%
+   :alt: The black hole - stellar mass relation in galaxies at the current day.
+
+The black hole mass increases steeply as a function of stellar mass for :math:`M_*>10^{9}\mathrm{M}_\odot`.  Would have to compare to observational data but again the trend looks to be correct.
 
 
 
