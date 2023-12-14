@@ -49,3 +49,45 @@ def F_set_dt(parameters):
    parameters.dt_gal=dt_gal
 
    return None
+
+def F_create_parameters_header_file(parameters):
+   """
+   Writes out all the attributes of parameters to code/parameters.h.
+
+   Attributes
+   ----------
+   parameters : obj : C_parameters
+       Instance of class containing global parameters
+   """
+   attributes=[a for a in dir(parameters) if not a.startswith('__') and not callable(getattr(parameters, a))]
+   f=open('parameters.h','w')
+   f.write('/* Runtime parameters (fixed throughout run). */\n\
+\n\
+#include <stdbool.h>\n\
+\n\
+struct {\n\
+')
+   for a in attributes:
+      value=eval('parameters.'+a)
+      a_type=str(type(value)).split('\'')[1]
+      print(a,a_type,value)
+      if 'astropy' in a_type:
+         continue
+      elif a_type == 'bool':
+         if value==True:
+            f.write('    '+a_type+' '+a+'=true;\n')
+         else:
+            f.write('    '+a_type+' '+a+'=false;\n')
+      elif 'dict' in a_type:
+         continue
+      elif 'float' in a_type:
+         f.write('    float '+a+'='+str(value)+';\n')
+      elif a_type == 'str':
+         f.write('    char* '+a+'="'+str(value)+'";\n')
+      elif 'ndarray' in a_type:
+         continue
+      else:
+         f.write('    '+a_type+' '+a+'='+str(value)+';\n')
+   f.write('}; parameters;\n')
+   f.close()
+   return None

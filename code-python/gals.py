@@ -108,7 +108,8 @@ def F_gal_template(parameters):
 
    Returns
    -------
-   : obj : D_gal
+   template : obj : D_gal
+      A one row numpy structured array with dtype D_gal 
    """
    NDI=parameters.NO_DATA_INT
    template=np.empty(1,dtype=D_gal)
