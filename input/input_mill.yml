@@ -11,7 +11,7 @@ io_files:
   graph_file:   'MergerGraphs/Mill/pygal_063_5.hdf5'
   snap_file:    'MergerGraphs/Mill/snaplist.txt' # Should ideally be stored in graph_file
  output_files:
-  output_prefix: 'output/Mill/cpu_' # Destination directory and prefix for all output
+  output_prefix: 'output/Mill/C_devel_' # Destination directory and prefix for all output
   halo_file:    'HaloOutput.hdf5'
   subhalo_file: 'SubhaloOutput.hdf5'
   galaxy_file:  'GalaxyOutput.hdf5'

@@ -71,8 +71,12 @@ struct {\n\
       value=eval('parameters.'+a)
       a_type=str(type(value)).split('\'')[1]
       print(a,a_type,value)
+      # First the parts that we wish to ignore
       if 'astropy' in a_type:
          continue
+      elif 'ndarray' in a_type:
+         continue
+      # Now the bits that we want to extract
       elif a_type == 'bool':
          if value==True:
             f.write('    '+a_type+' '+a+'=true;\n')
@@ -80,12 +84,12 @@ struct {\n\
             f.write('    '+a_type+' '+a+'=false;\n')
       elif 'dict' in a_type:
          continue
+      elif 'int' in a_type:
+         f.write('    int '+a+'='+str(value)+';\n')
       elif 'float' in a_type:
          f.write('    float '+a+'='+str(value)+';\n')
       elif a_type == 'str':
          f.write('    char* '+a+'="'+str(value)+'";\n')
-      elif 'ndarray' in a_type:
-         continue
       else:
          f.write('    '+a_type+' '+a+'='+str(value)+';\n')
    f.write('}; parameters;\n')
