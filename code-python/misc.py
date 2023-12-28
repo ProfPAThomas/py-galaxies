@@ -101,6 +101,31 @@ def F_create_cooling_header_file(cooling_table):
    f.close()
    return None
 
+def F_create_galaxy_struct_header_file(D_gal):
+   """
+   Creates a C struct definition that matches the galaxy dtype.
+   Writes out to code/gals.h
+
+   Attributes
+   ----------
+   D_gal : obj : numpy.dtype
+       Numpy dtype used in the galaxy structured array.
+   """
+   f=open('code-C/gals.h','w')
+   f.write('/* Contains struct definition for galaxies. */\n\n#include <stdbool.h>\n\nstruct struct_gal {\n')
+   for key in D_gal.fields.keys():
+      var_type=str(D_gal[key])
+      if 'bool' in var_type:
+         f.write('    bool '+key+';\n')         
+      elif 'int' in var_type:
+         f.write('    int '+key+';\n')
+      elif 'float' in var_type:
+         f.write('    double '+key+';\n')
+   f.write('}; \n')
+   f.close()
+   return None
+   
+
 def F_create_parameters_header_file(parameters):
    """
    Writes out all the attributes of parameters to code/parameters.h.
@@ -112,12 +137,12 @@ def F_create_parameters_header_file(parameters):
        Instance of class containing global parameters
    """
    attributes=[a for a in dir(parameters) if not a.startswith('__') and not callable(getattr(parameters, a))]
-   f=open('parameters.h','w')
+   f=open('code-C/parameters.h','w')
    f.write('/* Runtime parameters (fixed throughout run). */\n\
 \n\
 #include <stdbool.h>\n\
 \n\
-static struct {\n\
+struct struct_param {\n\
 ')
    for a in attributes:
       value=eval('parameters.'+a)
@@ -126,24 +151,51 @@ static struct {\n\
       # First the parts that we wish to ignore
       if 'astropy' in a_type:
          continue
-      #elif 'ndarray' in a_type:
-      #   continue
+      elif 'ndarray' in a_type:
+         continue
+      elif 'C_sfh' in a_type:
+         continue
       # Now the bits that we want to extract
       elif a_type == 'bool':
          if value==True:
-            f.write('    '+a_type+' '+a+'=true;\n')
+            f.write('    bool '+a+';\n')
          else:
-            f.write('    '+a_type+' '+a+'=false;\n')
+            f.write('    bool '+a+';\n')
       elif 'dict' in a_type:
          continue
       elif 'int' in a_type:
-         f.write('    int '+a+'='+str(value)+';\n')
+         f.write('    int '+a+';\n')
       elif 'float' in a_type:
-         f.write('    float '+a+'='+str(value)+';\n')
+         f.write('    float '+a+';\n')
       elif a_type == 'str':
-         f.write('    char* '+a+'="'+str(value)+'";\n')
+         f.write('    char* '+a+';\n')
       else:
-         f.write('    '+a_type+' '+a+'='+str(value)+';\n')
-   f.write('}; parameters;\n')
+         f.write('    '+a_type+' '+a+';\n')
+   f.write('};\n')
+   f.write('static struct struct_param parameters = {\n')
+   for a in attributes:
+      value=eval('parameters.'+a)
+      a_type=str(type(value)).split('\'')[1]
+      # First the parts that we wish to ignore
+      if 'astropy' in a_type:
+         continue
+      elif 'ndarray' in a_type:
+         continue
+      elif 'C_sfh' in a_type:
+         continue
+      # Now the bits that we want to extract
+      elif a_type == 'bool':
+         if value==True:
+            f.write('    .'+a+'=true,\n')
+         else:
+            f.write('    .'+a+'=false,\n')
+      elif 'dict' in a_type:
+         continue
+      elif a_type == 'str':
+         f.write('    .'+a+'="'+value+'",\n')
+      else:
+         f.write('    .'+a+'='+str(value)+',\n')
+   f.write('};\n')
+   
    f.close()
    return None
