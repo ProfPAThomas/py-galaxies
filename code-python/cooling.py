@@ -156,10 +156,24 @@ def F_sub(sub,gal,parameters):
         return None
     if parameters.cooling_model == 'SIS':
         gal_temperature=parameters.temperature_1e4K_internal # Cool down to 1e4 K
-        mass_cooled=F_cooling_SIS(sub.mass,sub.tau_dyn,sub.half_mass_radius,sub.mass_gas_hot,sub.mass_metals_gas_hot,
+        mass_cooled=L_C.F_cooling_SIS(sub.mass,sub.tau_dyn,sub.half_mass_radius,sub.mass_gas_hot,sub.mass_metals_gas_hot,
+                                  sub.temperature,gal_temperature,dt)
+        mass_cooled_python=F_cooling_SIS(sub.mass,sub.tau_dyn,sub.half_mass_radius,sub.mass_gas_hot,sub.mass_metals_gas_hot,
                                   sub.temperature,gal_temperature,dt,parameters.cooling_table)
+        if np.abs(mass_cooled-mass_cooled_python)/mass_cooled_python > 1e-4:
+            print('mass_cooled =',mass_cooled)
+            print('mass_cooled_python =',mass_cooled_python)
+            print('sub.mass =',sub.mass)
+            print('sub.tau_dyn =',sub.tau_dyn)
+            print('sub.half_mass_radius =',sub.half_mass_radius)
+            print('sub.mass_gas_hot =',sub.mass_gas_hot)
+            print('sub.mass_metals_gas_hot =',sub.mass_metals_gas_hot)
+            print('sub.temperature =',sub.temperature)
+            print('gal_temperature =',gal_temperature)
+            print('dt =',dt)
+            raise ValueError(mass_cooled != mass_cooled_python)
     else:
-        raise valueError('cooling.F_sub: cooling model '+parameters.cooling_model+' not implemented.')
+        raise ValueError('cooling.F_sub: cooling model '+parameters.cooling_model+' not implemented.')
 
     # Radio mode growth of BH
     # Formula from Hen15 S24
@@ -256,9 +270,9 @@ def F_cooling_SIS(mass,tau_dyn,half_mass_radius,mass_gas,mass_metals_gas,temp_st
     
     # Cooling at constant temperature, but allowing density to vary: see documentation.
     # The gas fraction here is relative to the halo mass (= 200 times the critical density in Millennium/SIS)
-    fg0 = mass_gas/mass;
-    dt_ratio=dt/tau_dyn;
-    tau_ratio=tau_dyn*fg0/tau_cool;
+    fg0 = mass_gas/mass
+    dt_ratio=dt/tau_dyn
+    tau_ratio=tau_dyn*fg0/tau_cool
     if tau_ratio <=1:
         fg=fg0/(1+0.5*np.sqrt(tau_ratio)*dt_ratio)**2
     else:
