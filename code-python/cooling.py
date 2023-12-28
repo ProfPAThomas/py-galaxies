@@ -5,6 +5,7 @@ Functions to cool gas from halos onto the central subhalo, and from the central 
 import numpy as np
 import astropy.units as u
 from codetiming import Timer
+import ctypes
 from profiling import conditional_decorator
 from bh_agn import F_BH_growth_rate_radio
 
@@ -79,6 +80,7 @@ class C_cooling:
             np.log10(parameters.c_cooling)
         # Fudge to test cooling
         # self.log10_Lambda_table -= 0.3
+        # print('log10_lambda_table.shape =',self.log10_Lambda_table.shape)
         # print('log10_Lambda_table =',self.log10_Lambda_table)
 
 @conditional_decorator(Timer(name='cooling_F_halo',logger=None),b_profile_cpu)
@@ -246,7 +248,8 @@ def F_cooling_SIS(mass,tau_dyn,half_mass_radius,mass_gas,mass_metals_gas,temp_st
     log10_Z = np.log10(mass_metals_gas/mass_gas)
     assert log10_Z>cooling_table.log10_Z_table[1],'mass_gas, mass_metals_gas = '+str(mass_gas)+', '+str(mass_metals_gas)
     # Cooling rate per unit density of electrons & ions
-    Lambda = F_get_metaldependent_cooling_rate(np.log10(temp_start),log10_Z,cooling_table)
+    #Lambda = F_get_metaldependent_cooling_rate(np.log10(temp_start),log10_Z,cooling_table)
+    Lambda = L_C.F_get_metaldependent_cooling_rate(np.log10(temp_start),log10_Z)
     # Could save a little time in defining a conversion factor for half_mass_radius**3/mass in halos/subhalos.
     # (Because we execute the cooling every mini-step).
     tau_cool = half_mass_radius**3*(temp_start-temp_end)/(mass*Lambda)
