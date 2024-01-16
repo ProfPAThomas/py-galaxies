@@ -31,14 +31,10 @@
 
 # Imports of generic python routines
 
-#get_ipython().run_line_magic('load_ext', 'autoreload')
-#get_ipython().run_line_magic('autoreload', '2')
-
 import astropy.constants as c
 import astropy.units as u
 #import gc
 import h5py
-#h5py.enable_ipython_completer()
 import numpy as np
 np.seterr(all='raise')
 import pickle
@@ -94,7 +90,7 @@ from parameters import C_parameters
 # Read in parameters from yaml input files
 parameters=C_parameters(FILE_PARAMETERS)
 parameters.verbosity=VERBOSITY
-commons.save('verbosity',parameters.verbosity)
+commons.add('verbosity',parameters.verbosity)
 
 # Open graph input file: needs to come before F_set_dt and F_update_parameters
 graph_file=h5py.File(parameters.graph_file,'r')
@@ -118,11 +114,15 @@ if b_SFH:
     from sfh import C_sfh
     sfh=C_sfh(parameters)
     parameters.sfh=sfh     # Useful to avoid having to optionally pass sfh as a function argument
-
+    
 # These parameters are needed at import, so save to commons here
-commons.save('b_SFH',parameters.b_SFH)
-if b_SFH: commons.save('sfh.n_bin',sfh.n_bin)
-
+commons.update('b_SFH',parameters.b_SFH)
+if b_SFH: 
+    commons.update('sfh.n_bin',sfh.n_bin)
+    # These counters need to be added to commons before saving as a C struct
+    commons.add('i_dt',-1)
+    commons.add('i_bin_sfh',-1)
+    
 # The conditional decorator and profilers
 from profiling import conditional_decorator
 
@@ -144,6 +144,15 @@ from subs import C_sub_output
 # The galaxy_output class, used to output galaxies
 from gals import C_gal_output
 
+# Now create the C parameters.h file.
+# *** DO NOT MODIFY PARAMETERS AFTER THIS POINT ***
+# Note: numpy arrays are not being passed: use commons to store current values.
+from misc import F_create_parameters_header_file
+F_create_parameters_header_file(parameters)
+
+# Lock the commons directory to prevent new entries and create the equivalent C structure
+# Currently not needed as there is no C integration yet!
+commons.lock(True)
 
 
 # ### Initialisation of SAM
@@ -153,7 +162,7 @@ from gals import C_gal_output
 
 # Start CPU profiling, if required.
 b_profile_cpu=parameters.b_profile_cpu
-commons.save('b_profile_cpu',b_profile_cpu)
+commons.update('b_profile_cpu',b_profile_cpu)
 if b_profile_cpu:
     from codetiming import Timer
     from profiling import C_timer
@@ -171,7 +180,10 @@ import cooling
 cooling_table = cooling.C_cooling(parameters)
 # Not sure if this is the best way to do it, but for now store all globals in parameters
 parameters.cooling_table=cooling_table
-    
+# Create C header file containing cooling table
+from misc import F_create_cooling_header_file
+F_create_cooling_header_file(cooling_table)
+
 # Create galaxy template
 from gals import F_gal_template
 gal_template=F_gal_template(parameters)
@@ -183,7 +195,74 @@ halo_output=C_halo_output(parameters)
 sub_output=C_sub_output(parameters)
 gal_output=C_gal_output(parameters)
 
+
+# In[5]:
+
+
+# C integration
+import ctypes
+
+# Make header files containing C stuct version of the relevant dtypes
+# halos.h
+halo_template=C_halo.template
+from misc import F_create_halo_struct_header_file
+F_create_halo_struct_header_file(halo_template.dtype)
+# subs.h
+sub_template=C_sub.template
+from misc import F_create_sub_struct_header_file
+F_create_sub_struct_header_file(sub_template.dtype)
+# gals.h
+from misc import F_create_galaxy_struct_header_file
+F_create_galaxy_struct_header_file(gal_template.dtype)
+
+
+# Create gals.h file 
+from misc import F_create_galaxy_struct_header_file
+F_create_galaxy_struct_header_file(gal_template.dtype)
+
+# Make C-library (TBI)
+# Basically just a system call to run make in the code-C directory.
+
+# Load C-library
+L_C=ctypes.CDLL(C_DIR+'/lib_C.so')
+# Add reference to library to imported python modules that need it
+# This list will be much reduced once all the physics routines are written in C.
+cooling.L_C=L_C
+
+# Define interfaces to C functions
+# L_C.F_get_metaldependent_cooling_rate.argtypes=(ctypes.c_double,ctypes.c_double)
+# L_C.F_get_metaldependent_cooling_rate.restype=ctypes.c_double
+# L_C.F_cooling_SIS.argtypes=(ctypes.c_double,ctypes.c_double,ctypes.c_double,ctypes.c_double,ctypes.c_double,
+#                                   ctypes.c_double,ctypes.c_double,ctypes.c_double)
+# L_C.F_cooling_SIS.restype=ctypes.c_double
+L_C.F_cooling_halo.argtypes=(np.ctypeslib.ndpointer(halo_template.dtype),
+                    np.ctypeslib.ndpointer(sub_template.dtype),
+                    ctypes.c_double)
+L_C.F_cooling_halo.restype=None
+L_C.F_cooling_sub.argtypes=(np.ctypeslib.ndpointer(gal_template.dtype),
+                    np.ctypeslib.ndpointer(sub_template.dtype),
+                    ctypes.c_double)
+L_C.F_cooling_sub.restype=None
+L_C.F_SFF_gal_SN_feedback.argtypes=(ctypes.c_double,np.ctypeslib.ndpointer(gal_template.dtype),
+                    np.ctypeslib.ndpointer(sub_template.dtype),np.ctypeslib.ndpointer(halo_template.dtype))
+L_C.F_SFF_gal_SN_feedback.restype=None
+L_C.F_SFF_orphan_SN_feedback.argtypes=(ctypes.c_double,np.ctypeslib.ndpointer(gal_template.dtype),
+                    np.ctypeslib.ndpointer(halo_template.dtype))
+L_C.F_SFF_orphan_SN_feedback.restype=None
+if b_SFH:
+    L_C.F_SFF_gal_form_stars.argtypes=(np.ctypeslib.ndpointer(gal_template.dtype),ctypes.c_double,ctypes.c_double,ctypes.c_int)
+    L_C.F_SFF_gal_form_stars.restype=ctypes.c_double
+else:
+    print('Need to implemnt code for conditional compilation of C routines')
+    assert False
+
+
+# In[6]:
+
+
 # Import driver routines
+import driver
+driver.L_C=L_C
 from driver import F_update_halos     # Propagates info from last snapshot to current one
 from driver import F_process_halos    # Does all the astrophysics
 
@@ -207,7 +286,7 @@ if b_profile_mem:
 # 
 # Also, F_update_halos needs to be serial, but all halos can be processed in parallel in F_process_halos.
 
-# In[5]:
+# In[7]:
 
 
 # Loop over graphs
@@ -233,17 +312,17 @@ for i_graph in range(n_graph_start,n_graph_start+n_graph):
         if VERBOSITY >= 2: print('Processing snapshot',i_snap,flush=True)
             
         # These timestepping parameters will be needed in the processing, so save them to commons
-        commons.save('dt_snap',parameters.dt_snap[i_snap])
-        commons.save('dt_halo',parameters.dt_halo[i_snap])
-        commons.save('dt_gal',parameters.dt_gal[i_snap])
-        commons.save('n_dt_halo',parameters.n_dt_halo[i_snap])
-        commons.save('n_dt_gal',parameters.n_dt_gal[i_snap])
+        commons.update('dt_snap',parameters.dt_snap[i_snap])
+        commons.update('dt_halo',parameters.dt_halo[i_snap])
+        commons.update('dt_gal',parameters.dt_gal[i_snap])
+        commons.update('n_dt_halo',parameters.n_dt_halo[i_snap])
+        commons.update('n_dt_gal',parameters.n_dt_gal[i_snap])
             
         # This is the ministep, needed to track star formation histories
         if b_SFH:
             i_dt=sfh.i_dt_snap[i_snap]-1   # This gives the ministep, BEFORE updating
-            commons.save('i_dt',i_dt)
-            commons.save('i_bin_sfh',sfh.i_bin[i_dt])
+            commons.update('i_dt',i_dt)
+            commons.update('i_bin_sfh',sfh.i_bin[i_dt])
         
         # Initialise halo and subhalo properties.
         # This returns a list of halo and subhalo instances
@@ -265,7 +344,7 @@ for i_graph in range(n_graph_start,n_graph_start+n_graph):
         
         # Process the halos
         for i_dt_halo in range(parameters.n_dt_halo[i_snap]):
-            commons.save('i_dt_halo',i_dt_halo)
+            commons.update('i_dt_halo',i_dt_halo)
             F_process_halos(halos_this_snap,subs_this_snap,gals_this_snap,graph,parameters)
             
         # Once all halos have been done, output results
@@ -300,7 +379,7 @@ for i_graph in range(n_graph_start,n_graph_start+n_graph):
 
 # ###  Tidy up and exit
 
-# In[6]:
+# In[8]:
 
 
 if b_profile_mem: tm_snap = tm.take_snapshot()
@@ -335,4 +414,10 @@ if b_profile_mem:
     mem.dump(parameters.profile_mem_file)
     with open(parameters.profile_mem_file, 'ab') as f:
         pickle.dump(tm_snap, f)
+
+
+# In[ ]:
+
+
+
 

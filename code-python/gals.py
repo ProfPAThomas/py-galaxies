@@ -53,6 +53,7 @@ v_vir : float
    The half-mass circular speed of the host subhalo (or halo, if no subhalo).
 """
 
+import ctypes
 import h5py
 import numpy as np
 
@@ -61,42 +62,43 @@ b_SFH=commons.load('b_SFH')
 if b_SFH: sfh_n_bin=commons.load('sfh.n_bin')
 
 # Create the dtype that we will need to store galaxy properties.
-D_gal=[
-   ('graph_ID',np.int32),
-   ('snap_ID',np.int32),
-   ('halo_gid',np.int32),
-   ('halo_sid',np.int32),
-   ('sub_gid',np.int32),
-   ('sub_sid',np.int32),
-   ('gal_gid',np.int32),      # The unique identifier for this galaxy within this graph; should match location in output file
-   ('gal_sid',np.int32),
-   ('desc_gid',np.int32),
-   ('first_prog_gid',np.int32),
-   ('next_prog_gid',np.int32),
-   ('b_exists',bool),
-   ('v_vir',np.float32),      # Virial speed of host halo
-   ('mass_stars_bulge',np.float32),
-   ('mass_metals_stars_bulge',np.float32),
-   ('mass_stars_disc',np.float32),
-   ('mass_metals_stars_disc',np.float32),
-   ('mass_gas_cold',np.float32),
-   ('mass_metals_gas_cold',np.float32),
-   ('mass_BH',np.float32),
-   ('mass_metals_BH',np.float32),   # Metals have no meaning in a BH but useful for tracking
-   ('mass_baryon',np.float32),      # Includes BHs.  Effectively equivalent to total mass of galaxy (assuming no DM).
-   ('radius_gas_cold',np.float32),  # Exponential disc radius
-   ('radius_stars_disc',np.float32), # Exponential disc radius
-   ('radius_stars_bulge',np.float32), # Half mass radius
-   ('SFR_dt',np.float32),
-   ('SFR_dt_start',np.float32),
-   ('SFR_snap',np.float32)]
+_quantities=[
+   ('graph_ID',ctypes.c_int),
+   ('snap_ID',ctypes.c_int),
+   ('halo_gid',ctypes.c_int),
+   ('halo_sid',ctypes.c_int),
+   ('sub_gid',ctypes.c_int),
+   ('sub_sid',ctypes.c_int),
+   ('gal_gid',ctypes.c_int),      # The unique identifier for this galaxy within this graph; should match location in output file
+   ('gal_sid',ctypes.c_int),
+   ('desc_gid',ctypes.c_int),
+   ('first_prog_gid',ctypes.c_int),
+   ('next_prog_gid',ctypes.c_int),
+   ('b_exists',ctypes.c_bool),
+   ('v_vir',ctypes.c_double),      # Virial speed of host halo
+   ('mass_stars_bulge',ctypes.c_double),
+   ('mass_metals_stars_bulge',ctypes.c_double),
+   ('mass_stars_disc',ctypes.c_double),
+   ('mass_metals_stars_disc',ctypes.c_double),
+   ('mass_gas_cold',ctypes.c_double),
+   ('mass_metals_gas_cold',ctypes.c_double),
+   ('mass_BH',ctypes.c_double),
+   ('mass_metals_BH',ctypes.c_double),   # Metals have no meaning in a BH but useful for tracking
+   ('mass_baryon',ctypes.c_double),      # Includes BHs.  Effectively equivalent to total mass of galaxy (assuming no DM).
+   ('radius_gas_cold',ctypes.c_double),  # Exponential disc radius
+   ('radius_stars_disc',ctypes.c_double), # Exponential disc radius
+   ('radius_stars_bulge',ctypes.c_double), # Half mass radius
+   ('SFR_dt',ctypes.c_double),
+   ('SFR_dt_start',ctypes.c_double),
+   ('SFR_snap',ctypes.c_double)]
 # Can only append one item at a time :-(
 if b_SFH:
-   D_gal.append(('mass_stars_bulge_sfh',np.float32,sfh_n_bin+1))
-   D_gal.append(('mass_metals_stars_bulge_sfh',np.float32,sfh_n_bin+1))
-   D_gal.append(('mass_stars_disc_sfh',np.float32,sfh_n_bin+1))
-   D_gal.append(('mass_metals_stars_disc_sfh',np.float32,sfh_n_bin+1))
-
+   _quantities.append(('mass_stars_bulge_sfh',ctypes.c_double,sfh_n_bin+1))
+   _quantities.append(('mass_metals_stars_bulge_sfh',ctypes.c_double,sfh_n_bin+1))
+   _quantities.append(('mass_stars_disc_sfh',ctypes.c_double,sfh_n_bin+1))
+   _quantities.append(('mass_metals_stars_disc_sfh',ctypes.c_double,sfh_n_bin+1))
+D_gal=np.dtype(_quantities,align=True)
+   
 def F_gal_template(parameters):
    """
    Creates a template for the galaxies
@@ -120,6 +122,7 @@ def F_gal_template(parameters):
    template['sub_gid']=NDI
    template['sub_sid']=NDI
    template['gal_gid']=0 # Because there are no galaxies prior to the first snapshot; updated each snap.
+   template['gal_sid']=NDI
    template['desc_gid']=NDI
    template['first_prog_gid']=NDI
    template['next_prog_gid']=NDI
@@ -146,6 +149,8 @@ def F_gal_template(parameters):
       template['mass_stars_disc_sfh']=0.
       template['mass_metals_stars_disc_sfh']=0.
    return template
+   print('template.itemsize =',template.itemsize)
+   print('template.dytpe.alignment =',template.dtype.alignment)
 
 class C_gal_output:
    """
@@ -182,34 +187,34 @@ class C_gal_output:
       self.n_rec = parameters.n_HDF5_io_rec
       # dtype of io buffer
       dtype=[]
-      dtype.append(('graph_ID',np.int32))
-      dtype.append(('snap_ID',np.int32))
-      dtype.append(('halo_gid',np.int32))
-      dtype.append(('sub_gid',np.int32))
-      dtype.append(('gal_gid',np.int32))
-      dtype.append(('desc_gid',np.int32))
-      dtype.append(('first_prog_gid',np.int32))
-      dtype.append(('next_prog_gid',np.int32))
-      dtype.append(('b_exists',bool))
-      dtype.append(('mass_stars_bulge',np.float32))
-      dtype.append(('mass_metals_stars_bulge',np.float32))
-      dtype.append(('mass_stars_disc',np.float32))
-      dtype.append(('mass_metals_stars_disc',np.float32))
-      dtype.append(('mass_gas_cold',np.float32))
-      dtype.append(('mass_metals_gas_cold',np.float32))
-      dtype.append(('mass_BH',np.float32))
-      dtype.append(('radius_gas_cold',np.float32))
-      dtype.append(('radius_stars_disc',np.float32))
-      dtype.append(('radius_stars_bulge',np.float32))
-      dtype.append(('SFR_dt',np.float32))
-      dtype.append(('SFR_dt_start',np.float32))
-      dtype.append(('SFR_snap',np.float32))
+      dtype.append(('graph_ID',ctypes.c_int))
+      dtype.append(('snap_ID',ctypes.c_int))
+      dtype.append(('halo_gid',ctypes.c_int))
+      dtype.append(('sub_gid',ctypes.c_int))
+      dtype.append(('gal_gid',ctypes.c_int))
+      dtype.append(('desc_gid',ctypes.c_int))
+      dtype.append(('first_prog_gid',ctypes.c_int))
+      dtype.append(('next_prog_gid',ctypes.c_int))
+      dtype.append(('b_exists',ctypes.c_bool))
+      dtype.append(('mass_stars_bulge',ctypes.c_double))
+      dtype.append(('mass_metals_stars_bulge',ctypes.c_double))
+      dtype.append(('mass_stars_disc',ctypes.c_double))
+      dtype.append(('mass_metals_stars_disc',ctypes.c_double))
+      dtype.append(('mass_gas_cold',ctypes.c_double))
+      dtype.append(('mass_metals_gas_cold',ctypes.c_double))
+      dtype.append(('mass_BH',ctypes.c_double))
+      dtype.append(('radius_gas_cold',ctypes.c_double))
+      dtype.append(('radius_stars_disc',ctypes.c_double))
+      dtype.append(('radius_stars_bulge',ctypes.c_double))
+      dtype.append(('SFR_dt',ctypes.c_double))
+      dtype.append(('SFR_dt_start',ctypes.c_double))
+      dtype.append(('SFR_snap',ctypes.c_double))
       if b_SFH:
          # Note: don't include final array entry here, as that is a working value.
-         dtype.append(('mass_stars_bulge_sfh',np.float32,sfh_n_bin))
-         dtype.append(('mass_metals_stars_bulge_sfh',np.float32,sfh_n_bin))
-         dtype.append(('mass_stars_disc_sfh',np.float32,sfh_n_bin))
-         dtype.append(('mass_metals_stars_disc_sfh',np.float32,sfh_n_bin))
+         dtype.append(('mass_stars_bulge_sfh',ctypes.c_double,sfh_n_bin))
+         dtype.append(('mass_metals_stars_bulge_sfh',ctypes.c_double,sfh_n_bin))
+         dtype.append(('mass_stars_disc_sfh',ctypes.c_double,sfh_n_bin))
+         dtype.append(('mass_metals_stars_disc_sfh',ctypes.c_double,sfh_n_bin))
       # Create halo io buffer
       self.io_buffer=np.empty(self.n_rec,dtype=dtype)
       # Create HDF5 dataset

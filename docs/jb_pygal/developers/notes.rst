@@ -7,5 +7,6 @@ Developer notes
 
    change-log
    to-do
+   c-integration
    profiling
    results

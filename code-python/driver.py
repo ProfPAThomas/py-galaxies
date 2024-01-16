@@ -1,6 +1,7 @@
 """**High-level driver routines.**
 """
 
+import ctypes
 import numpy as np
 from codetiming import Timer
 from profiling import conditional_decorator
@@ -10,8 +11,8 @@ b_profile_cpu=commons.load('b_profile_cpu')
 b_SFH=commons.load('b_SFH')
 
 # Import astrophysics modules (could be run-time parameter dependent)
-from cooling import F_halo as F_halo_cooling
-from cooling import F_sub as F_sub_cooling
+#from cooling import F_halo as F_halo_cooling
+#from cooling import F_sub as F_sub_cooling
 from gals import D_gal, F_gal_template
 from star_formation_and_feedback import F_gal_form_stars, F_gal_SNR_feedback
 from mergers import F_merge_gals as F_merge_gals
@@ -41,13 +42,13 @@ def F_halo_reincorporation(halo,parameters):
     """
     dt_halo=commons.load('dt_halo')
     
-    t_reinc = max(parameters.c_Hen15_reinc/halo.mass,halo.tau_dyn)
-    mass_reinc = halo.mass_gas_eject * (1.-np.exp(-dt_halo/t_reinc))
-    mass_metals_reinc = mass_reinc * (halo.mass_metals_gas_eject/halo.mass_gas_eject)
-    halo.mass_gas_eject -= mass_reinc
-    halo.mass_metals_gas_eject -= mass_metals_reinc
-    halo.mass_gas_hot += mass_reinc
-    halo.mass_metals_gas_hot += mass_metals_reinc
+    t_reinc = max(parameters.c_Hen15_reinc/halo.props['mass'],halo.props['tau_dyn'])
+    mass_reinc = halo.props['mass_gas_eject'] * (1.-np.exp(-dt_halo/t_reinc))
+    mass_metals_reinc = mass_reinc * (halo.props['mass_metals_gas_eject']/halo.props['mass_gas_eject'])
+    halo.props['mass_gas_eject'] -= mass_reinc
+    halo.props['mass_metals_gas_eject'] -= mass_metals_reinc
+    halo.props['mass_gas_hot'] += mass_reinc
+    halo.props['mass_metals_gas_hot'] += mass_metals_reinc
     return None
 
 #------------------------------------------------------------------------------------------------------
@@ -79,7 +80,9 @@ def F_process_halos(halos,subs,gals,graph,parameters):
     else:
         b_gals_exist = False
 
-    # Load the number of timesteps
+    # Load timestep information
+    dt_halo=commons.load('dt_halo')
+    dt_gal=commons.load('dt_gal')
     n_dt_halo=commons.load('n_dt_halo')
     n_dt_gal=commons.load('n_dt_gal')
     if b_SFH:
@@ -93,16 +96,17 @@ def F_process_halos(halos,subs,gals,graph,parameters):
         # Accretion onto halos.
         halo.accrete_primordial_gas(parameters.base_metallicity)
         # Reincorporation of ejected gas
-        if halo.mass_gas_eject > parameters.mass_minimum_internal: F_halo_reincorporation(halo,parameters)
+        if halo.props['mass_gas_eject'] > parameters.mass_minimum_internal: F_halo_reincorporation(halo,parameters)
         # Cooling of gas from halo onto central subhalo (or, in L-Galaxies mode, the most massive subhalo)
         # Cooling occurs only if a central subhalo exists.
         if halo.sub_central_sid != parameters.NO_DATA_INT: 
             sub_central=subs[halo.sub_central_sid]
-            F_halo_cooling(halo,sub_central,parameters)
+            L_C.F_cooling_halo(halo.props,sub_central.props,ctypes.c_double(dt_halo))
+            #F_halo_cooling(halo,sub_central,parameters)
             # In l-galaxies mode the virial velocity of the subhalo may have changed, so need to reset that of the central galaxy also
             if parameters.b_lgalaxies:
                 if sub_central.gal_central_sid != parameters.NO_DATA_INT:
-                    gals[sub_central.gal_central_sid]['v_vir']=sub_central.half_mass_virial_speed
+                    gals[sub_central.gal_central_sid]['v_vir']=sub_central.props['half_mass_virial_speed']
         halo.n_dt+=1
         if halo.n_dt==n_dt_halo: halo.b_done=True
     # Cooling of subhalos should probably be done on the galaxy timestep, in tandem with galaxy processing:
@@ -116,31 +120,48 @@ def F_process_halos(halos,subs,gals,graph,parameters):
                 # Initially assume instantaneous merging of galaxies in subhalos
                 F_merge_gals(halos[sub.halo_sid],sub,gals[sub.gal_start_sid:sub.gal_end_sid],parameters)
             # Not all subhalos may have hot gas
-            if sub.mass_gas_hot > parameters.mass_minimum_internal:
-                gal=gals[sub.gal_central_sid]
+            if sub.props['mass_gas_hot'] > parameters.mass_minimum_internal:
                 # Cooling of hot gas in subhalo onto galaxy
                 # This also includes radio mode BH growth and feedback
-                F_sub_cooling(sub,gal,parameters)
+                # F_sub_cooling(sub,gals[sub.gal_central_sid],parameters)
+                # Need slice below to generate an array - need to work out how to adjust ctypes call to avoid this.
+                L_C.F_cooling_sub(gals[sub.gal_central_sid:sub.gal_central_sid+1],sub.props,ctypes.c_double(dt_halo))
             sub.n_dt+=1
             if sub.n_dt==n_dt_halo: sub.b_done=True
     if b_gals_exist:
         for i_dt_gal in range(n_dt_gal):
-            for gal in gals:
+            # Kludge until I work out how to get ctypes to accept a row instead of a 1-element array
+            #for gal in gals:
+            for i_gal in range(len(gals)):
+                gal=gals[i_gal]
                 if not gal['b_exists']: continue  #  Galaxies may have merged
                 gal['SFR_dt'] = 0. # This will fail to capture mergers (done above in subs loop) until we have a proper merger time for them.
                 if gal['mass_gas_cold'] > parameters.mass_minimum_internal: 
-                    mass_stars = F_gal_form_stars(gal,parameters)
+                    dt_gal=commons.load('dt_gal')
+                    # As coded in C at the moment, this will only work with SFH turned on.  We can get around
+                    # this with conditional compilation, but that is not yet implemented (but not hard to do).
+                    if b_SFH:
+                        i_bin_sfh=commons.load('i_bin_sfh')
+                        dt_snap=commons.load('dt_snap')
+                        mass_stars = L_C.F_SFF_gal_form_stars(gals[i_gal:i_gal+1],ctypes.c_double(dt_gal),ctypes.c_double(dt_snap),ctypes.c_int(i_bin_sfh))
+                    else:
+                        print('Conditional compilation of C routines not yet implemented')
+                        assert False
+                        mass_stars = L_C.F_SFF_gal_form_stars(gals[i_gal:i_gal+1],ctypes.c_double(dt_gal),ctypes.c_double(dt_snap))
+                    #mass_stars = F_gal_form_stars(gal,parameters)
                     # If subhalo does not exist, use halo as proxy.  This will work here as only need access to hot gas phase.
                     sub_sid=gal['sub_sid']
                     halo_sid=gal['halo_sid']
                     if sub_sid==parameters.NO_DATA_INT:
-                        F_gal_SNR_feedback(mass_stars,gal,halos[halo_sid],halos[halo_sid],parameters)
+                        L_C.F_SFF_orphan_SN_feedback(ctypes.c_double(mass_stars),gals[i_gal:i_gal+1],halos[halo_sid].props)
+                        #F_gal_SNR_feedback(mass_stars,gal,halos[halo_sid],halos[halo_sid],parameters)
                     else:
-                        F_gal_SNR_feedback(mass_stars,gal,subs[sub_sid],halos[halo_sid],parameters)
+                        L_C.F_SFF_gal_SN_feedback(ctypes.c_double(mass_stars),gals[i_gal:i_gal+1],subs[sub_sid].props,halos[halo_sid].props)
+                        #F_gal_SNR_feedback(mass_stars,gal,subs[sub_sid],halos[halo_sid],parameters)
             if b_SFH:
                 F_sfh_update_bins(gals,sfh,parameters)
                 i_dt+=1
-                commons.save('i_dt',i_dt)
+                commons.update('i_dt',i_dt)
             if i_dt_gal==0 and commons.load('i_dt_halo')==0: gal['SFR_dt_start']=gal['SFR_dt'].copy() # This will contain the mergers
     return None
 
@@ -193,7 +214,7 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
     -------
     None
     """
-    
+
     # These offsets give the first (sub)halo in this snapshot
     halo_offset=halos_this_snap[0].halo_gid
     if subs_this_snap != None: sub_offset=subs_this_snap[0].sub_gid
@@ -228,11 +249,11 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
                 if parameters.verbosity>=5: print('Processing descendant',desc_halo.halo_gid)
                 # Distribute mass to descendants in proportion to fractional contributions
                 i_frac=i_desc-desc_start_gid # fraction index corresponding to descendent index i_desc
-                desc_halo.mass_from_progenitors+=fractions[i_frac]*halo.mass
-                desc_halo.mass_gas_hot+=fractions[i_frac]*halo.mass_gas_hot
-                desc_halo.mass_metals_gas_hot+=fractions[i_frac]*halo.mass_metals_gas_hot
-                desc_halo.mass_stars+=fractions[i_frac]*halo.mass_stars
-                desc_halo.mass_metals_stars+=fractions[i_frac]*halo.mass_metals_stars
+                desc_halo.props['mass_from_progenitors']+=fractions[i_frac]*halo.props['mass']
+                desc_halo.props['mass_gas_hot']+=fractions[i_frac]*halo.props['mass_gas_hot']
+                desc_halo.props['mass_metals_gas_hot']+=fractions[i_frac]*halo.props['mass_metals_gas_hot']
+                desc_halo.props['mass_stars']+=fractions[i_frac]*halo.props['mass_stars']
+                desc_halo.props['mass_metals_stars']+=fractions[i_frac]*halo.props['mass_metals_stars']
             
     # Now loop over the subhalos
     if subs_last_snap != None:
@@ -253,10 +274,10 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
                 # and gals become orphans of that halo.   So add to relevant orphan count.
                 # Note: it seems that this can result in a huge excess of baryons in the descendant halo.
                 halos_this_snap[desc_main_sid].n_orphan+=sub.n_gal
-                halos_this_snap[desc_main_sid].mass_gas_hot+=sub.mass_gas_hot
-                halos_this_snap[desc_main_sid].mass_metals_gas_hot+=sub.mass_metals_gas_hot
-                halos_this_snap[desc_main_sid].mass_stars+=sub.mass_stars
-                halos_this_snap[desc_main_sid].mass_metals_stars+=sub.mass_metals_stars
+                halos_this_snap[desc_main_sid].props['mass_gas_hot']+=sub.props['mass_gas_hot']
+                halos_this_snap[desc_main_sid].props['mass_metals_gas_hot']+=sub.props['mass_metals_gas_hot']
+                halos_this_snap[desc_main_sid].props['mass_stars']+=sub.props['mass_stars']
+                halos_this_snap[desc_main_sid].props['mass_metals_stars']+=sub.props['mass_metals_stars']
             else:
                 # Otherwise the main subhalo descendant gets all the gals and hot gas - 
                 # i.e. assume that subhalos cannot split. 
@@ -266,11 +287,11 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
                 sub.desc_main_sid=sub_desc_main_sid
                 subs_this_snap[sub_desc_main_sid].n_gal+=sub.n_gal
                 # So long as subhalos don't split, we can simply inherit the baryon mass
-                subs_this_snap[sub_desc_main_sid].mass_baryon+=sub.mass_baryon
-                subs_this_snap[sub_desc_main_sid].mass_gas_hot+=sub.mass_gas_hot
-                subs_this_snap[sub_desc_main_sid].mass_metals_gas_hot+=sub.mass_metals_gas_hot
-                subs_this_snap[sub_desc_main_sid].mass_stars+=sub.mass_stars
-                subs_this_snap[sub_desc_main_sid].mass_metals_stars+=sub.mass_metals_stars
+                subs_this_snap[sub_desc_main_sid].props['mass_baryon']+=sub.props['mass_baryon']
+                subs_this_snap[sub_desc_main_sid].props['mass_gas_hot']+=sub.props['mass_gas_hot']
+                subs_this_snap[sub_desc_main_sid].props['mass_metals_gas_hot']+=sub.props['mass_metals_gas_hot']
+                subs_this_snap[sub_desc_main_sid].props['mass_stars']+=sub.props['mass_stars']
+                subs_this_snap[sub_desc_main_sid].props['mass_metals_stars']+=sub.props['mass_metals_stars']
                 # Now loop over descendants transferring properties to them
                 # Only required if we decide that subhalos can split
                 # for i_desc in range(sub_desc_start_gid,sub_desc_end_gid):
@@ -315,7 +336,7 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
                     print('halo =',halo)
                     print('halo.desc_start_gid =',halo.desc_start_gid)
                     print('halo.desc_end_gid =',halo.desc_end_gid)
-                    assert False
+                    continue # Failed to find descendant halo (should be impossible in well-structured graph); throw away 
                 assert desc_halo != parameters.NO_DATA_INT
                 # The is the location of orphan galaxies in the previous snapshot
                 gal_last_start_sid=halo.orphan_start_sid
@@ -396,7 +417,7 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
         gal_central['halo_gid']=sub.halo_gid
         gal_central['halo_sid']=sub.halo_sid
         # The central galaxies have their virial speed updated; the others keep their inherited virial speed
-        gals_this_snap[sub.gal_central_sid]['v_vir']=sub.half_mass_virial_speed
+        gals_this_snap[sub.gal_central_sid]['v_vir']=sub.props['half_mass_virial_speed']
 
     # Finally, set the accretion rate required to bring the halos up to the universal mean over the
     # course of a snapshot interval.
@@ -408,21 +429,25 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
     # Some sanity checks
     # In principle subhalos should aready have the correct baryon mass: this is a check
     for sub in subs_this_snap:
-        if sub.mass_baryon > parameters.mass_minimum_internal:
+        if sub.props['mass_baryon'] > parameters.mass_minimum_internal:
             # Had to relax condition from 1e-4 to 1e-2 to accommodate Mill tree errors.
             # So probably still a bug in my conversion code.
             # But at this point I am not inclined to waste any more time trying to fix it.
             # (some subhalo pointers are -1!)
-            if np.abs(sub.mass_baryon/sub.sum_mass_baryon(gals_this_snap)-1.)>1e-2:
+            if np.abs(sub.props['mass_baryon']/sub.sum_mass_baryon(gals_this_snap)-1.)>1e-2:
                 print('gals[''mass_baryon''] =',gals_this_snap[sub.gal_start_sid:sub.gal_end_sid]['mass_baryon'])
-                print('sub.mass_gas_hot =',sub.mass_gas_hot)
-                print('sub.mass_stars =',sub.mass_stars)
+                print('gals[''mass_gas_cold''] =',gals_this_snap[sub.gal_start_sid:sub.gal_end_sid]['mass_gas_cold'])
+                print('gals[''mass_stars_disc''] =',gals_this_snap[sub.gal_start_sid:sub.gal_end_sid]['mass_stars_disc'])
+                print('sub.mass_gas_hot =',sub.props['mass_gas_hot'])
+                print('sub.mass_stars =',sub.props['mass_stars'])
+                print('sub.mass_baryon =',sub.props['mass_baryon'])
                 halo=halos_this_snap[sub.halo_sid]
-                print('halo.mass_gas_eject =',halo.mass_gas_eject)
-                print('halo.mass_gas_hot =',halo.mass_gas_hot)
-                print('halo.mass_stars =',halo.mass_stars)
+                print('halo.mass_gas_eject =',halo.props['mass_gas_eject'])
+                print('halo.mass_gas_hot =',halo.props['mass_gas_hot'])
+                print('halo.mass_stars =',halo.props['mass_stars'])
+                print('halo.mass_baryon =',halo.props['mass_baryon'])
                 print('subhalo baryon mass discrepancy',
-                    sub.graph_ID,sub.snap_ID,sub.sub_sid,sub.mass_baryon,sub.sum_mass_baryon(gals_this_snap))
+                    sub.graph_ID,sub.snap_ID,sub.sub_sid,sub.props['mass_baryon'],sub.sum_mass_baryon(gals_this_snap))
                 #raise AssertionError('subhalo baryon mass discrepancy',
                 #    sub.graph_ID,sub.snap_ID,sub.sub_sid,sub.mass_baryon,sub.sum_mass_baryon(gals_this_snap))
     # Check that all halos are assigned to a halo

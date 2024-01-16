@@ -2,8 +2,28 @@
 Class files for storage and output of subhalo properties
 """
 
+import ctypes
 import h5py
 import numpy as np
+
+# First define the dtype for subhalo properties in a way that is compatible with ctypes
+D_sub=np.dtype([
+   ('mass',ctypes.c_double),
+   ('pos',ctypes.c_double*3),
+   ('vel',ctypes.c_double*3),
+   ('rms_speed',ctypes.c_double),
+   ('half_mass_radius',ctypes.c_double),
+   ('half_mass_virial_speed',ctypes.c_double),
+   # Derived properties
+   ('temperature',ctypes.c_double),
+   ('tau_dyn',ctypes.c_double),
+   # SAM properties
+   ('mass_baryon',ctypes.c_double),
+   ('mass_gas_hot',ctypes.c_double),
+   ('mass_metals_gas_hot',ctypes.c_double),
+   ('mass_stars',ctypes.c_double),
+   ('mass_metals_stars',ctypes.c_double)],
+   align=True)
 
 class C_sub:
    """
@@ -76,7 +96,23 @@ class C_sub:
     vel : float[3]
         The velocity of the subhalo.
  
-    """   
+    """
+   # Define template for new subhalo instances
+   template=np.empty(1,dtype=np.dtype(D_sub,align=True))
+   template['mass'] = 0.
+   template['pos'] = [0.,0.,0.]
+   template['vel'] = [0.,0.,0.]
+   template['rms_speed'] = 0.
+   template['half_mass_radius'] = 0.
+   template['half_mass_virial_speed'] = 0.
+   template['temperature'] = 0.
+   template['tau_dyn'] = 0.
+   template['mass_baryon']=0.
+   template['mass_gas_hot']=0.
+   template['mass_metals_gas_hot']=0.
+   template['mass_stars']=0.
+   template['mass_metals_stars']=0.
+
    def __init__(self,graph_ID,snap_ID,sub_gid,graph,parameters):
       """
        Read in the subhalo properties from the graph, including ranges for descendants;
@@ -107,22 +143,18 @@ class C_sub:
       self.desc_end_gid = self.desc_start_gid+self.n_desc
       self.desc_halo_sid = parameters.NO_DATA_INT
 
-      # Intrinsic properties
-      self.mass = graph.sub_mass[sub_gid]
-      self.pos = graph.sub_pos[sub_gid]
-      self.vel = graph.sub_vel[sub_gid]
-      self.rms_speed = graph.sub_rms_speed[sub_gid]
-      self.half_mass_radius = graph.sub_half_mass_radius[sub_gid]
-      self.half_mass_virial_speed = (0.5*parameters.c_G*self.mass/self.half_mass_radius)**(0.5)
-      # Derived properties
-      self.temperature = self.half_mass_virial_speed**2 * parameters.c_half_mass_virial_speed_to_temperature
-      self.tau_dyn = 2.*self.half_mass_radius/self.half_mass_virial_speed
-      # SAM properties
-      self.mass_baryon =  0.
-      self.mass_gas_hot = 0.
-      self.mass_metals_gas_hot = 0.
-      self.mass_stars = 0.
-      self.mass_metals_stars = 0.
+      # Intrinsic properties: to be passed to C routines, so store as a numpy array.
+      # Create and initialise
+      self.props=C_sub.template.copy() # Both the C_sub and the .copy() are required here.
+      self.props['mass'] = graph.sub_mass[sub_gid]
+      self.props['pos'] = graph.sub_pos[sub_gid]
+      self.props['vel'] = graph.sub_vel[sub_gid]
+      self.props['rms_speed'] = graph.sub_rms_speed[sub_gid]
+      self.props['half_mass_radius'] = graph.sub_half_mass_radius[sub_gid]
+      self.props['half_mass_virial_speed'] = (0.5*parameters.c_G*self.props['mass']/self.props['half_mass_radius'])**(0.5)
+      self.props['temperature'] = self.props['half_mass_virial_speed']**2 * parameters.c_half_mass_virial_speed_to_temperature
+      self.props['tau_dyn'] = 2.*self.props['half_mass_radius']/self.props['half_mass_virial_speed']
+
       # May be more than 1 galaxy in a subhalo (if progenitor subhalos merge):
       self.n_gal = 0
       self.gal_start_sid = parameters.NO_DATA_INT
@@ -176,7 +208,7 @@ class C_sub:
       self.gal_end_sid = self.gal_start_sid + self.n_gal
       self.gal_next_sid = self.gal_start_sid # Will be used to keep track of galaxies during update_halo phase.
       return self.gal_end_sid
-    
+
    def sum_mass_baryon(self,gals):
        """
        Calculates the total baryonic mass of the subhalo, including galaxies.
@@ -192,7 +224,7 @@ class C_sub:
        float
           The baryonic mass of the subhalo, inclusive of galaxies.
        """
-       mass_baryon = self.mass_gas_hot + self.mass_stars + \
+       mass_baryon = self.props['mass_gas_hot'] + self.props['mass_stars'] + \
                        np.sum(gals[self.gal_start_sid:self.gal_end_sid]['mass_baryon'])
        return mass_baryon
         
@@ -287,16 +319,16 @@ class C_sub_output:
          self.io_buffer[self.i_rec]['snap_ID'] = sub.snap_ID
          self.io_buffer[self.i_rec]['halo_gid'] = sub.halo_gid
          self.io_buffer[self.i_rec]['sub_gid'] = sub.sub_gid
-         self.io_buffer[self.i_rec]['pos'] = sub.pos * parameters.length_internal_to_output
-         self.io_buffer[self.i_rec]['vel'] = sub.vel * parameters.speed_internal_to_output
-         self.io_buffer[self.i_rec]['mass'] = sub.mass * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['rms_speed'] = sub.rms_speed * parameters.speed_internal_to_output
-         self.io_buffer[self.i_rec]['half_mass_virial_speed'] = sub.half_mass_virial_speed * parameters.speed_internal_to_output
-         self.io_buffer[self.i_rec]['temperature'] = sub.temperature * parameters.temperature_internal_to_output
-         self.io_buffer[self.i_rec]['mass_gas_hot']= sub.mass_gas_hot * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_metals_gas_hot']= sub.mass_metals_gas_hot * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_stars']= sub.mass_stars * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_metals_stars']= sub.mass_metals_stars * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['pos'] = sub.props['pos'] * parameters.length_internal_to_output
+         self.io_buffer[self.i_rec]['vel'] = sub.props['vel'] * parameters.speed_internal_to_output
+         self.io_buffer[self.i_rec]['mass'] = sub.props['mass'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['rms_speed'] = sub.props['rms_speed'] * parameters.speed_internal_to_output
+         self.io_buffer[self.i_rec]['half_mass_virial_speed'] = sub.props['half_mass_virial_speed'] * parameters.speed_internal_to_output
+         self.io_buffer[self.i_rec]['temperature'] = sub.props['temperature'] * parameters.temperature_internal_to_output
+         self.io_buffer[self.i_rec]['mass_gas_hot']= sub.props['mass_gas_hot'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_metals_gas_hot']= sub.props['mass_metals_gas_hot'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_stars']= sub.props['mass_stars'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec]['mass_metals_stars']= sub.props['mass_metals_stars'] * parameters.mass_internal_to_output
          self.i_rec+=1
          if self.i_rec == self.n_rec: self.flush()
       return None

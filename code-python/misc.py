@@ -115,12 +115,51 @@ def F_create_galaxy_struct_header_file(D_gal):
    f.write('/* Contains struct definition for galaxies. */\n\n#include <stdbool.h>\n\nstruct struct_gal {\n')
    for key in D_gal.fields.keys():
       var_type=str(D_gal[key])
-      if 'bool' in var_type:
+      # Do the awkward arrays first
+      if ',))' in var_type:
+         var_type=var_type.split(',')[1]
+         var_type=var_type.strip(' (')
+         f.write('    double '+key+'['+var_type+'];\n')
+      # Now the simple variables
+      elif 'bool' in var_type:
          f.write('    bool '+key+';\n')         
       elif 'int' in var_type:
          f.write('    int '+key+';\n')
       elif 'float' in var_type:
          f.write('    double '+key+';\n')
+      else:
+         f.write('    '+var_type+' '+key+';\n')
+   f.write('}; \n')
+   f.close()
+   return None
+   
+
+def F_create_halo_struct_header_file(D_halo):
+   """
+   Creates a C struct definition that matches the subhalo dtype.
+   Writes out to code/subs.h
+
+   Attributes
+   ----------
+   D_halo : obj : numpy.dtype
+       Numpy dtype used in the halo structured array.
+   """
+   f=open('code-C/halos.h','w')
+   f.write('/* Contains struct definition for properties of halos. */\n\n#include <stdbool.h>\n\nstruct struct_halo {\n')
+   for key in D_halo.fields.keys():
+      var_type=str(D_halo[key])
+      # First deal with the awkward arrays
+      if '(3,)' in var_type:
+         f.write('    double '+key+'[3];\n')
+      # then process the simple types
+      elif 'bool' in var_type:
+         f.write('    bool '+key+';\n')         
+      elif 'int' in var_type:
+         f.write('    int '+key+';\n')
+      elif 'float' in var_type:
+         f.write('    double '+key+';\n')
+      else:
+         f.write('    '+var_type+' '+key+';\n')
    f.write('}; \n')
    f.close()
    return None
@@ -199,3 +238,35 @@ struct struct_param {\n\
    
    f.close()
    return None
+
+
+def F_create_sub_struct_header_file(D_sub):
+   """
+   Creates a C struct definition that matches the subhalo dtype.
+   Writes out to code/subs.h
+
+   Attributes
+   ----------
+   D_sub : obj : numpy.dtype
+       Numpy dtype used in the subhalo structured array.
+   """
+   f=open('code-C/subs.h','w')
+   f.write('/* Contains struct definition for properties of subhalos. */\n\n#include <stdbool.h>\n\nstruct struct_sub {\n')
+   for key in D_sub.fields.keys():
+      var_type=str(D_sub[key])
+      # First deal with the awkward arrays
+      if '(3,)' in var_type:
+         f.write('    double '+key+'[3];\n')
+      # then process the simple types
+      elif 'bool' in var_type:
+         f.write('    bool '+key+';\n')         
+      elif 'int' in var_type:
+         f.write('    int '+key+';\n')
+      elif 'float' in var_type:
+         f.write('    double '+key+';\n')
+      else:
+         f.write('    '+var_type+' '+key+';\n')
+   f.write('}; \n')
+   f.close()
+   return None
+   

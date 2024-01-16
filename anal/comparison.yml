@@ -1,0 +1,78 @@
+# Script to compare two L-Galaxies outputs.
+# Keep the numbers small so that there is a direct match
+# (Could do something sophisticated, matching graphs, snaps, etc, but not here.)
+
+inputFiles:
+  haloFile1: 'data/C_prior_to_devel_HaloOutput.hdf5'
+  subhaloFile1: 'data/C_prior_to_devel_SubhaloOutput.hdf5'
+  galaxyFile1: 'data/C_prior_to_devel_GalaxyOutput.hdf5'
+  haloFile2: 'data/C_devel_HaloOutput.hdf5'
+  subhaloFile2: 'data/C_devel_SubhaloOutput.hdf5'
+  galaxyFile2: 'data/C_devel_GalaxyOutput.hdf5'
+save_prefix: 'comparison_'
+ 
+plots:
+ coldGasMetallicity: True
+ hotGasSubhalo: True
+ stellarDiscRadius: True
+ stellarMass: True
+
+graphs:
+ graphMin: 0
+ graphMax: 1000 # Note - includes last element!
+ 
+snapshots:
+ snapMin: 61
+ snapMax: 61 # Note - includes last element!
+
+coldGasMetallicity:
+ figsize: [12,8]
+ xscale: 'log'
+ yscale: 'log'
+ markerType: '.'
+ xlabel: '$Z_\mathrm{cold gas}$ (prior)' 
+ ylabel: '$Z_\mathrm{cold gas}$ (C-version)'
+ legend:   False
+ label:   'Cold gas metallicity'
+ save_png: False
+ save_pdf: False
+ name:    'coldgas_Z'
+
+hotGasSubhalo:
+ figsize: [12,8]
+ xscale: 'log'
+ yscale: 'log'
+ markerType: '.'
+ xlabel: '$M_\mathrm{hot gas}$ / M$_\odot$ (prior)' 
+ ylabel: '$M_\mathrm{hot gas}$ / M$_\odot$ (C-version)'
+ legend:   False
+ label:   'Hot gas mass'
+ save_png: False
+ save_pdf: False
+ name:    'hotgas'
+
+stellarDiscRadius:
+ figsize: [12,8]
+ xscale: 'linear'
+ yscale: 'linear'
+ markerType: '.'
+ xlabel: '$R_{D,\mathrm{stars}}$ / Mpc (prior)' 
+ ylabel: '$R_{D,\mathrm{stars}}$ / Mpc (C-version)'
+ legend:   False
+ label:   'Stellar exponential disc radius'
+ save_png: False
+ save_pdf: False
+ name:    'disc_radius'
+
+stellarMass:
+ figsize: [12,8]
+ xscale: 'log'
+ yscale: 'log'
+ markerType: '.'
+ xlabel: '$M_\mathrm{stars}$ / M$_\odot$ (prior)' 
+ ylabel: '$M_\mathrm{stars}$ / M$_\odot$ (C-version)'
+ legend:   False
+ label:   'Stellar mass'
+ save_png: False
+ save_pdf: False
+ name:    'stars'

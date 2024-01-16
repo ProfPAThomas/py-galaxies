@@ -5,13 +5,22 @@
 
 */
 
-#include "cooling.h"
-#include "parameters.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include "cooling.h"
+#include "gals.h"
+#include "halos.h"
+#include "parameters.h"
+#include "subs.h"
+// proto.h has to come last in order not to generate warnings about multiple struct definitions
+// Could probably get around that by using #ifndef.
+#include "proto.h"
 
-double F_get_metaldependent_cooling_rate(double log10_T, double log10_Z) {
+//------------------------------------------------------------------------------------------------------------
+
+double F_cooling_get_metaldependent_cooling_rate(double log10_T, double log10_Z) {
     /*
     Returns the cooling function, ie the cooling rate per unit density of electrons and ions.
     Assumes that the cooling function is tabulated in code units.
@@ -74,6 +83,8 @@ double F_get_metaldependent_cooling_rate(double log10_T, double log10_Z) {
     return pow(10.,log10_Lambda);
 }
 
+//------------------------------------------------------------------------------------------------------------
+
 double F_cooling_SIS(double mass, double tau_dyn, double half_mass_radius, double mass_gas, double mass_metals_gas, double temp_start, double temp_end, double dt) {
     /*
     Implements the isothermal cooling model as used in L-Galaxies and many other SAMs.
@@ -120,7 +131,7 @@ double F_cooling_SIS(double mass, double tau_dyn, double half_mass_radius, doubl
     // Determine cooling function
     log10_Z = log10(mass_metals_gas/mass_gas);
     // Cooling rate per unit density of electrons & ions
-    Lambda = F_get_metaldependent_cooling_rate(log10(temp_start),log10_Z);
+    Lambda = F_cooling_get_metaldependent_cooling_rate(log10(temp_start),log10_Z);
     // Could save a little time in defining a conversion factor for half_mass_radius**3/mass in halos/subhalos.
     // (Because we execute the cooling every mini-step).
     tau_cool = pow(half_mass_radius,3)*(temp_start-temp_end)/(mass*Lambda);
@@ -141,4 +152,141 @@ double F_cooling_SIS(double mass, double tau_dyn, double half_mass_radius, doubl
     }
             
     return (fg0-fg)*mass;
+}
+
+//------------------------------------------------------------------------------------------------------------
+
+void F_cooling_halo(struct struct_halo *halo,struct struct_sub *sub, double dt) {
+    /*
+    Cooling of halo onto subhalo.
+
+    Arguments
+    ---------
+    halo : obj : struct struct_halo
+       Properties of the halo
+    sub : obj : struct struct_sub
+       Properties of the subhalo
+    dt : double
+       The timestep over which cooling takes place.
+    */
+
+    double mass_cooled, mass_metals_cooled;
+    
+    if (parameters.b_lgalaxies) {
+	/*
+        Simple model to mimic that of L-Galaxies.  
+        The hot gas in halos and subhalos is regarded as a single entity with temperature equal to that of the halo.
+        So all we do here is give the hot gas to the subhalo, and
+        set the virial speed and temperature of the subhalo to equal that of the halo.
+        We will also need to update the virial speed of the galaxies upon return from this function.
+        */
+        (*sub).mass_gas_hot += (*halo).mass_gas_hot;
+	(*sub).mass_metals_gas_hot += (*halo).mass_metals_gas_hot;
+        (*sub).mass_baryon += (*halo).mass_gas_hot;
+        (*halo).mass_gas_hot = parameters.mass_minimum_internal; // Just so it appears in the plots as a non-zero value.
+	(*halo).mass_metals_gas_hot = parameters.mass_minimum_internal*parameters.base_metallicity;
+	// Set subhalo properties to match that of the halo
+        (*sub).temperature = (*halo).temperature;
+	(*sub).half_mass_virial_speed = (*halo).half_mass_virial_speed;
+    }
+    else if (strcmp(parameters.cooling_model,"SIS")==0) {
+        mass_cooled=F_cooling_SIS((*halo).mass,(*halo).tau_dyn,(*halo).half_mass_radius,(*halo).mass_gas_hot,
+				  (*halo).mass_metals_gas_hot,(*halo).temperature,(*sub).temperature,dt);
+        mass_metals_cooled  = (mass_cooled/(*halo).mass_gas_hot) * (*halo).mass_metals_gas_hot;
+	(*halo).mass_gas_hot -= mass_cooled;
+        (*halo).mass_metals_gas_hot -= mass_metals_cooled;
+        (*sub).mass_gas_hot += mass_cooled;
+        (*sub).mass_metals_gas_hot += mass_metals_cooled;
+        (*sub).mass_baryon += mass_cooled;
+    }
+    else {
+        printf("cooling.F_cooling_halo: cooling model %s not implemented.\n",parameters.cooling_model);
+	exit(1);
+    }
+    return;
+}
+
+//------------------------------------------------------------------------------------------------------------
+
+void F_cooling_sub(struct struct_gal *gal, struct struct_sub *sub, double dt) {
+    /*
+    Cooling of subhalo onto galaxy.
+    Also sets the radius of the disc.
+
+    Arguments
+    ---------
+    gal : obj : D_gal
+       The central galaxy of the subhalo currently being processed.
+    sub : obj: D_sub
+       Properties of the subhalo. 
+    dt : double
+       The timestep over which cooling takes place.
+    */
+
+    double ang_mom_gas_cold, dm_BH, dm_BH_heat_max, dm_BH_max, dm_Edd, dm_metals_BH, efac;
+    double gal_temperature, mass_cooled, mass_heated, mass_metals_cooled;
+    
+    // Angular momentum assuming exponential disc is 2vR_dM where R_d is the exponential disk radius
+    ang_mom_gas_cold = 2. * (*gal).mass_gas_cold * (*gal).v_vir * (*gal).radius_gas_cold;
+
+    // Mass cooling in the absence of AGN heating
+    if ((*sub).mass_gas_hot <= parameters.mass_minimum_internal)
+	return;
+				
+    if (strcmp(parameters.cooling_model,"SIS")==0) {
+        gal_temperature=parameters.temperature_1e4K_internal; // Cool down to 1e4 K
+        mass_cooled=F_cooling_SIS((*sub).mass,(*sub).tau_dyn,(*sub).half_mass_radius,(*sub).mass_gas_hot,
+				  (*sub).mass_metals_gas_hot,(*sub).temperature,gal_temperature,dt);
+    }
+    else {
+        printf("cooling.F_cooling_sub: cooling model %s not implemented.\n",parameters.cooling_model);
+	exit(1);
+    }
+
+    // Radio mode growth of BH
+    // Formula from Hen15 S24
+    dm_BH_max = F_BH_growth_rate_radio((*sub).mass_gas_hot,(*gal).mass_BH,parameters.c_BH_r)*dt;
+    // Eddington limit
+    dm_Edd = parameters.c_BH_Edd * (*gal).mass_BH * dt;
+    // Amount of growth needed to fully offset cooling
+    efac = parameters.c_BH_mheat_r/pow((*sub).half_mass_virial_speed,2);
+    dm_BH_heat_max = mass_cooled / (1+efac);
+    // Hence actual BH accretion rate
+    dm_BH = fmin(fmin(dm_BH_max,dm_Edd),dm_BH_heat_max);
+    // Modify the amount of gas cooled
+    mass_heated = dm_BH * efac;
+    mass_cooled = mass_cooled-mass_heated;
+    if (mass_cooled < 0.) {
+        if (mass_cooled > -1e-10)
+            mass_cooled = 0.;
+        else {
+            printf("F_cooling_sub: negative amount of gas cooled\n");
+	    exit(1);
+	}
+    }
+    mass_metals_cooled  = (mass_cooled/(*sub).mass_gas_hot) * (*sub).mass_metals_gas_hot;
+    (*sub).mass_gas_hot -= mass_cooled;
+    (*sub).mass_metals_gas_hot -= mass_metals_cooled;
+    (*gal).mass_gas_cold += mass_cooled;
+    (*gal).mass_metals_gas_cold += mass_metals_cooled;
+    // Cooled gas will add to the baryon content of galaxies
+    (*gal).mass_baryon += mass_cooled;
+        
+    // Disc radius (assuming exponential disc for cold gas and SIS for halo gas)
+    // Accreted angular momentum for SIS is (1/2)RVM*lambda where lambda=parameters.halo_angular_momentum
+    if ((*gal).mass_gas_cold > parameters.mass_minimum_internal) {
+	ang_mom_gas_cold += mass_cooled * (*sub).half_mass_virial_speed * (*sub).half_mass_radius * parameters.halo_angular_momentum;
+	    (*gal).radius_gas_cold = ang_mom_gas_cold / (2 * (*gal).mass_gas_cold * (*gal).v_vir);
+	}
+    else
+        (*gal).radius_gas_cold = 0.; // Set to arbitrary value
+        
+    // We will transfer gas from the hot gas to the BH, even if it releases more energy than required to prevent cooling
+    dm_metals_BH  = (dm_BH/(*sub).mass_gas_hot) * (*sub).mass_metals_gas_hot;
+    (*sub).mass_gas_hot -= dm_BH;
+    (*sub).mass_metals_gas_hot -= dm_metals_BH;
+    (*gal).mass_BH += dm_BH;
+    (*gal).mass_metals_BH += dm_metals_BH;
+    (*gal).mass_baryon += dm_BH;
+    return;
 }
