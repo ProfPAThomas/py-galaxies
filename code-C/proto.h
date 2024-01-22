@@ -7,8 +7,22 @@ double F_BH_growth_rate_radio(double mass_gas_hot,double mass_BH, double f_BH);
 // cooling.c
 double F_cooling_get_metaldependent_cooling_rate(double log10_T, double log10_Z);
 double F_cooling_SIS(double mass, double tau_dyn, double half_mass_radius, double mass_gas, double mass_metals_gas, double temp_start, double temp_end, double dt);
-void F_cooling_halo(struct struct_halo *halo,struct struct_sub *sub, double dt);
+void F_cooling_halo(struct struct_halo *halo, struct struct_sub *sub, double dt);
 void F_cooling_sub(struct struct_gal *gal, struct struct_sub *sub, double dt);
+
+// mergers.c
+#ifdef SFH
+int F_mergers_merge_gals(struct struct_halo *halo,struct struct_sub *sub, struct struct_gal gals[],
+			 int n_gal, double dt, double dt_snap, int i_bin_sfh);
+#else
+int F_mergers_merge_gals(struct struct_halo *halo,struct struct_sub *sub, struct struct_gal gals[],
+			 int n_gal, double dt, double dt_snap);
+#endif
+#ifdef SFH
+double F_mergers_starburst(double mass_ratio, struct struct_gal *gal_main, double dt, double dt_snap, int i_bin_sfh);
+#else
+double F_mergers_starburst(double mass_ratio, struct struct_gal *gal_main, double dt, double dt_snap);
+#endif
 
 // star_formation_and_feedback.c
 #ifdef SFH

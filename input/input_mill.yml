@@ -11,7 +11,7 @@ io_files:
   graph_file:   'MergerGraphs/Mill/pygal_063_5.hdf5'
   snap_file:    'MergerGraphs/Mill/snaplist.txt' # Should ideally be stored in graph_file
  output_files:
-  output_prefix: 'output/Mill/C_devel_SFF_1000' # Destination directory and prefix for all output
+  output_prefix: 'output/Mill/C_devel' # Destination directory and prefix for all output
   halo_file:    'HaloOutput.hdf5'
   subhalo_file: 'SubhaloOutput.hdf5'
   galaxy_file:  'GalaxyOutput.hdf5'
@@ -58,8 +58,8 @@ halo_model:
 # Units expressed in terms that astropy understands
 # The internal units are self-consistent in that, e.g., speed_unit=length_unit/time_unit.
 # This is to keep the equations simple and avoid missing conversion factors.
-# Also, although units are specified, within the code, quantities are stored as values only, for efficiency:
-# I am unsure as to whether using units within numpy will slow things down, so possibly this could be relaxed.
+# Also, although units are specified, within the code quantities are stored as values only, for efficiency:
+# using units within numpy slows things down enormously.
 units:
  input:    # Units of input data should be attributes of the graph file
   length:

@@ -14,8 +14,7 @@ b_SFH=commons.load('b_SFH')
 #from cooling import F_halo as F_halo_cooling
 #from cooling import F_sub as F_sub_cooling
 from gals import D_gal, F_gal_template
-from star_formation_and_feedback import F_gal_form_stars, F_gal_SNR_feedback
-from mergers import F_merge_gals as F_merge_gals
+#from mergers import F_merge_gals as F_merge_gals
 if b_SFH: from sfh import F_sfh_update_bins
 
 #------------------------------------------------------------------------------------------------------
@@ -118,12 +117,20 @@ def F_process_halos(halos,subs,gals,graph,parameters):
                 raise RuntimeError('subhalo '+str(sub.sub_gid)+' in graph '+str(sub.graph_ID)+' already processed.')
             if sub.n_gal>1:
                 # Initially assume instantaneous merging of galaxies in subhalos
-                F_merge_gals(halos[sub.halo_sid],sub,gals[sub.gal_start_sid:sub.gal_end_sid],parameters)
+                assert sub.n_gal==sub.gal_end_sid-sub.gal_start_sid
+                dt_snap=commons.load('dt_snap')
+                if b_SFH:
+                    i_bin_sfh=commons.load('i_bin_sfh')
+                    sub.gal_central_sid=L_C.F_mergers_merge_gals(halo.props,sub.props,gals[sub.gal_start_sid:sub.gal_end_sid], \
+                        ctypes.c_int(sub.n_gal), ctypes.c_double(dt_gal), ctypes.c_double(dt_snap), ctypes.c_int(i_bin_sfh))
+                else:
+                    sub.gal_central_sid=L_C.F_mergers_merge_gals(halo.props,sub.props,gals[sub.gal_start_sid:sub.gal_end_sid], \
+                        ctypes.c_int(sub.n_gal), ctypes.c_double(dt_gal), ctypes.c_double(dt_snap))                
+                #F_merge_gals(halos[sub.halo_sid],sub,gals[sub.gal_start_sid:sub.gal_end_sid],parameters)
             # Not all subhalos may have hot gas
             if sub.props['mass_gas_hot'] > parameters.mass_minimum_internal:
                 # Cooling of hot gas in subhalo onto galaxy
                 # This also includes radio mode BH growth and feedback
-                # F_sub_cooling(sub,gals[sub.gal_central_sid],parameters)
                 # Need slice below to generate an array - need to work out how to adjust ctypes call to avoid this.
                 L_C.F_cooling_sub(gals[sub.gal_central_sid:sub.gal_central_sid+1],sub.props,ctypes.c_double(dt_halo))
             sub.n_dt+=1
@@ -148,16 +155,13 @@ def F_process_halos(halos,subs,gals,graph,parameters):
                         print('Conditional compilation of C routines not yet implemented')
                         assert False
                         mass_stars = L_C.F_SFF_gal_form_stars(gals[i_gal:i_gal+1],ctypes.c_double(dt_gal),ctypes.c_double(dt_snap))
-                    #mass_stars = F_gal_form_stars(gal,parameters)
                     # If subhalo does not exist, use halo as proxy.  This will work here as only need access to hot gas phase.
                     sub_sid=gal['sub_sid']
                     halo_sid=gal['halo_sid']
                     if sub_sid==parameters.NO_DATA_INT:
                         L_C.F_SFF_orphan_SN_feedback(ctypes.c_double(mass_stars),gals[i_gal:i_gal+1],halos[halo_sid].props)
-                        #F_gal_SNR_feedback(mass_stars,gal,halos[halo_sid],halos[halo_sid],parameters)
                     else:
                         L_C.F_SFF_gal_SN_feedback(ctypes.c_double(mass_stars),gals[i_gal:i_gal+1],subs[sub_sid].props,halos[halo_sid].props)
-                        #F_gal_SNR_feedback(mass_stars,gal,subs[sub_sid],halos[halo_sid],parameters)
             if b_SFH:
                 F_sfh_update_bins(gals,sfh,parameters)
                 i_dt+=1
