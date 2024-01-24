@@ -76,6 +76,7 @@ def F_process_halos(halos,subs,gals,graph,parameters):
     # Set flag for existence (or otherwise) of galaxies.
     if isinstance(gals, np.ndarray):
         b_gals_exist = True
+        n_gal=len(gals)
     else:
         b_gals_exist = False
 
@@ -139,7 +140,7 @@ def F_process_halos(halos,subs,gals,graph,parameters):
         for i_dt_gal in range(n_dt_gal):
             # Kludge until I work out how to get ctypes to accept a row instead of a 1-element array
             #for gal in gals:
-            for i_gal in range(len(gals)):
+            for i_gal in range(n_gal):
                 gal=gals[i_gal]
                 if not gal['b_exists']: continue  #  Galaxies may have merged
                 gal['SFR_dt'] = 0. # This will fail to capture mergers (done above in subs loop) until we have a proper merger time for them.
@@ -163,7 +164,8 @@ def F_process_halos(halos,subs,gals,graph,parameters):
                     else:
                         L_C.F_SFF_gal_SN_feedback(ctypes.c_double(mass_stars),gals[i_gal:i_gal+1],subs[sub_sid].props,halos[halo_sid].props)
             if b_SFH:
-                F_sfh_update_bins(gals,sfh,parameters)
+                L_C.F_sfh_update_bins(gals,ctypes.c_int(n_gal),ctypes.c_int(i_dt))
+                #F_sfh_update_bins(gals,sfh,parameters)
                 i_dt+=1
                 commons.update('i_dt',i_dt)
             if i_dt_gal==0 and commons.load('i_dt_halo')==0: gal['SFR_dt_start']=gal['SFR_dt'].copy() # This will contain the mergers

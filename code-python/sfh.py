@@ -1,5 +1,6 @@
 """
-Functions to cool gas from halos onto the central subhalo, and from the central subhalo onto the galaxy
+Class to store SFH information.
+Function to merger SFH bins, if required
 """
 
 import numpy as np
@@ -70,12 +71,13 @@ class C_sfh:
       # So this is the maximum number of SFH bins that we could need at each step
       # n_level is the number of levels of the merging hierarchy
       n_level=int(1+0.999999*np.log2(n_dt/n_max))
+      self.n_level=n_level
       # And this the maximum number of SFH bins that we could need
       n_bin_max=n_max*n_level+1
 
       # Assign arrays to hold SFH information; we will later truncate to actual size needed
-      self.t=np.full([n_dt,n_bin_max],np.NAN)      # Time at low-redshift end of bin
-      self.dt=np.full([n_dt,n_bin_max],np.NAN)     # Width of the bin
+      self.t=np.full([n_dt,n_bin_max],-1.)      # Time at low-redshift end of bin
+      self.dt=np.full([n_dt,n_bin_max],0.)      # Width of the bin
       # The following three are used to track the bin structure;
       # Strictly speaking, only the first (or second) is needed; the others are tautologous.
       self.level=np.full([n_dt,n_bin_max],parameters.NO_DATA_INT)   # Level in the merging hierarchy
@@ -92,7 +94,7 @@ class C_sfh:
       # We use the following array to hold how many bins exist at each level of the merging hierarchy
       n_bin_in_level=np.full(n_level,0)
       # And these arrays hold the properties of the bins at each stage
-      t=np.full(n_bin_max,np.NAN)
+      t=np.full(n_bin_max,-1.)
       dt=np.full(n_bin_max,0.)
       level=np.full(n_bin_max,parameters.NO_DATA_INT)
       # Now run through the timesteps, creating bins, merging as necessary, and saving
@@ -131,7 +133,7 @@ class C_sfh:
                   level[-1]=parameters.NO_DATA_INT
                   t[j_bin]=t[j_bin+1]
                   t[j_bin+1:-1]=t[j_bin+2:]
-                  t[-1]=np.NAN 
+                  t[-1]=-1.                   # Use -1. rather than NaN to make C integration easier 
                   dt[j_bin]+=dt[j_bin+1]
                   dt[j_bin+1:-1]=dt[j_bin+2:]
                   dt[-1]=0.
@@ -199,56 +201,3 @@ class C_sfh:
             print('{:.3f}'.format(self.t[i_step,i]),end=', ')
          print('\n')
       return ''
-
-@conditional_decorator(Timer(name='F_sfh_update_bins',logger=None),b_profile_cpu)
-def F_sfh_update_bins(gals,sfh,parameters):
-   """
-   Merges galaxy bins if required.
-
-   Arguments
-   ---------
-   gals : obj : np.array[n_gal]
-      Structured array of galaxies
-   sfh : obj : class C_SFH
-      Instance of C_SFH class containing information about the time-binning structure
-   """
-   i_dt=commons.load('i_dt')   # This should hold the ministep ID BEFORE updating
-   #print('F_sfh_update_bins: i_dt (before updating) =',i_dt)
-   n_merge=sfh.n_merge
-   n_bin_in_level=sfh.n_bin_in_level[i_dt].copy()
-   level=np.full([sfh.n_bin+1],parameters.NO_DATA_INT)
-   level[:-1]=sfh.level[i_dt,:]
-   i_bin=sfh.i_bin[i_dt].copy()
-   # Create new bin
-   level[i_bin]=0
-   n_bin_in_level[0]+=1
-   # Run through levels merging as required
-   j_bin=i_bin+1
-   for i_level in range(len(n_bin_in_level)):
-      j_bin-=n_bin_in_level[i_level]
-      if n_bin_in_level[i_level] == n_merge:
-         # Need to merge bins j_bin and j_bin+1
-         # This essential here means first resetting the times and counts of bins at each level,
-         # then shuffling bins downward.
-         i_bin-=1
-         n_bin_in_level[i_level+1]+=1
-         n_bin_in_level[i_level]-=2
-         level[j_bin]+=1
-         level[j_bin+1:-1]=level[j_bin+2:]
-         level[-1]=parameters.NO_DATA_INT
-         # Now combine the data.
-         # Would this be faster (and make the code look simpler) if all the SFH data was a sub-array?
-         gals['mass_stars_bulge_sfh'][:,j_bin]+=gals['mass_stars_bulge_sfh'][:,j_bin+1]
-         gals['mass_stars_bulge_sfh'][:,j_bin+1:-1]=gals['mass_stars_bulge_sfh'][:,j_bin+2:]
-         gals['mass_stars_bulge_sfh'][:,-1]=0.
-         gals['mass_metals_stars_bulge_sfh'][:,j_bin]+=gals['mass_metals_stars_bulge_sfh'][:,j_bin+1]
-         gals['mass_metals_stars_bulge_sfh'][:,j_bin+1:-1]=gals['mass_metals_stars_bulge_sfh'][:,j_bin+2:]
-         gals['mass_metals_stars_bulge_sfh'][:,-1]=0.
-         gals['mass_stars_disc_sfh'][:,j_bin]+=gals['mass_stars_disc_sfh'][:,j_bin+1]
-         gals['mass_stars_disc_sfh'][:,j_bin+1:-1]=gals['mass_stars_disc_sfh'][:,j_bin+2:]
-         gals['mass_stars_disc_sfh'][:,-1]=0.
-         gals['mass_metals_stars_disc_sfh'][:,j_bin]+=gals['mass_metals_stars_disc_sfh'][:,j_bin+1]
-         gals['mass_metals_stars_disc_sfh'][:,j_bin+1:-1]=gals['mass_metals_stars_disc_sfh'][:,j_bin+2:]
-         gals['mass_metals_stars_disc_sfh'][:,-1]=0.
-         j_bin+=1      # First bin at this level has been pushed upwards by one slot
-      

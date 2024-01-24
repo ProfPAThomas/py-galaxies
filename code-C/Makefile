@@ -1,8 +1,8 @@
 all:
-	gcc -Wall \
+	gcc -Wall -O -shared -o lib_C.so \
 		-D SFH \
-		-O -shared -o lib_C.so \
 		bh_agn.c \
 		cooling.c \
 		mergers.c \
+		sfh.c \
 		star_formation_and_feedback.c

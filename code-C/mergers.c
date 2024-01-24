@@ -10,7 +10,9 @@ Functions related to galaxy mergers.
 #include <string.h>
 #include "gals.h"
 #include "halos.h"
+#ifndef PARAMETERS_H
 #include "parameters.h"
+#endif
 #include "subs.h"
 // proto.h has to come last in order not to generate warnings about multiple struct definitions
 // Could probably get around that by using #ifndef.

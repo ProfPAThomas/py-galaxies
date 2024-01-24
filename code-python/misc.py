@@ -7,6 +7,8 @@ import numpy as np
 
 import commons
 
+#----------------------------------------------------------------------------------------------------
+
 def F_set_dt(parameters):
    """
    Sets the number and size of the timesteps.
@@ -50,12 +52,14 @@ def F_set_dt(parameters):
 
    return None
 
+#----------------------------------------------------------------------------------------------------
+
 def F_create_cooling_header_file(cooling_table):
    """
-   Writes out the cooling tables as static C arrays.
+   Writes out the cooling tables as const C arrays.
 
    A more obvious way to do this would be to write out the tables as binary files, then read
-   them back in as static arrays in the C cooling routine the first time that it is called:
+   them back in as const arrays in the C cooling routine the first time that it is called:
    that would be quicker and more accurate.  I am doing it this way instead because:
    * It makes the C-code cleaner (but this routine less so).
    * We don't need high accuracy.
@@ -74,7 +78,7 @@ def F_create_cooling_header_file(cooling_table):
    log10_T_table=cooling_table.log10_T_table
    n_T=len(log10_T_table)
    f.write('#define n_T '+str(n_T)+'\n')
-   f.write('static double log10_T_table['+str(n_T)+'] = {')
+   f.write('const double log10_T_table['+str(n_T)+'] = {')
    for i_T in range(n_T):
       f.write(str(log10_T_table[i_T])+', ')
    f.write('};\n\n')
@@ -82,7 +86,7 @@ def F_create_cooling_header_file(cooling_table):
    log10_Z_table=cooling_table.log10_Z_table
    n_Z=len(log10_Z_table)
    f.write('#define n_Z '+str(n_Z)+'\n')
-   f.write('static double log10_Z_table['+str(n_Z)+'] = {')
+   f.write('const double log10_Z_table['+str(n_Z)+'] = {')
    # Negative infinity will cause issues, so set first value to a very small number
    f.write('-100., ')
    for i_Z in range(1,n_Z):
@@ -90,7 +94,7 @@ def F_create_cooling_header_file(cooling_table):
    f.write('};\n\n')
 
    log10_Lambda_table=cooling_table.log10_Lambda_table
-   f.write('static double log10_Lambda_table['+str(n_Z)+']['+str(n_T)+'] = {\n')
+   f.write('const double log10_Lambda_table['+str(n_Z)+']['+str(n_T)+'] = {\n')
    for i_Z in range(n_Z):
       f.write('{')
       for i_T in range(n_T):
@@ -100,6 +104,8 @@ def F_create_cooling_header_file(cooling_table):
 
    f.close()
    return None
+
+#----------------------------------------------------------------------------------------------------
 
 def F_create_galaxy_struct_header_file(D_gal):
    """
@@ -133,6 +139,7 @@ def F_create_galaxy_struct_header_file(D_gal):
    f.close()
    return None
    
+#----------------------------------------------------------------------------------------------------
 
 def F_create_halo_struct_header_file(D_halo):
    """
@@ -164,11 +171,11 @@ def F_create_halo_struct_header_file(D_halo):
    f.close()
    return None
    
+#----------------------------------------------------------------------------------------------------
 
 def F_create_parameters_header_file(parameters):
    """
    Writes out all the attributes of parameters to code/parameters.h.
-   Not clear to me whether I should declare this as a static struct (memory preserved over runtime of program).
 
    Attributes
    ----------
@@ -211,6 +218,7 @@ struct struct_param {\n\
       else:
          f.write('    '+a_type+' '+a+';\n')
    f.write('};\n')
+   # Would like to use const here rather than static, but that seems to break the linker
    f.write('static struct struct_param parameters = {\n')
    for a in attributes:
       value=eval('parameters.'+a)
@@ -239,6 +247,84 @@ struct struct_param {\n\
    f.close()
    return None
 
+#----------------------------------------------------------------------------------------------------
+
+def F_create_sfh_header_file(sfh,parameters):
+   """
+   Creates a header file for the SFH containing parameters and fixed arrays describing the time bins.
+
+   Attributes
+   ----------
+   sfh : obj : C_sfh instance
+       Instance of class containing SFH bin parameters and arrays describing the time bins.
+   parameters : obj : C_parameters
+       Instance of class containing global parameters
+   """
+   f=open('code-C/sfh.h','w')
+   f.write('/* SFH tables (fixed throughout run). */\n\n')
+
+   n_dt=sfh.n_dt
+   n_bin=sfh.n_bin
+   n_level=sfh.n_level
+   n_merge=sfh.n_merge
+   f.write('#define n_dt '+str(n_dt)+'\n')
+   f.write('#define n_bin '+str(n_bin)+'\n')
+   f.write('#define n_level '+str(n_level)+'\n')
+   f.write('#define n_merge '+str(n_merge)+'\n\n')
+
+   n_snap=parameters.n_snap
+   f.write('// Index of first galaxy timestep in each snapshot.\n')
+   f.write('const int i_dt_snap['+str(n_snap)+'] = {')
+   for i_snap in range(n_snap):
+      f.write(str(sfh.i_dt_snap[i_snap])+', ')
+   f.write('};\n\n')
+
+   f.write('// Number of SFH bins used at each galaxy timestep.\n')   
+   f.write('const int i_bin_all['+str(n_dt)+'] = {')
+   for i_dt in range(n_dt):
+      f.write(str(sfh.i_bin[i_dt])+', ')
+   f.write('};\n\n')
+
+   f.write('// Number of SFH bins in each level of the merging hierarchy.\n')   
+   f.write('const int n_bin_in_level_all['+str(n_dt)+']['+str(n_level)+'] = {\n')
+   for i_dt in range(n_dt):
+      f.write('{')
+      for i_level in range(n_level):
+         f.write(str(sfh.n_bin_in_level[i_dt,i_level])+', ')
+      f.write('},\n')
+   f.write('};\n\n')   
+
+   f.write('// Level in merging hierarchy of each SFH bin.\n')   
+   f.write('const int level_all['+str(n_dt)+']['+str(n_bin)+'] = {\n')
+   for i_dt in range(n_dt):
+      f.write('{')
+      for i_bin in range(n_bin):
+         f.write(str(sfh.level[i_dt,i_bin])+', ')
+      f.write('},\n')
+   f.write('};\n\n')   
+
+   f.write('// Time to present (i.e. z=0) at the low-z edge of the SFH bin (code units).\n')   
+   f.write('const double t['+str(n_dt)+']['+str(n_bin)+'] = {\n')
+   for i_dt in range(n_dt):
+      f.write('{')
+      for i_bin in range(n_bin):
+         f.write(str(sfh.t[i_dt,i_bin])+', ')
+      f.write('},\n')
+   f.write('};\n\n')   
+
+   f.write('// Time width of the SFH bin (code units).\n')   
+   f.write('const double dt['+str(n_dt)+']['+str(n_bin)+'] = {\n')
+   for i_dt in range(n_dt):
+      f.write('{')
+      for i_bin in range(n_bin):
+         f.write(str(sfh.dt[i_dt,i_bin])+', ')
+      f.write('},\n')
+   f.write('};\n\n')   
+
+   f.close()
+   return None
+
+#----------------------------------------------------------------------------------------------------
 
 def F_create_sub_struct_header_file(D_sub):
    """
