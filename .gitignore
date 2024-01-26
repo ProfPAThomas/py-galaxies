@@ -1,3 +1,7 @@
+# Runtime generated files #
+###########################
+code-C/*.h
+
 # Compiled source #
 ###################
 *.com
@@ -46,4 +50,5 @@ Thumbs.db
 ###########################
 MergerGraphs/*
 output/*
+scratch/*
 

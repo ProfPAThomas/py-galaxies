@@ -10,12 +10,7 @@ import commons
 b_profile_cpu=commons.load('b_profile_cpu')
 b_SFH=commons.load('b_SFH')
 
-# Import astrophysics modules (could be run-time parameter dependent)
-#from cooling import F_halo as F_halo_cooling
-#from cooling import F_sub as F_sub_cooling
 from gals import D_gal, F_gal_template
-#from mergers import F_merge_gals as F_merge_gals
-if b_SFH: from sfh import F_sfh_update_bins
 
 #------------------------------------------------------------------------------------------------------
 
@@ -146,15 +141,11 @@ def F_process_halos(halos,subs,gals,graph,parameters):
                 gal['SFR_dt'] = 0. # This will fail to capture mergers (done above in subs loop) until we have a proper merger time for them.
                 if gal['mass_gas_cold'] > parameters.mass_minimum_internal: 
                     dt_gal=commons.load('dt_gal')
-                    # As coded in C at the moment, this will only work with SFH turned on.  We can get around
-                    # this with conditional compilation, but that is not yet implemented (but not hard to do).
+                    dt_snap=commons.load('dt_snap')
                     if b_SFH:
                         i_bin_sfh=commons.load('i_bin_sfh')
-                        dt_snap=commons.load('dt_snap')
                         mass_stars = L_C.F_SFF_gal_form_stars(gals[i_gal:i_gal+1],ctypes.c_double(dt_gal),ctypes.c_double(dt_snap),ctypes.c_int(i_bin_sfh))
                     else:
-                        print('Conditional compilation of C routines not yet implemented')
-                        assert False
                         mass_stars = L_C.F_SFF_gal_form_stars(gals[i_gal:i_gal+1],ctypes.c_double(dt_gal),ctypes.c_double(dt_snap))
                     # If subhalo does not exist, use halo as proxy.  This will work here as only need access to hot gas phase.
                     sub_sid=gal['sub_sid']

@@ -356,3 +356,34 @@ def F_create_sub_struct_header_file(D_sub):
    f.close()
    return None
    
+#----------------------------------------------------------------------------------------------------
+
+def F_create_Makefile(parameters):
+   """
+   Writes out the Makefile to be used to compile the C library
+
+   Attributes
+   ----------
+   parameters : obj : C_cooling
+       Instance of class containing cooling tables
+   """
+   f=open('code-C/Makefile','w')
+   f.write('# This Makefile is dynamically generated at runtime - do not edit!\n')
+   f.write('# Any options should be specified in the input.yml file and written out here in F_create_Makefile within misc.py.\n\n')
+   
+   f.write('all: build_library\n\n')
+
+   f.write('build_library:\n')
+   f.write('\tgcc -Wall -O -shared -o lib_c.so \\\n')
+   if parameters.b_SFH:
+      f.write('\t\t-D SFH \\\n')
+   f.write('\t\tbh_agn.c \\\n')
+   f.write('\t\tcooling.c \\\n')
+   f.write('\t\tmergers.c \\\n')
+   if parameters.b_SFH:
+      f.write('\t\tsfh.c \\\n')
+   f.write('\t\tstar_formation_and_feedback.c\n')
+
+   f.close()
+   return None
+
