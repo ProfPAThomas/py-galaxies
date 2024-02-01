@@ -38,6 +38,7 @@ import h5py
 import numpy as np
 np.seterr(all='raise')
 import pickle
+import subprocess
 import sys
 # Switch on traceback for warnings
 import traceback
@@ -61,7 +62,7 @@ PYTHON_DIR='code-python'
 
 # Development limiter
 n_GRAPH=np.inf
-n_GRAPH=1000       # Change output files to 'test' to avoid over-writing!
+n_GRAPH=1000            # Change output files to 'test' to avoid over-writing!
 n_GRAPH_START=0
 #n_GRAPH_START=58
 
@@ -114,6 +115,8 @@ if b_SFH:
     from sfh import C_sfh
     sfh=C_sfh(parameters)
     parameters.sfh=sfh     # Useful to avoid having to optionally pass sfh as a function argument
+    from misc import F_create_sfh_header_file
+    F_create_sfh_header_file(sfh,parameters)
     
 # These parameters are needed at import, so save to commons here
 commons.update('b_SFH',parameters.b_SFH)
@@ -220,21 +223,17 @@ F_create_galaxy_struct_header_file(gal_template.dtype)
 from misc import F_create_galaxy_struct_header_file
 F_create_galaxy_struct_header_file(gal_template.dtype)
 
-# Make C-library (TBI)
-# Basically just a system call to run make in the code-C directory.
-
-# Load C-library
+# Make and load C-library
+from misc import F_create_Makefile
+F_create_Makefile(parameters)
+subprocess.run(['make'],cwd=C_DIR)
 L_C=ctypes.CDLL(C_DIR+'/lib_C.so')
+
 # Add reference to library to imported python modules that need it
 # This list will be much reduced once all the physics routines are written in C.
 cooling.L_C=L_C
 
 # Define interfaces to C functions
-# L_C.F_get_metaldependent_cooling_rate.argtypes=(ctypes.c_double,ctypes.c_double)
-# L_C.F_get_metaldependent_cooling_rate.restype=ctypes.c_double
-# L_C.F_cooling_SIS.argtypes=(ctypes.c_double,ctypes.c_double,ctypes.c_double,ctypes.c_double,ctypes.c_double,
-#                                   ctypes.c_double,ctypes.c_double,ctypes.c_double)
-# L_C.F_cooling_SIS.restype=ctypes.c_double
 L_C.F_cooling_halo.argtypes=(np.ctypeslib.ndpointer(halo_template.dtype),
                     np.ctypeslib.ndpointer(sub_template.dtype),
                     ctypes.c_double)
@@ -250,17 +249,26 @@ L_C.F_SFF_orphan_SN_feedback.argtypes=(ctypes.c_double,np.ctypeslib.ndpointer(ga
                     np.ctypeslib.ndpointer(halo_template.dtype))
 L_C.F_SFF_orphan_SN_feedback.restype=None
 if b_SFH:
+    L_C.F_mergers_merge_gals.argtypes=(np.ctypeslib.ndpointer(halo_template.dtype),np.ctypeslib.ndpointer(sub_template.dtype),
+                    np.ctypeslib.ndpointer(gal_template.dtype), ctypes.c_int, ctypes.c_double, ctypes.c_double, ctypes.c_int)
+    L_C.F_mergers_merge_gals.restype=ctypes.c_int
     L_C.F_SFF_gal_form_stars.argtypes=(np.ctypeslib.ndpointer(gal_template.dtype),ctypes.c_double,ctypes.c_double,ctypes.c_int)
     L_C.F_SFF_gal_form_stars.restype=ctypes.c_double
 else:
-    print('Need to implemnt code for conditional compilation of C routines')
-    assert False
+    L_C.F_mergers_merge_gals.argtypes=(np.ctypeslib.ndpointer(halo_template.dtype),np.ctypeslib.ndpointer(sub_template.dtype),
+                    np.ctypeslib.ndpointer(gal_template.dtype), ctypes.c_int, ctypes.c_double, ctypes.c_double)
+    L_C.F_mergers_merge_gals.restype=ctypes.c_int
+    L_C.F_SFF_gal_form_stars.argtypes=(np.ctypeslib.ndpointer(gal_template.dtype),ctypes.c_double,ctypes.c_double)
+    L_C.F_SFF_gal_form_stars.restype=ctypes.c_double
+if b_SFH:
+    L_C.F_sfh_update_bins.argtypes=(np.ctypeslib.ndpointer(gal_template.dtype),ctypes.c_int,ctypes.c_int)
+    L_C.F_sfh_update_bins.restype=None
 
 
 # In[6]:
 
 
-# Import driver routines
+# Import driver routines and point them to the C libraries
 import driver
 driver.L_C=L_C
 from driver import F_update_halos     # Propagates info from last snapshot to current one

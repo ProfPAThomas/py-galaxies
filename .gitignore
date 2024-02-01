@@ -1,6 +1,7 @@
 # Runtime generated files #
 ###########################
 code-C/*.h
+code-C/Makefile
 
 # Compiled source #
 ###################

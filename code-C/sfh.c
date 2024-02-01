@@ -32,10 +32,14 @@ void F_sfh_update_bins(struct struct_gal gals[], int n_gal, int i_dt) {
     */
 
     int i_level;
-    int i_bin=i_bin_all[i_dt], j_bin, k_bin, i_gal;    
+    int i_bin, j_bin, k_bin, i_gal;    
     int n_bin_in_level[n_level];
-    for (i_level=0; i_level<n_level; i_level++) n_bin_in_level[i_level]=n_bin_in_level_all[i_dt][i_level];
     int level[n_bin+1];
+
+    // Number of bins used in this timestep
+    i_bin=i_bin_all[i_dt];
+    // Set number of bins at each level in the merging hierarchy
+    for (i_level=0; i_level<n_level; i_level++) n_bin_in_level[i_level]=n_bin_in_level_all[i_dt][i_level];
     // Set level in merging hierarchy of each SFH bin
     for (j_bin=0; j_bin<n_bin; j_bin++) level[j_bin]=level_all[i_dt][j_bin];
     level[n_bin]=parameters.NO_DATA_INT;
@@ -54,8 +58,8 @@ void F_sfh_update_bins(struct struct_gal gals[], int n_gal, int i_dt) {
 	    n_bin_in_level[i_level+1]+=1;
 	    n_bin_in_level[i_level]-=2;
 	    level[j_bin]+=1;
-	    for (i_level=j_bin+1; i_level<n_level-1; i_level++) level[i_level]=level[i_level+1];
-	    level[n_level-1]=parameters.NO_DATA_INT;
+	    for (k_bin=j_bin+1; k_bin<n_bin; k_bin++) level[k_bin]=level[k_bin+1];
+	    level[n_bin]=parameters.NO_DATA_INT;
 	    // Now combine the data.
 	    // Would this be faster (and make the code look simpler) if all the SFH data was a sub-array?
 	    for (i_gal=0; i_gal<n_gal; i_gal++) {

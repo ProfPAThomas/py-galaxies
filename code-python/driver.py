@@ -9,6 +9,7 @@ from profiling import conditional_decorator
 import commons
 b_profile_cpu=commons.load('b_profile_cpu')
 b_SFH=commons.load('b_SFH')
+if b_SFH: from sfh import F_sfh_update_bins
 
 from gals import D_gal, F_gal_template
 
@@ -82,7 +83,7 @@ def F_process_halos(halos,subs,gals,graph,parameters):
     n_dt_gal=commons.load('n_dt_gal')
     if b_SFH:
         sfh=parameters.sfh
-        i_dt=commons.load('i_dt')
+        i_dt_sfh=commons.load('i_dt_sfh')
     
     for halo in halos:
         if parameters.verbosity>=4: print('Processing halo ',halo.halo_gid)
@@ -155,10 +156,9 @@ def F_process_halos(halos,subs,gals,graph,parameters):
                     else:
                         L_C.F_SFF_gal_SN_feedback(ctypes.c_double(mass_stars),gals[i_gal:i_gal+1],subs[sub_sid].props,halos[halo_sid].props)
             if b_SFH:
-                L_C.F_sfh_update_bins(gals,ctypes.c_int(n_gal),ctypes.c_int(i_dt))
-                #F_sfh_update_bins(gals,sfh,parameters)
-                i_dt+=1
-                commons.update('i_dt',i_dt)
+                L_C.F_sfh_update_bins(gals,ctypes.c_int(n_gal),ctypes.c_int(i_dt_sfh))
+                i_dt_sfh+=1
+                commons.update('i_dt_sfh',i_dt_sfh)
             if i_dt_gal==0 and commons.load('i_dt_halo')==0: gal['SFR_dt_start']=gal['SFR_dt'].copy() # This will contain the mergers
     return None
 

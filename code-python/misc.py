@@ -303,7 +303,7 @@ def F_create_sfh_header_file(sfh,parameters):
       f.write('},\n')
    f.write('};\n\n')   
 
-   f.write('// Time to present (i.e. z=0) at the low-z edge of the SFH bin (code units).\n')   
+   f.write('// Age of the Universe at the low-z edge of the SFH bin (code units).\n')   
    f.write('const double t['+str(n_dt)+']['+str(n_bin)+'] = {\n')
    for i_dt in range(n_dt):
       f.write('{')
