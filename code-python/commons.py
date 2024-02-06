@@ -1,20 +1,20 @@
 """
-Module to save common variables that it would be too messy/nit-picky to pass exlicitly.
-Also, some parameters that are needed on import (actually, only b_profile_cpu).
-Other parameters (ie things fixed during the run) are stored in C_parameters.
+Module to save common parameters that are needed during module importing.
 
 I have deliberately separated adding new entries from updating existing ones to prevent bugs.
-The 'lock' key can be set to True to prevent the addition on new entries once the C struct has been generated.
+The 'lock' key can be set to True to prevent the addition on new entries.
+
+This module is a bit OTT but formerly had more uses in the code than it does at present.
 """
 
-common={'lock':False,
-        'dt_snap':0.,      # Time between snaps
-        'dt_halo':0.,      # Halo timestep
-        'dt_gal':0.,       # Galaxy timestep
-        'i_dt_halo':-1,    # Current halo timestep this snapshot
-        'n_dt_halo':-1,    # Number of halo timesteps per snapshot
-        'n_dt_gal':-1      # Number of galaxy timesteps per halo timestep
-        }
+common={'lock': False}
+
+# Add some entries in an attempt to prevent documentation build failing
+
+common['b_profile_cpu']=False
+common['b_profile_mem']=False
+common['b_SFH']=True
+common['sfh_n_bin']=1000
 
 def add(key,value):
    """
@@ -94,10 +94,3 @@ def update(key,value):
    else:
       raise ValueError('key '+key+' not present in common dictionary: use add() for new entries')
    return None
-
-# Add some entries in an attempt to prevent documentation build failing
-
-common['b_profile_cpu']=False
-common['b_profile_mem']=False
-common['b_SFH']=True
-common['sfh.n_bin']=1000

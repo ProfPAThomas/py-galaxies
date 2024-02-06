@@ -9,14 +9,13 @@ from profiling import conditional_decorator
 import commons
 b_profile_cpu=commons.load('b_profile_cpu')
 b_SFH=commons.load('b_SFH')
-if b_SFH: from sfh import F_sfh_update_bins
 
 from gals import D_gal, F_gal_template
 
 #------------------------------------------------------------------------------------------------------
 
 @conditional_decorator(Timer(name='F_halo_reincorporation',logger=None),b_profile_cpu)
-def F_halo_reincorporation(halo,parameters):
+def F_halo_reincorporation(halo,parameters,variables):
     """
     Reincorporation of ejected gas.
 
@@ -30,12 +29,14 @@ def F_halo_reincorporation(halo,parameters):
        The halo currently being processed.
     parameters : obj : C_parameters
        Instance of class containing global parameters
+    variables : obj : C_variables
+       Instance of class containing global variables structure
 
     Returns
     -------
     None
     """
-    dt_halo=commons.load('dt_halo')
+    dt_halo=variables.dt_halo
     
     t_reinc = max(parameters.c_Hen15_reinc/halo.props['mass'],halo.props['tau_dyn'])
     mass_reinc = halo.props['mass_gas_eject'] * (1.-np.exp(-dt_halo/t_reinc))
@@ -49,7 +50,7 @@ def F_halo_reincorporation(halo,parameters):
 #------------------------------------------------------------------------------------------------------
 
 @conditional_decorator(Timer(name='F_process_halos',logger=None),b_profile_cpu)
-def F_process_halos(halos,subs,gals,graph,parameters):
+def F_process_halos(halos,subs,gals,graph,parameters,variables):
     """
     This is the controlling routine for halo processing.
 
@@ -63,6 +64,8 @@ def F_process_halos(halos,subs,gals,graph,parameters):
        The galaxies currently being processed in this graph/snapshot.
     parameters : obj : C_parameters
        Instance of class containing global parameters
+    variables : obj : C_variables
+       Instance of class containing global variables structure
 
     Returns
     -------
@@ -77,13 +80,12 @@ def F_process_halos(halos,subs,gals,graph,parameters):
         b_gals_exist = False
 
     # Load timestep information
-    dt_halo=commons.load('dt_halo')
-    dt_gal=commons.load('dt_gal')
-    n_dt_halo=commons.load('n_dt_halo')
-    n_dt_gal=commons.load('n_dt_gal')
+    dt_halo=variables.dt_halo
+    dt_gal=variables.dt_gal
+    n_dt_halo=variables.n_dt_halo
+    n_dt_gal=variables.n_dt_gal
     if b_SFH:
-        sfh=parameters.sfh
-        i_dt_sfh=commons.load('i_dt_sfh')
+        i_dt_sfh=variables.i_dt_sfh
     
     for halo in halos:
         if parameters.verbosity>=4: print('Processing halo ',halo.halo_gid)
@@ -92,7 +94,7 @@ def F_process_halos(halos,subs,gals,graph,parameters):
         # Accretion onto halos.
         halo.accrete_primordial_gas(parameters.base_metallicity)
         # Reincorporation of ejected gas
-        if halo.props['mass_gas_eject'] > parameters.mass_minimum_internal: F_halo_reincorporation(halo,parameters)
+        if halo.props['mass_gas_eject'] > parameters.mass_minimum_internal: F_halo_reincorporation(halo,parameters,variables)
         # Cooling of gas from halo onto central subhalo (or, in L-Galaxies mode, the most massive subhalo)
         # Cooling occurs only if a central subhalo exists.
         if halo.sub_central_sid != parameters.NO_DATA_INT: 
@@ -115,9 +117,9 @@ def F_process_halos(halos,subs,gals,graph,parameters):
             if sub.n_gal>1:
                 # Initially assume instantaneous merging of galaxies in subhalos
                 assert sub.n_gal==sub.gal_end_sid-sub.gal_start_sid
-                dt_snap=commons.load('dt_snap')
+                dt_snap=variables.dt_snap
                 if b_SFH:
-                    i_bin_sfh=commons.load('i_bin_sfh')
+                    i_bin_sfh=variables.i_bin_sfh
                     sub.gal_central_sid=L_C.F_mergers_merge_gals(halo.props,sub.props,gals[sub.gal_start_sid:sub.gal_end_sid], \
                         ctypes.c_int(sub.n_gal), ctypes.c_double(dt_gal), ctypes.c_double(dt_snap), ctypes.c_int(i_bin_sfh))
                 else:
@@ -141,10 +143,10 @@ def F_process_halos(halos,subs,gals,graph,parameters):
                 if not gal['b_exists']: continue  #  Galaxies may have merged
                 gal['SFR_dt'] = 0. # This will fail to capture mergers (done above in subs loop) until we have a proper merger time for them.
                 if gal['mass_gas_cold'] > parameters.mass_minimum_internal: 
-                    dt_gal=commons.load('dt_gal')
-                    dt_snap=commons.load('dt_snap')
+                    dt_gal=variables.dt_gal
+                    dt_snap=variables.dt_snap
                     if b_SFH:
-                        i_bin_sfh=commons.load('i_bin_sfh')
+                        i_bin_sfh=variables.i_bin_sfh
                         mass_stars = L_C.F_SFF_gal_form_stars(gals[i_gal:i_gal+1],ctypes.c_double(dt_gal),ctypes.c_double(dt_snap),ctypes.c_int(i_bin_sfh))
                     else:
                         mass_stars = L_C.F_SFF_gal_form_stars(gals[i_gal:i_gal+1],ctypes.c_double(dt_gal),ctypes.c_double(dt_snap))
@@ -158,8 +160,8 @@ def F_process_halos(halos,subs,gals,graph,parameters):
             if b_SFH:
                 L_C.F_sfh_update_bins(gals,ctypes.c_int(n_gal),ctypes.c_int(i_dt_sfh))
                 i_dt_sfh+=1
-                commons.update('i_dt_sfh',i_dt_sfh)
-            if i_dt_gal==0 and commons.load('i_dt_halo')==0: gal['SFR_dt_start']=gal['SFR_dt'].copy() # This will contain the mergers
+                variables.i_dt_sfh=i_dt_sfh
+            if i_dt_gal==0 and variables.i_dt_halo==0: gal['SFR_dt_start']=gal['SFR_dt'].copy() # This will contain the mergers
     return None
 
 #------------------------------------------------------------------------------------------------------
@@ -187,7 +189,7 @@ def F_set_central_galaxy(sub,parameters):
 
 @conditional_decorator(Timer(name='F_update_halos',logger=None),b_profile_cpu)
 def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap,
-                   gals_last_snap,graph,parameters):
+                   gals_last_snap,graph,parameters,variables):
     """
     Propagate properties from progenitor halos to descendants.
 
@@ -206,6 +208,8 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
        The galaxies currently being processed in this graph/snapshot.
     parameters : obj : C_parameters
        Instance of class containing global parameters
+    variables : obj : C_variables
+       Instance of class containing global variables structure
 
     Returns
     -------
@@ -418,7 +422,7 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
 
     # Finally, set the accretion rate required to bring the halos up to the universal mean over the
     # course of a snapshot interval.
-    n_dt_halo=commons.load('n_dt_halo')
+    n_dt_halo=variables.n_dt_halo
     for halo in halos_this_snap:
         # This halo method works out the current inherited baryon content
         halo.set_mass_baryon(subs_this_snap,gals_this_snap,parameters.baryon_fraction,n_dt_halo)

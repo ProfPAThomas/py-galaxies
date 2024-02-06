@@ -14,12 +14,6 @@ Parameters
 .. automodule:: parameters
    :members:
 
-Commons
-^^^^^^^
-
-.. automodule:: commons
-   :members:
-
 Main driver routine
 ^^^^^^^^^^^^^^^^^^^
 
@@ -61,24 +55,6 @@ Cooling
 ^^^^^^^
 
 .. automodule:: cooling
-   :members:
-
-Mergers
-^^^^^^^
-
-.. automodule:: mergers
-   :members:
-
-Star formation and feedback
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. automodule:: star_formation_and_feedback
-   :members:
-
-Black holes and AGN
-^^^^^^^^^^^^^^^^^^^
-
-.. automodule:: bh_agn
    :members:
 
 Star formation histories

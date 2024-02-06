@@ -8,10 +8,6 @@ import h5py
 from codetiming import Timer
 from profiling import conditional_decorator
 
-import commons
-# Note: because of the code structure, b_profile_cpu takes the default value in commons and is NOT updated by the run-time settings here.  Need to work out how to fix this.
-b_profile_cpu=commons.load('b_profile_cpu')
-
 class C_sfh:
    """
    Class to generate and store the generic star formation history tables.

@@ -59,7 +59,7 @@ import numpy as np
 
 import commons
 b_SFH=commons.load('b_SFH')
-if b_SFH: sfh_n_bin=commons.load('sfh.n_bin')
+if b_SFH: sfh_n_bin=commons.load('sfh_n_bin')
 
 # Create the dtype that we will need to store galaxy properties.
 _quantities=[

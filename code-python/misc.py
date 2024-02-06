@@ -3,9 +3,8 @@ Miscellaneous helper routines that do not find a place elsewhere.
 """
 
 import astropy.units as u
+import ctypes
 import numpy as np
-
-import commons
 
 #----------------------------------------------------------------------------------------------------
 
@@ -52,6 +51,64 @@ def F_set_dt(parameters):
 
    return None
 
+#----------------------------------------------------------------------------------------------------
+
+def F_create_variables_structure_and_header_file(variables_dict):
+   """
+   Creates a variables structure containing all the variables that we want to pass to C;
+   Populates with current values;
+   Creates the equivalent variables.h file for use with C.
+
+   Attributes
+   ----------
+   variables_dict : obj : python dictionary
+      Dictionary of variables and values to be used in creating the struct.
+   """
+
+   # First create a list of tuples describing the fields of the structure
+   fields=[]
+   for key, value in variables_dict.items():
+      if type(value)==bool:
+         fields.append((key,ctypes.c_bool))
+      elif type(value)==int:
+         fields.append((key,ctypes.c_int))
+      elif type(value)==float:
+         fields.append((key,ctypes.c_double))
+      # Not sure how to handle strings in C so test this before uncommenting
+      # elif type(value)==str:
+      #    fields.append((key,ctypes.c_wchar*len(value)))
+      else:
+         raise ValueError('Unsupported type')
+   
+   # Next create a python Structure to hold those variables
+   class C_variables(ctypes.Structure):
+      _fields_=fields
+   variables=C_variables()
+   # And populate with the existing values; not sure if there is a better way.
+   for key, value in variables_dict.items():
+      if type(value)==bool or type(value)==int or type(value)==float:
+         exec('variables.'+key+'='+str(value))
+
+   # Write out a C header file with the structure definition
+   f=open('code-C/variables.h','w')
+   f.write('/* Runtime variables. */\n\n')
+   f.write('#include <stdbool.h>\n\n')
+   f.write('struct struct_var {\n')
+   for key, value in variables_dict.items():
+      if type(value)==bool:
+         f.write('    bool '+key+';\n')
+      elif type(value)==int:
+         f.write('    int '+key+';\n')
+      elif type(value)==float:
+         f.write('    double '+key+';\n')
+      # Not sure how to handle strings in C so test this before uncommenting
+      # elif type(value)==str:
+      #    f.write('    str '+key+'['+str(len(value))+'];\n')
+   f.write('};\n')
+   f.close()
+
+   return variables
+   
 #----------------------------------------------------------------------------------------------------
 
 def F_create_cooling_header_file(cooling_table):
@@ -303,23 +360,25 @@ def F_create_sfh_header_file(sfh,parameters):
       f.write('},\n')
    f.write('};\n\n')   
 
-   f.write('// Age of the Universe at the low-z edge of the SFH bin (code units).\n')   
-   f.write('const double t['+str(n_dt)+']['+str(n_bin)+'] = {\n')
-   for i_dt in range(n_dt):
-      f.write('{')
-      for i_bin in range(n_bin):
-         f.write(str(sfh.t[i_dt,i_bin])+', ')
-      f.write('},\n')
-   f.write('};\n\n')   
+   # Not currently needed in C routines
+   # f.write('// Age of the Universe at the low-z edge of the SFH bin (code units).\n')   
+   # f.write('const double t['+str(n_dt)+']['+str(n_bin)+'] = {\n')
+   # for i_dt in range(n_dt):
+   #    f.write('{')
+   #    for i_bin in range(n_bin):
+   #       f.write(str(sfh.t[i_dt,i_bin])+', ')
+   #    f.write('},\n')
+   # f.write('};\n\n')   
 
-   f.write('// Time width of the SFH bin (code units).\n')   
-   f.write('const double dt['+str(n_dt)+']['+str(n_bin)+'] = {\n')
-   for i_dt in range(n_dt):
-      f.write('{')
-      for i_bin in range(n_bin):
-         f.write(str(sfh.dt[i_dt,i_bin])+', ')
-      f.write('},\n')
-   f.write('};\n\n')   
+   # Not currently needed in C routines
+   # f.write('// Time width of the SFH bin (code units).\n')   
+   # f.write('const double dt['+str(n_dt)+']['+str(n_bin)+'] = {\n')
+   # for i_dt in range(n_dt):
+   #    f.write('{')
+   #    for i_bin in range(n_bin):
+   #       f.write(str(sfh.dt[i_dt,i_bin])+', ')
+   #    f.write('},\n')
+   # f.write('};\n\n')   
 
    f.close()
    return None
