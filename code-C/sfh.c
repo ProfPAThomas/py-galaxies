@@ -4,18 +4,8 @@ Functions to merger SFH bins if required.
 
 */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "halos.h"
-#include "subs.h"
-#include "gals.h"
+#include "all_headers.h"
 #include "sfh.h"
-#include "parameters.h"
-// proto.h has to come last in order not to generate warnings about multiple struct definitions
-// Could probably get around that by using #ifndef.
-#include "proto.h"
 
 void F_sfh_update_bins(struct struct_gal gals[], int n_gal, int i_dt) {
     /*

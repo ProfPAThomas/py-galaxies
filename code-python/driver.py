@@ -118,14 +118,8 @@ def F_process_halos(halos,subs,gals,graph,parameters,variables):
                 # Initially assume instantaneous merging of galaxies in subhalos
                 assert sub.n_gal==sub.gal_end_sid-sub.gal_start_sid
                 dt_snap=variables.dt_snap
-                if b_SFH:
-                    i_bin_sfh=variables.i_bin_sfh
-                    sub.gal_central_sid=L_C.F_mergers_merge_gals(halo.props,sub.props,gals[sub.gal_start_sid:sub.gal_end_sid], \
-                        ctypes.c_int(sub.n_gal), ctypes.c_double(dt_gal), ctypes.c_double(dt_snap), ctypes.c_int(i_bin_sfh))
-                else:
-                    sub.gal_central_sid=L_C.F_mergers_merge_gals(halo.props,sub.props,gals[sub.gal_start_sid:sub.gal_end_sid], \
-                        ctypes.c_int(sub.n_gal), ctypes.c_double(dt_gal), ctypes.c_double(dt_snap))                
-                #F_merge_gals(halos[sub.halo_sid],sub,gals[sub.gal_start_sid:sub.gal_end_sid],parameters)
+                sub.gal_central_sid=L_C.F_mergers_merge_gals(halo.props,sub.props,gals[sub.gal_start_sid:sub.gal_end_sid], \
+                                                             ctypes.c_int(sub.n_gal), variables)
             # Not all subhalos may have hot gas
             if sub.props['mass_gas_hot'] > parameters.mass_minimum_internal:
                 # Cooling of hot gas in subhalo onto galaxy
@@ -150,6 +144,7 @@ def F_process_halos(halos,subs,gals,graph,parameters,variables):
                         mass_stars = L_C.F_SFF_gal_form_stars(gals[i_gal:i_gal+1],ctypes.c_double(dt_gal),ctypes.c_double(dt_snap),ctypes.c_int(i_bin_sfh))
                     else:
                         mass_stars = L_C.F_SFF_gal_form_stars(gals[i_gal:i_gal+1],ctypes.c_double(dt_gal),ctypes.c_double(dt_snap))
+                    #mass_stars = L_C.F_SFF_gal_form_stars(gals[i_gal:i_gal+1],variables)
                     # If subhalo does not exist, use halo as proxy.  This will work here as only need access to hot gas phase.
                     sub_sid=gal['sub_sid']
                     halo_sid=gal['halo_sid']

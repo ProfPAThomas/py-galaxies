@@ -4,19 +4,7 @@ Functions related to galaxy mergers.
 
 */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "gals.h"
-#include "halos.h"
-#ifndef PARAMETERS_H
-#include "parameters.h"
-#endif
-#include "subs.h"
-// proto.h has to come last in order not to generate warnings about multiple struct definitions
-// Could probably get around that by using #ifndef.
-#include "proto.h"
+#include "all_headers.h"
 
 /* Currently dt and dt_snap not used (only needed to update SFRs).
    Could eliminate the need for multiple function parameter lists, and excessive passing of variables,
@@ -27,13 +15,9 @@ Functions related to galaxy mergers.
    Not doing that at the moment as it is a book-keeping parameter rather than a physical property.
    However, this is maybe a moot point as struct_gal contains some book-keeping parameters.
 */
-#ifdef SFH
-int F_mergers_merge_gals(struct struct_halo *halo,struct struct_sub *sub, struct struct_gal gals[],
-			 int n_gal, double dt, double dt_snap, int i_bin_sfh) {
-#else
-int F_mergers_merge_gals(struct struct_halo *halo,struct struct_sub *sub, struct struct_gal gals[],
-			 int n_gal, double dt, double dt_snap) {
-#endif
+
+int F_mergers_merge_gals(struct struct_halo *halo, struct struct_sub *sub, struct struct_gal gals[],
+			 int n_gal, struct struct_var variables) {
     /*
     Merges galaxies within subhalo.
 
@@ -50,6 +34,8 @@ int F_mergers_merge_gals(struct struct_halo *halo,struct struct_sub *sub, struct
        Instance of class containing global parameters
     gals : obj : D_gal[n_gal]
        The galaxies in the subhalo currently being processed.
+    n_gal : int
+       The number of galaxies in the subhalo.
 
     Returns
     -------
@@ -194,12 +180,7 @@ int F_mergers_merge_gals(struct struct_halo *halo,struct struct_sub *sub, struct
             // Note that the starburst will likely be compact but in the first instance we assume
             // that it follows the profile of the disc, so the angular momentum is reduced in proportion
             mass_gas_cold_before_starburst=(*gal_main).mass_gas_cold;
-// This #ifdef could be avoided if we bundled all timestep variables up into a single struct
-#ifdef SFH	    
-	    mass_starburst = F_mergers_starburst(mass_ratio,gal_main,dt,dt_snap,i_bin_sfh);
-#else
-	    mass_starburst = F_mergers_starburst(mass_ratio,gal_main,dt,dt_snap);
-#endif
+	    mass_starburst = F_mergers_starburst(mass_ratio,gal_main,variables);
             // Feedback associated with starburst
             F_SFF_gal_SN_feedback(mass_starburst,gal_main,sub,halo);
 	    ang_mom_gas_cold *= (*gal_main).mass_gas_cold/mass_gas_cold_before_starburst;
@@ -233,11 +214,7 @@ int F_mergers_merge_gals(struct struct_halo *halo,struct struct_sub *sub, struct
     return gal_central_sid;
 }
 
-#ifdef SFH
-double F_mergers_starburst(double mass_ratio, struct struct_gal *gal, double dt, double dt_snap, int i_bin_sfh) {
-#else
-double F_mergers_starburst(double mass_ratio, struct struct_gal *gal, double dt, double dt_snap) {
-#endif
+double F_mergers_starburst(double mass_ratio, struct struct_gal *gal, struct struct_var variables) {
     /*
       Major mergers of galaxies trigger a burst of star formation that goes into the bulge of the remnant.
 
@@ -249,6 +226,8 @@ double F_mergers_starburst(double mass_ratio, struct struct_gal *gal, double dt,
          The ratio of the baryonic mass of the smaller galaxy to the larger one.
       gal : obj : D_gal
          The galaxy that represents the merger product.
+      variables : obj : struct struct_var
+         variables structure containing counters and timing information
 
       Returns
       -------
@@ -257,6 +236,16 @@ double F_mergers_starburst(double mass_ratio, struct struct_gal *gal, double dt,
     */
 
     double mass_stars, mass_stars_imf, mass_metals_stars;
+
+    // Extract the variables that we need
+    //Uncomment the following if needed for SFR below
+    //double dt, dt_snap;
+    //dt=variables.dt_gal;
+    //dt_snap=variables.dt_snap;
+#ifdef SFH
+    int i_bin_sfh;
+    i_bin_sfh=variables.i_bin_sfh;
+#endif
 
     if (mass_ratio < parameters.major_merger_fraction) {
 	printf("F_mergers_starburst: mass_ratio < parameters.major_merger_fraction\n");

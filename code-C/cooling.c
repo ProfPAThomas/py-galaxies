@@ -5,18 +5,8 @@
 
 */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "all_headers.h"
 #include "cooling.h"
-#include "gals.h"
-#include "halos.h"
-#include "parameters.h"
-#include "subs.h"
-// proto.h has to come last in order not to generate warnings about multiple struct definitions
-// Could probably get around that by using #ifndef.
-#include "proto.h"
 
 //------------------------------------------------------------------------------------------------------------
 

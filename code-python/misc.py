@@ -53,6 +53,35 @@ def F_set_dt(parameters):
 
 #----------------------------------------------------------------------------------------------------
 
+def F_create_all_headers_header_file():
+   """
+   Writes out code/all_headers.h which contains a list of all header files to be included in the C code.
+   Excludes those specialised headers that are only used in a single routine: cooling.h and sfh.h
+
+   Attributes
+   ----------
+   parameters : obj : C_parameters
+       Instance of class containing global parameters
+   """
+   f=open('code-C/all_headers.h','w')
+   f.write('/* Contains a list of header files to be included in the C routines. */\n\n')
+   f.write('#include <math.h>\n')
+   f.write('#include <stdbool.h>\n')
+   f.write('#include <stdio.h>\n')
+   f.write('#include <stdlib.h>\n')
+   f.write('#include <string.h>\n')
+   f.write('#include "gals.h"\n')
+   f.write('#include "halos.h"\n')
+   f.write('#include "parameters.h"\n')
+   f.write('#include "subs.h"\n')
+   f.write('#include "variables.h"\n')
+   # proto.h has to come last in order not to generate warnings about multiple struct definitions
+   f.write('#include "proto.h"\n')
+   f.close()
+   return None
+
+#----------------------------------------------------------------------------------------------------
+
 def F_create_variables_structure_and_header_file(variables_dict):
    """
    Creates a variables structure containing all the variables that we want to pass to C;
@@ -107,7 +136,7 @@ def F_create_variables_structure_and_header_file(variables_dict):
    f.write('};\n')
    f.close()
 
-   return variables
+   return variables,C_variables
    
 #----------------------------------------------------------------------------------------------------
 

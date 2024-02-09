@@ -11,18 +11,9 @@ void F_cooling_halo(struct struct_halo *halo, struct struct_sub *sub, double dt)
 void F_cooling_sub(struct struct_gal *gal, struct struct_sub *sub, double dt);
 
 // mergers.c
-#ifdef SFH
 int F_mergers_merge_gals(struct struct_halo *halo,struct struct_sub *sub, struct struct_gal gals[],
-			 int n_gal, double dt, double dt_snap, int i_bin_sfh);
-#else
-int F_mergers_merge_gals(struct struct_halo *halo,struct struct_sub *sub, struct struct_gal gals[],
-			 int n_gal, double dt, double dt_snap);
-#endif
-#ifdef SFH
-double F_mergers_starburst(double mass_ratio, struct struct_gal *gal_main, double dt, double dt_snap, int i_bin_sfh);
-#else
-double F_mergers_starburst(double mass_ratio, struct struct_gal *gal_main, double dt, double dt_snap);
-#endif
+			 int n_gal, struct struct_var variables);
+double F_mergers_starburst(double mass_ratio, struct struct_gal *gal_main, struct struct_var variables);
 
 // star_formation_and_feedback.c
 #ifdef SFH
@@ -30,6 +21,7 @@ double F_SFF_gal_form_stars(struct struct_gal *gal, double dt, double dt_snap, i
 #else
 double F_SFF_gal_form_stars(struct struct_gal *gal, double dt, double dt_snap);
 #endif
+//double F_SFF_gal_form_stars(struct struct_gal *gal, struct struct_var variables);
 void F_SFF_gal_SN_feedback(double mass_stars, struct struct_gal *gal, struct struct_sub *sub, struct struct_halo *halo);
 void F_SFF_orphan_SN_feedback(double mass_stars, struct struct_gal *gal, struct struct_halo *halo);
 struct struct_SN_feedback F_SFF_SN_feedback_Hen15(double mass_stars, double v_vir, double mass_gas_cold);
