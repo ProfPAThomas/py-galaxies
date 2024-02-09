@@ -118,6 +118,10 @@ def F_process_halos(halos,subs,gals,graph,parameters,variables):
                 # Initially assume instantaneous merging of galaxies in subhalos
                 assert sub.n_gal==sub.gal_end_sid-sub.gal_start_sid
                 dt_snap=variables.dt_snap
+                # Use the first form of the call if you need to change any entries in the struct variables and the second if not.
+                # Will be interesting to see if it makes any difference in timing tests.
+                # sub.gal_central_sid=L_C.F_mergers_merge_gals(halo.props,sub.props,gals[sub.gal_start_sid:sub.gal_end_sid], \
+                #                                              ctypes.c_int(sub.n_gal), ctypes.byref(variables))
                 sub.gal_central_sid=L_C.F_mergers_merge_gals(halo.props,sub.props,gals[sub.gal_start_sid:sub.gal_end_sid], \
                                                              ctypes.c_int(sub.n_gal), variables)
             # Not all subhalos may have hot gas
@@ -137,14 +141,10 @@ def F_process_halos(halos,subs,gals,graph,parameters,variables):
                 if not gal['b_exists']: continue  #  Galaxies may have merged
                 gal['SFR_dt'] = 0. # This will fail to capture mergers (done above in subs loop) until we have a proper merger time for them.
                 if gal['mass_gas_cold'] > parameters.mass_minimum_internal: 
-                    dt_gal=variables.dt_gal
-                    dt_snap=variables.dt_snap
-                    if b_SFH:
-                        i_bin_sfh=variables.i_bin_sfh
-                        mass_stars = L_C.F_SFF_gal_form_stars(gals[i_gal:i_gal+1],ctypes.c_double(dt_gal),ctypes.c_double(dt_snap),ctypes.c_int(i_bin_sfh))
-                    else:
-                        mass_stars = L_C.F_SFF_gal_form_stars(gals[i_gal:i_gal+1],ctypes.c_double(dt_gal),ctypes.c_double(dt_snap))
-                    #mass_stars = L_C.F_SFF_gal_form_stars(gals[i_gal:i_gal+1],variables)
+                    # Use the first form of the call if you need to change any entries in the struct variables and the second if not.
+                    # Will be interesting to see if it makes any difference in timing tests.
+                    # mass_stars = L_C.F_SFF_gal_form_stars(gals[i_gal:i_gal+1],ctypes.byref(variables))
+                    mass_stars = L_C.F_SFF_gal_form_stars(gals[i_gal:i_gal+1],variables)
                     # If subhalo does not exist, use halo as proxy.  This will work here as only need access to hot gas phase.
                     sub_sid=gal['sub_sid']
                     halo_sid=gal['halo_sid']

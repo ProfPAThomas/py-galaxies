@@ -62,12 +62,12 @@ PYTHON_DIR='code-python'
 
 # Development limiter
 n_GRAPH=np.inf
-n_GRAPH=1000            # Change output files to 'test' to avoid over-writing!
+n_GRAPH=10            # Change output files to 'test' to avoid over-writing!
 n_GRAPH_START=0
 #n_GRAPH_START=58
 
 # Verbosity
-VERBOSITY=0 # 1 - Major program steps only; 1/2 - Major/minor Counters; 3/4/5 - Debugging diags.
+VERBOSITY=1 # 1 - Major program steps only; 1/2 - Major/minor Counters; 3/4/5 - Debugging diags.
 
 # List of runtime parameters
 FILE_PARAMETERS='input/input.yml'
@@ -81,12 +81,23 @@ FILE_PARAMETERS='input/input.yml'
 # Imports of py-galaxies python routines
 sys.path.insert(1,PYTHON_DIR)
 
-# Place to store common variables
-# Use sparingly as hides dependencies in code, but sometimes necessary
+# Commons is a module used to store run-time parameters that are used during other module imports
 import commons
 
 # The parameter class, used to store run-time parameters
 from parameters import C_parameters
+
+# variables_dict is a list of run-time variables that we do not wish to pass explicitly.
+# It is permitted to add items to this dictionary in response to runtime flags.
+# It will be converted to a ctypes structure at the end of the initialisation phase.
+variables_dict=dict({
+    'dt_snap':0.,      # Time between snaps
+    'dt_halo':0.,      # Halo timestep
+    'dt_gal':0.,       # Galaxy timestep
+    'i_dt_halo':-1,    # Current halo timestep this snapshot
+    'n_dt_halo':-1,    # Number of halo timesteps per snapshot
+    'n_dt_gal':-1      # Number of galaxy timesteps per halo timestep
+})
 
 # Read in parameters from yaml input files
 parameters=C_parameters(FILE_PARAMETERS)
@@ -114,17 +125,16 @@ b_SFH=parameters.b_SFH
 if b_SFH:
     from sfh import C_sfh
     sfh=C_sfh(parameters)
-    parameters.sfh=sfh     # Useful to avoid having to optionally pass sfh as a function argument
     from misc import F_create_sfh_header_file
     F_create_sfh_header_file(sfh,parameters)
     
 # These parameters are needed at import, so save to commons here
 commons.update('b_SFH',parameters.b_SFH)
 if b_SFH: 
-    commons.update('sfh.n_bin',sfh.n_bin)
-    # These counters need to be added to commons before saving as a C struct
-    commons.add('i_dt',-1)
-    commons.add('i_bin_sfh',-1)
+    commons.update('sfh_n_bin',sfh.n_bin)
+    # These counters need to be added to variables before saving as a C struct
+    variables_dict['i_dt_sfh']=-1
+    variables_dict['i_bin_sfh']=-1
     
 # The conditional decorator and profilers
 from profiling import conditional_decorator
@@ -153,9 +163,14 @@ from gals import C_gal_output
 from misc import F_create_parameters_header_file
 F_create_parameters_header_file(parameters)
 
-# Lock the commons directory to prevent new entries and create the equivalent C structure
-# Currently not needed as there is no C integration yet!
-commons.lock(True)
+# Create the variables structure to be used for passing varibles to C
+from misc import F_create_variables_structure_and_header_file
+variables,C_variables=F_create_variables_structure_and_header_file(variables_dict)
+del variables_dict
+
+# Create a header file containing the list of all other header files
+from misc import F_create_all_headers_header_file
+F_create_all_headers_header_file()
 
 
 # ### Initialisation of SAM
@@ -218,11 +233,6 @@ F_create_sub_struct_header_file(sub_template.dtype)
 from misc import F_create_galaxy_struct_header_file
 F_create_galaxy_struct_header_file(gal_template.dtype)
 
-
-# Create gals.h file 
-from misc import F_create_galaxy_struct_header_file
-F_create_galaxy_struct_header_file(gal_template.dtype)
-
 # Make and load C-library
 from misc import F_create_Makefile
 F_create_Makefile(parameters)
@@ -242,24 +252,24 @@ L_C.F_cooling_sub.argtypes=(np.ctypeslib.ndpointer(gal_template.dtype),
                     np.ctypeslib.ndpointer(sub_template.dtype),
                     ctypes.c_double)
 L_C.F_cooling_sub.restype=None
+# Use the first form of the call if you need to change any entries in the struct variables and the second if not.
+# Will be interesting to see if it makes any difference in timing tests.
+# L_C.F_mergers_merge_gals.argtypes=(np.ctypeslib.ndpointer(halo_template.dtype),np.ctypeslib.ndpointer(sub_template.dtype),
+#                 np.ctypeslib.ndpointer(gal_template.dtype), ctypes.c_int,ctypes.POINTER(C_variables))
+L_C.F_mergers_merge_gals.argtypes=(np.ctypeslib.ndpointer(halo_template.dtype),np.ctypeslib.ndpointer(sub_template.dtype),
+                np.ctypeslib.ndpointer(gal_template.dtype), ctypes.c_int,C_variables)
+L_C.F_mergers_merge_gals.restype=ctypes.c_int
+# Use the first form of the call if you need to change any entries in the struct variables and the second if not.
+# Will be interesting to see if it makes any difference in timing tests.
+#L_C.F_SFF_gal_form_stars.argtypes=(np.ctypeslib.ndpointer(gal_template.dtype),ctypes.POINTER(C_variables))
+L_C.F_SFF_gal_form_stars.argtypes=(np.ctypeslib.ndpointer(gal_template.dtype),C_variables)
+L_C.F_SFF_gal_form_stars.restype=ctypes.c_double
 L_C.F_SFF_gal_SN_feedback.argtypes=(ctypes.c_double,np.ctypeslib.ndpointer(gal_template.dtype),
                     np.ctypeslib.ndpointer(sub_template.dtype),np.ctypeslib.ndpointer(halo_template.dtype))
 L_C.F_SFF_gal_SN_feedback.restype=None
 L_C.F_SFF_orphan_SN_feedback.argtypes=(ctypes.c_double,np.ctypeslib.ndpointer(gal_template.dtype),
                     np.ctypeslib.ndpointer(halo_template.dtype))
 L_C.F_SFF_orphan_SN_feedback.restype=None
-if b_SFH:
-    L_C.F_mergers_merge_gals.argtypes=(np.ctypeslib.ndpointer(halo_template.dtype),np.ctypeslib.ndpointer(sub_template.dtype),
-                    np.ctypeslib.ndpointer(gal_template.dtype), ctypes.c_int, ctypes.c_double, ctypes.c_double, ctypes.c_int)
-    L_C.F_mergers_merge_gals.restype=ctypes.c_int
-    L_C.F_SFF_gal_form_stars.argtypes=(np.ctypeslib.ndpointer(gal_template.dtype),ctypes.c_double,ctypes.c_double,ctypes.c_int)
-    L_C.F_SFF_gal_form_stars.restype=ctypes.c_double
-else:
-    L_C.F_mergers_merge_gals.argtypes=(np.ctypeslib.ndpointer(halo_template.dtype),np.ctypeslib.ndpointer(sub_template.dtype),
-                    np.ctypeslib.ndpointer(gal_template.dtype), ctypes.c_int, ctypes.c_double, ctypes.c_double)
-    L_C.F_mergers_merge_gals.restype=ctypes.c_int
-    L_C.F_SFF_gal_form_stars.argtypes=(np.ctypeslib.ndpointer(gal_template.dtype),ctypes.c_double,ctypes.c_double)
-    L_C.F_SFF_gal_form_stars.restype=ctypes.c_double
 if b_SFH:
     L_C.F_sfh_update_bins.argtypes=(np.ctypeslib.ndpointer(gal_template.dtype),ctypes.c_int,ctypes.c_int)
     L_C.F_sfh_update_bins.restype=None
@@ -320,17 +330,17 @@ for i_graph in range(n_graph_start,n_graph_start+n_graph):
         if VERBOSITY >= 2: print('Processing snapshot',i_snap,flush=True)
             
         # These timestepping parameters will be needed in the processing, so save them to commons
-        commons.update('dt_snap',parameters.dt_snap[i_snap])
-        commons.update('dt_halo',parameters.dt_halo[i_snap])
-        commons.update('dt_gal',parameters.dt_gal[i_snap])
-        commons.update('n_dt_halo',parameters.n_dt_halo[i_snap])
-        commons.update('n_dt_gal',parameters.n_dt_gal[i_snap])
+        variables.dt_snap=parameters.dt_snap[i_snap]
+        variables.dt_halo=parameters.dt_halo[i_snap]
+        variables.dt_gal=parameters.dt_gal[i_snap]
+        variables.n_dt_halo=parameters.n_dt_halo[i_snap]
+        variables.n_dt_gal=parameters.n_dt_gal[i_snap]
             
         # This is the ministep, needed to track star formation histories
         if b_SFH:
-            i_dt=sfh.i_dt_snap[i_snap]-1   # This gives the ministep, BEFORE updating
-            commons.update('i_dt',i_dt)
-            commons.update('i_bin_sfh',sfh.i_bin[i_dt])
+            i_dt_sfh=sfh.i_dt_snap[i_snap]-1   # This gives the ministep, BEFORE updating
+            variables.i_dt_sfh=i_dt_sfh
+            variables.i_bin_sfh=sfh.i_bin[i_dt_sfh]
         
         # Initialise halo and subhalo properties.
         # This returns a list of halo and subhalo instances
@@ -344,16 +354,16 @@ for i_graph in range(n_graph_start,n_graph_start+n_graph):
         # Done as a push rather than a pull because sharing determined by progenitor
         # Have to do this even if no progenitors in order to initialise galaxy array
         gals_this_snap=F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,
-                                          subs_this_snap,gals_last_snap,graph,parameters)
+                                          subs_this_snap,gals_last_snap,graph,parameters,variables)
         del halos_last_snap
         del subs_last_snap
         del gals_last_snap
-        #gc.collect() # garbage collection -- safe but very slow.
+        #gc.collect() # garbage collection -- safe but potentially slow.
         
         # Process the halos
         for i_dt_halo in range(parameters.n_dt_halo[i_snap]):
-            commons.update('i_dt_halo',i_dt_halo)
-            F_process_halos(halos_this_snap,subs_this_snap,gals_this_snap,graph,parameters)
+            variables.i_dt_halo=i_dt_halo
+            F_process_halos(halos_this_snap,subs_this_snap,gals_this_snap,graph,parameters,variables)
             
         # Once all halos have been done, output results
         # This could instead be done on a halo-by-halo basis in F_process_halos
@@ -424,8 +434,15 @@ if b_profile_mem:
         pickle.dump(tm_snap, f)
 
 
-# In[ ]:
+# In[9]:
 
 
+commons.list()
 
+
+# In[10]:
+
+
+for key, type in variables._fields_:
+    print(key,'=',eval('variables.'+key))
 

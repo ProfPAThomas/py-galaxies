@@ -4,20 +4,6 @@ Functions to make stars from galaxies and to provide feedback of cold gas from S
 
 */
 
-/*
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "gals.h"
-#include "halos.h"
-#include "parameters.h"
-#include "subs.h"
-// proto.h has to come last in order not to generate warnings about multiple struct definitions
-// Could probably get around that by using #ifndef.
-#include "proto.h"
-*/
-
 #include "all_headers.h"
 
 struct struct_SN_feedback{double mass_reheat; double mass_eject_max;};
@@ -228,12 +214,13 @@ double F_SFF_star_formation_unresolved(double mass_gas, double R_d, double v_vir
 
 //------------------------------------------------------------------------------------------------------------
 
-#ifdef SFH
-double F_SFF_gal_form_stars(struct struct_gal *gal, double dt, double dt_snap, int i_bin_sfh) {
-#else
-double F_SFF_gal_form_stars(struct struct_gal *gal, double dt, double dt_snap) {
-#endif
-//double F_SFF_gal_form_stars(struct struct_gal *gal, struct struct_var variables) {
+/*
+  Use first form of call if you need to change entries in the struct variables, and the second if you do not.
+  Entries are accessed by (*variables).name in the first instance and variables.name in the latter.
+  Will be interesting to see if the two differ in timing test.
+*/
+//double F_SFF_gal_form_stars(struct struct_gal *gal, struct struct_var *variables) {
+double F_SFF_gal_form_stars(struct struct_gal *gal, struct struct_var variables) {
     /*
       Creates stars from gas in the cold gas disc.
 
@@ -257,14 +244,17 @@ double F_SFF_gal_form_stars(struct struct_gal *gal, double dt, double dt_snap) {
     double gal_radius_gas_cold, gal_radius_stars_disc, gal_v_vir;
     double ang_mom_stars_disc, mass_stars, mass_stars_imf, mass_metals_stars;
     
-/*     // Extract the variables that we need */
-/*     double dt, dt_snap; */
-/*     dt=variables.dt_gal; */
-/*     dt_snap=variables.dt_snap; */
-/* #ifdef SFH */
-/*     int i_bin_sfh; */
-/*     i_bin_sfh=variables.i_bin_sfh; */
-/* #endif */
+    // Extract the variables that we need
+    double dt, dt_snap;
+    //dt=(*variables).dt_gal;
+    dt=variables.dt_gal;
+    //dt_snap=(*variables).dt_snap;
+    dt_snap=variables.dt_snap;
+#ifdef SFH
+    int i_bin_sfh;
+    //i_bin_sfh=(*variables).i_bin_sfh;
+    i_bin_sfh=variables.i_bin_sfh;
+#endif
 
     gal_mass_gas_cold=(*gal).mass_gas_cold;
     gal_mass_metals_gas_cold=(*gal).mass_metals_gas_cold;
@@ -327,4 +317,3 @@ double F_SFF_gal_form_stars(struct struct_gal *gal, double dt, double dt_snap) {
 
     return mass_stars_imf;
 }
-
