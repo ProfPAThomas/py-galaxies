@@ -467,6 +467,8 @@ def F_create_Makefile(parameters):
       f.write('\t\t-D SFH \\\n')
    f.write('\t\tbh_agn.c \\\n')
    f.write('\t\tcooling.c \\\n')
+   #f.write('\t\tdynamics.c \\\n')
+   f.write('\t\thalo_infall.c \\\n')
    f.write('\t\tmergers.c \\\n')
    if parameters.b_SFH:
       f.write('\t\tsfh.c \\\n')

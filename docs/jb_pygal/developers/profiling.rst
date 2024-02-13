@@ -1,9 +1,14 @@
 Profiling
 =========
 
-This page outlines the profiling of the code and documents the attempts to improve both CPU and memory usage.
+This page outlines the profiling of the code and documents the attempts to improve both CPU and memory usage.  This is still very much a work in progress.
 
 I am really not sure what tools to use for the best here.  One thing is certain, this needs to be done at the command line to avoid bloating the code: in particular :code:`jupyter notebook` is horrendously memory guzzling.  The inbuilt profiling tools are controlled by runtime boolean parameters :code:`b_profile_cpu` and :code:`b_profile_mem`.
+However, with v0.2 of the code moving to C these have become much less useful so I will probably get rid of them.
+
+I have yet to investigate profiling of the C code as the python bookkeeping still dominates.
+
+All profiling mentioned below was undertaken on the first 1000 halos of Mill/pygal_063_5.hdf5 with verbosity set to 0 (ie minimal output) and with standard optimisation (:code:`-O`) enabled.
 
 
 CPU time
@@ -16,7 +21,7 @@ Of the three methods described below, I have found :code:`cProfile` to be the mo
 cProfile
 ^^^^^^^^
 
-This is a command line tool that can tell you in which functions the code spends most of its time.  It is easy to use as it requires no modification to the code itself: :code:`python -m cProfile -o output_dir/L-Galaxies.prof L-Galaxies.py`.
+This is a command line tool that can tell you in which functions the code spends most of its time.  It is easy to use as it requires no modification to the code itself: :code:`python -O -m cProfile -o output_dir/L-Galaxies.prof L-Galaxies.py`.
 
 Then analyse using :code:`python -m pstats output_dir/L-Galaxies.prof` which pops you into an interactive interface.  The recommended basic commands are:
 
@@ -30,82 +35,70 @@ Once you know which function/method is taking most of the time, then you can use
 * :code:`kernprof -lv -o output_dir/L-Galaxies.py.lprof L-Galaxies.py`
 * :code:`python -m line_profiler output_dir/L-Galaxies.py.lprof`
 
-As of 6-Dec-23, prior to any attempt to move any code to C, these were the timings for Millennium File 5 on a MacBook Pro, 2.3 GHz 8-Core Intel Core i9, 16 GB
+Because the internal profiling takes up significant resources, the following timings were run with both :code:`b_profile_cpu=False` and :code:`b_profile_mem=False`.  They also had star formation histories enabled, :code:`b_SFH=True`.
 
-         594090760 function calls (593190020 primitive calls) in 2382.652 seconds
+v0.1
+%%%%
+
+Prior to any attempt to move any code to C, these were the timings on my MacBook Pro, 2.3 GHz 8-Core Intel Core i9, 16 GB
+
+         505608955 function calls (471733059 primitive calls) in 518 seconds
 
 .. list-table::
-   :widths: 10 10 10 10 10 50
+   :widths: 10 10 10 70
    :header-rows: 1
 		 
    * - ncalls
      - tottime
-     - percall
      - cumtime
-     - percall
      - filename:lineno(function)
-   * - 19101255
-     - 401.648
-     - 0.000
-     - 459.901
-     - 0.000
+   * - 6040454
+     - 112
+     - 128
      - star_formation_and_feedback.py:15(F_gal_form_stars)
-   * - 10704577
-     - 400.221
-     - 0.000
-     - 483.569
-     - 0.000
-     - sfh.py:203(F_sfh_update_bins)
-   * - 3128618
-     - 210.500
-     - 0.000
-     - 1704.717
-     - 0.001
-     - driver.py:55(F_process_halos)
-   * - 19114008
-     - 160.633
-     - 0.000
-     - 240.673
-     - 0.000
-     - star_formation_and_feedback.py:155(F_gal_SNR_feedback)
-   * - 5244472
-     - 128.201
-     - 0.000
-     - 246.350
-     - 0.000
-     - cooling.py:130(F_sub)
-   * - 789720
-     - 116.177
-     - 0.000
-     - 140.783
-     - 0.000
+   * - 46895
+     - 58
+     - 70
      - gals.py:237(append)
-   * - 789720
-     - 106.502
-     - 0.000
-     - 192.182
-     - 0.000
+   * - 163604
+     - 50
+     - 357
+     - driver.py:55(F_process_halos)
+   * - 6047421
+     - 46
+     - 69
+     - star_formation_and_feedback.py:155(F_gal_SNR_feedback)
+   * - 1536069
+     - 33
+     - 63
+     - cooling.py:130(F_sub)
+   * - 46895
+     - 26
+     - 45
      - driver.py:170(F_update_halos)
-   * - 782652
-     - 69.800
-     - 0.000
-     - 113.590
-     - 0.000
-     - group.py:348(__getitem__)
-   * - 5244472
-     - 59.468
-     - 0.000
-     - 80.984
-     - 0.000
+   * - 546477
+     - 22
+     - 26
+     - sfh.py:203(F_sfh_update_bins)
+   * - 2403
+     - 15
+     - 15
+     - dataset.py:858(__setitem__)
+   * - 1536069
+     - 15
+     - 20
      - cooling.py:270(F_get_metaldependent_cooling_rate)
-   * - 19101255
-     - 47.920
-     - 0.000
-     - 47.920
-     - 0.000
+   * - 6047421
+     - 13
+     - 13
      - star_formation_and_feedback.py:112(F_star_formation_unresolved)
 
-The line profiler (not shown here) revealed the following:
+As can be seen:
+
+* Most of the work is undertaken within :code:`F_process_halos`, i.e. within the astrophysics routines.
+* The bookkeeping within :code:`F_update_halos` takes much less CPU.
+
+During optimisation of v0.1, the line profiler (not shown here) had also revealed the following:
 
 * Accidental leaving of units within the main body of the code is very slow.
 * Use of column headings in numpy structured arrays takes up most of the time -- could be effectively eliminated by interfacing with C.
@@ -116,7 +109,74 @@ That suggests that significant speed-up could be achieved by:
 * Defining a (static?) C struct to hold the internal parameters that are currently attributes of `parameters.py`.
 * Defining a (static?) C struct to hold the internal variabless that are currently stored in `commons.py`.
 * Associating the `gals` numpy structured array with an equivalent array of C structures (possibly only one at a time rather than an array).
-* Changing all the routines below `driver.py` (ie most of them!) to C equivalents.
+* Changing all the routines below :code:`F_update_halos` (ie most of them!) to C equivalents.
+
+v0.2
+%%%%
+
+After converting most of the astrophysics routines to C, and with exactly the same flags and identical output on a test run, these are the timings:
+
+         234767941 function calls (234706396 primitive calls) in 445 seconds
+
+.. list-table::
+   :widths: 10 10 10 70
+   :header-rows: 1
+		 
+   * - ncalls
+     - tottime
+     - cumtime
+     - filename:lineno(function)
+   * - 163604
+     - 96
+     - 258
+     - driver.py:17(F_process_halos)
+   * - 33293342
+     - 56
+     - 80
+     - ctypeslib.py:184(from_param)
+   * - 46895
+     - 48
+     - 64
+     - gals.py:243(append)
+   * - 33293342
+     - 39
+     - 39
+     - __init__.py:511(cast)
+   * - 46895
+     - 35
+     - 58
+     - driver.py:130(F_update_halos)
+   * - 33293342
+     - 21
+     - 21
+     - _internal.py:249(__init__)
+   * - 33293342
+     - 20
+     - 59
+     - _internal.py:266(data_as)
+   * - 2403
+     - 19
+     - 20       
+     - dataset.py:858(__setitem__)
+   * - 33293342
+     - 12
+     - 71
+     - _internal.py:344(as_parameter\_)
+   * - 46895
+     - 10
+     - 12
+     - subs.py:306(append)
+
+Here we see that:
+
+* The astrophysics routines have effectively disappeared from the output.
+* However, this has **not** resulted in a huge saving in time overall.  The time taken within the astrophysics functions has been largely replaced by overhead that seems most likely to be associated with using :code:`ctypes` in the function calls.  This then necessitates one of the following:
+  
+  - Change the way that :code:`ctypes` is used to make the overhead less demanding, or
+  - Progress the C implementation by converting the whole of `driver.py` into C.  This will also require replacing halo and subhalo classes with numpy arrays and functions.
+
+  I suspect that the latter approach will be needed anyway to make the code run super-efficiently, as most halos adn subhalos require very little astrophysics work and the overhead associated with a class instance is too great to be justifiable.
+       
 
 C_time class
 ^^^^^^^^^^^^
@@ -133,7 +193,7 @@ with methods:
 * `start(name)` – adds an entry to the dictionary with key `name`, or reopens an existing one.
 * `stop(name)` – accumulates the time spent in cpu_time_total.
   
-This routine should be relatively lightweight.  It is used to track the time taken to process each graph.  The following plots show the distribution of process times on the first 1000 graphs in Millennium File 5.
+This routine should be relatively lightweight.  It is used to track the time taken to process each graph.  The following plots show the distribution of process times on the first 1000 graphs in Millennium File 5.  This is for the pure python version of the code (ie v0.1).
 
 .. image:: figs/cpu_timer_graphs.png
    :width: 49%

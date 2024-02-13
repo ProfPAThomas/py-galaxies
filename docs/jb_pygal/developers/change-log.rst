@@ -3,6 +3,18 @@ Change log
 
 Log of major changes to the code.
 
+
+15-Feb-24
+---------
+
+**v0.2** All the galaxy astrophysics routines have been converted to C.  This provides a significant speed-up compared to version v0.1.  Testing on the first 10 halos in Mill/pygal_063_5.hdf5 gives *identical* results.
+
+8-Dec-23
+--------
+
+**v0.1** Froze the python version of the code with the tag v0.1.  This is essentially the new_input_format version as described below, but with some optimisation.
+
+
 28-Nov-23
 ---------
 

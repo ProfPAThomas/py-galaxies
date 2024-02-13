@@ -14,41 +14,6 @@ from gals import D_gal, F_gal_template
 
 #------------------------------------------------------------------------------------------------------
 
-@conditional_decorator(Timer(name='F_halo_reincorporation',logger=None),b_profile_cpu)
-def F_halo_reincorporation(halo,parameters,variables):
-    """
-    Reincorporation of ejected gas.
-
-    Currently just assumes Hen15 model.
-    Might be better to pass dt_halo and c_reinc explicitly.
-    Assumes that the minimum reincorporation timescale is the dynamical timescale, tau_dyn.
-
-    Arguments
-    ---------
-    halo : obj : C_halo
-       The halo currently being processed.
-    parameters : obj : C_parameters
-       Instance of class containing global parameters
-    variables : obj : C_variables
-       Instance of class containing global variables structure
-
-    Returns
-    -------
-    None
-    """
-    dt_halo=variables.dt_halo
-    
-    t_reinc = max(parameters.c_Hen15_reinc/halo.props['mass'],halo.props['tau_dyn'])
-    mass_reinc = halo.props['mass_gas_eject'] * (1.-np.exp(-dt_halo/t_reinc))
-    mass_metals_reinc = mass_reinc * (halo.props['mass_metals_gas_eject']/halo.props['mass_gas_eject'])
-    halo.props['mass_gas_eject'] -= mass_reinc
-    halo.props['mass_metals_gas_eject'] -= mass_metals_reinc
-    halo.props['mass_gas_hot'] += mass_reinc
-    halo.props['mass_metals_gas_hot'] += mass_metals_reinc
-    return None
-
-#------------------------------------------------------------------------------------------------------
-
 @conditional_decorator(Timer(name='F_process_halos',logger=None),b_profile_cpu)
 def F_process_halos(halos,subs,gals,graph,parameters,variables):
     """
@@ -94,7 +59,8 @@ def F_process_halos(halos,subs,gals,graph,parameters,variables):
         # Accretion onto halos.
         halo.accrete_primordial_gas(parameters.base_metallicity)
         # Reincorporation of ejected gas
-        if halo.props['mass_gas_eject'] > parameters.mass_minimum_internal: F_halo_reincorporation(halo,parameters,variables)
+        #if halo.props['mass_gas_eject'] > parameters.mass_minimum_internal: F_halo_reincorporation(halo,parameters,variables)
+        if halo.props['mass_gas_eject'] > parameters.mass_minimum_internal: L_C.F_halo_reincorporation(halo.props,variables)
         # Cooling of gas from halo onto central subhalo (or, in L-Galaxies mode, the most massive subhalo)
         # Cooling occurs only if a central subhalo exists.
         if halo.sub_central_sid != parameters.NO_DATA_INT: 
@@ -157,27 +123,6 @@ def F_process_halos(halos,subs,gals,graph,parameters,variables):
                 i_dt_sfh+=1
                 variables.i_dt_sfh=i_dt_sfh
             if i_dt_gal==0 and variables.i_dt_halo==0: gal['SFR_dt_start']=gal['SFR_dt'].copy() # This will contain the mergers
-    return None
-
-#------------------------------------------------------------------------------------------------------
-
-@conditional_decorator(Timer(name='F_set_central_galaxy',logger=None),b_profile_cpu)
-def F_set_central_galaxy(sub,parameters):
-    """
-    Determine the central galaxy in a subhalo.
-
-    Will eventually have fancy code to determine which, if any, galaxy is the central one.
-    For now, just make that the first (and only) galaxy.
-
-    Arguments
-    ---------
-    sub : obj : C_sub
-       The subhalo currently being processed.
-    parameters : obj : C_parameters
-       Instance of class containing global parameters
-    """
-    
-    sub.gal_central_sid = sub.gal_start_sid
     return None
 
 #------------------------------------------------------------------------------------------------------
@@ -405,7 +350,9 @@ def F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap
     # Need to set central galaxies for each subhalo as these are the ones that are accrete gas.
     # Also, newly created galaxies (no progenitors) come into existance at this point.
     for sub in subs_this_snap: 
-        F_set_central_galaxy(sub,parameters)    
+        # Will eventually have fancy code to determine which, if any, galaxy is the central one.
+        # For now, just make that the first (and only) galaxy.
+        sub.gal_central_sid = sub.gal_start_sid
         gal_central=gals_this_snap[sub.gal_central_sid]
         gal_central['b_exists']=True
         gal_central['sub_gid']=sub.sub_gid

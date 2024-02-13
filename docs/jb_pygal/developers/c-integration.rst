@@ -7,13 +7,13 @@ First a note on some basic principles:
 
 * `Parameters`, i.e. quantities that are fixed throughout the run, are stored in C header files (.h files) and thus imported at compilation time.
 * `Variables` are all passed explicitly - there are no global variables within the C routines!
-* To begin with, I attempted to make explicit all function arguments.  However, this got quite messy to read and, more importantly, the number of arguments depends upon the runtime options which then results in messier C code.  For that reason, I have packaged up some of the time-stepping arguments within a ctypes structure, :code:`commons`.
+* To begin with, I attempted to make explicit all function arguments.  However, this got quite messy to read and, more importantly, the number of arguments depends upon the runtime options which then results in messier C code.  For that reason, I have packaged up some of the time-stepping arguments within a ctypes structure, :code:`variables`.
 * All C function arguments are therefore either:
 
   - a 1-D halo structured numpy array :code:`halo.props`;
   - a 1-D subhalo structured numpy array :code:`sub.props`;
-  - a galaxy structured numpy array :code:`gals.props`;
-  - the :code:`commons` ctypes structure.
+  - a galaxy structured numpy array :code:`gals`;
+  - the :code:`variables` ctypes structure.
 
 The following figure shows the basic outline of the code:
 
@@ -75,4 +75,18 @@ Before calling a C function, one needs to define the interface (similar to a pro
 * :code:`ctypes.Structure` - The equivalent of a C structure.  :code:`ctypes.Structure` is actually a class, so one must use this to create a class instance.
 
 So while working, there remain one or two slight annoyances to work out to make the interface neater.
+
+I have noticed in the timing tests that a significant amount of time is spent in
+
+* :code:`update_halos`,
+* :code:`process_halos`, and
+* :code:`ctypeslib.py`.
+
+I strongly suspect that to improve efficiency I will need to:
+
+* Switch to using numpy structured arrays for halos and subhalos rather than python classes.
+* Convert the whole of :code:`driver.py`, including :code:`update_halos` and :code:`process_halos` into C.
+
+This has the disadvantage that it moves away from treating halos and subhalos as instances of the appropriate type of object, but should significantly reduce CPU usage.
+
 

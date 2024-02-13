@@ -1,6 +1,6 @@
 """
 Class to store SFH information.
-Function to merger SFH bins, if required
+Function to merger SFH bins has been moved to C.
 """
 
 import numpy as np

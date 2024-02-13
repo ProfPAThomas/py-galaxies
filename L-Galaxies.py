@@ -62,12 +62,12 @@ PYTHON_DIR='code-python'
 
 # Development limiter
 n_GRAPH=np.inf
-n_GRAPH=10            # Change output files to 'test' to avoid over-writing!
+n_GRAPH=1000            # Change output files to 'test' to avoid over-writing!
 n_GRAPH_START=0
 #n_GRAPH_START=58
 
 # Verbosity
-VERBOSITY=1 # 1 - Major program steps only; 1/2 - Major/minor Counters; 3/4/5 - Debugging diags.
+VERBOSITY=0 # 1 - Major program steps only; 1/2 - Major/minor Counters; 3/4/5 - Debugging diags.
 
 # List of runtime parameters
 FILE_PARAMETERS='input/input.yml'
@@ -252,6 +252,8 @@ L_C.F_cooling_sub.argtypes=(np.ctypeslib.ndpointer(gal_template.dtype),
                     np.ctypeslib.ndpointer(sub_template.dtype),
                     ctypes.c_double)
 L_C.F_cooling_sub.restype=None
+L_C.F_halo_reincorporation.argtypes=(np.ctypeslib.ndpointer(halo_template.dtype),C_variables)
+L_C.F_halo_reincorporation.restype=None
 # Use the first form of the call if you need to change any entries in the struct variables and the second if not.
 # Will be interesting to see if it makes any difference in timing tests.
 # L_C.F_mergers_merge_gals.argtypes=(np.ctypeslib.ndpointer(halo_template.dtype),np.ctypeslib.ndpointer(sub_template.dtype),

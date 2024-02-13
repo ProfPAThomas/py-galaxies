@@ -4,8 +4,8 @@ Results
 This section shows results for various physical properties of halos, subhalos and galaxies at different stages of code development.
 The subsections refer to tags in the git repository.
 
-Pre_CPU_optimisation
---------------------
+Minimal physics implementation
+------------------------------
 
 These results come from trees derived from Millennium File 5.  Halos that have no descendant in the final snapshot are omitted.  Missing halos are inserted to ensure no snapshots are skipped in a halo's evolution.  It is clear during the run and from the results that the translation from the Millennium tree file to the py-galaxies input format is not perfect.  In particular:
 

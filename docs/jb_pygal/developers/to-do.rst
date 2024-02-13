@@ -4,11 +4,9 @@ To-do
 Major structural development
 ----------------------------
 
-* Work out how to interface to C-routines
 * Implement MCMC to optimise parameters
 * Implement multiple metallicities
 * Implement resolved discs
-* Write a galaxy formation primer that gradually switches on the astrophysics, one step at a time, and illustrates the effect on the galaxy population.
 
 Pre-processing development
 --------------------------
@@ -46,8 +44,6 @@ Galaxy physics modules to import from L-galaxies
   - need better version of merger graphs so can use angular momentum of halo.
   - implement a beta model for the hot gas distribution.
   - add resolved galactic discs
-  - cool in stages and check that this better aligns the instantaneous and averaged cooling rates.
-  - seems to be the CPU bottleneck in the code, so speed up.
   
 * Star formation and feedback:
   
@@ -67,6 +63,14 @@ Galaxy physics modules to import from L-galaxies
 
   - Need to implement stripping of non-central galaxies (and subhalos).
 
+Optimisation
+------------
+
+* Better timing tests needed to determine the efficiency of the code, ideally by comparison with the release version of L-Galaxies.
+* (Almost certainly required) Switch to using numpy structured arrays for halos and subhalos rather than python classes.
+* (Almost certainly required) Convert the whole of :code:`driver.py`, including :code:`update_halos` and :code:`process_halos` into C.
+  
+
 Plotting developments
 ---------------------
 
@@ -79,6 +83,11 @@ Documentation
 -------------
 
 * Eliminate warnings and errors in documentation generation.
+
+Pedagogy
+--------
+
+* Write a galaxy formation primer that gradually switches on the astrophysics, one step at a time, and illustrates the effect on the galaxy population.
 
 Testing
 -------

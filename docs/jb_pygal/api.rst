@@ -48,8 +48,8 @@ Galaxies
 .. automodule:: gals
    :members:
 
-SAM routines
-------------
+SAM routines (python initialisation)
+------------------------------------
 
 Cooling
 ^^^^^^^
@@ -62,3 +62,8 @@ Star formation histories
 
 .. automodule:: sfh
    :members:
+
+SAM routines (C functions)
+--------------------------
+
+To be written: need to work out how to do the equivalent of automodule for C routines.
