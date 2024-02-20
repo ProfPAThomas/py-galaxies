@@ -1,7 +1,7 @@
 Profiling
 =========
 
-This page outlines the profiling of the code and documents the attempts to improve both CPU and memory usage.  This is still very much a work in progress.
+This page outlines the profiling of the code and documents the attempts to improve both CPU and memory usage.  Much of this has become outdated by the increased integration with C.
 
 I am really not sure what tools to use for the best here.  One thing is certain, this needs to be done at the command line to avoid bloating the code: in particular :code:`jupyter notebook` is horrendously memory guzzling.  The inbuilt profiling tools are controlled by runtime boolean parameters :code:`b_profile_cpu` and :code:`b_profile_mem`.
 However, with v0.2 of the code moving to C these have become much less useful so I will probably get rid of them.

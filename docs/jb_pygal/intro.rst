@@ -14,7 +14,6 @@ It features 3 major developments:
    :caption: Contents:
 
    usage
-   users
    developers
    api
 

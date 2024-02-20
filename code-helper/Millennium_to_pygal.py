@@ -65,15 +65,14 @@
 import h5py 
 import numpy as np
 from numpy.lib import recfunctions as rfn
-# import matplotlib.pyplot as plt
-# get_ipython().run_line_magic('matplotlib', 'inline')
-# import seaborn as sns
-# sns.set_context('poster')
-# sns.set_style('whitegrid')
 
 infile='/Users/petert/data/MR/treedata/trees_063.5'
 snapfile='/Users/petert/lgalaxies/Development_Branch/input/MRPlancksnaplist.txt'
 outfile='/Users/petert/data/MR/treedata/pygal_063_5.hdf5'
+
+# May want to restrict the number of trees to create small files for testing/development
+n_tree_max=-1   # Use -1 to signify all trees
+#n_tree_max=10  # or limit to a specific number
 
 # These are parameters/attributes for the Hen15 version of the MR (W1_Planck)
 Hubble_h=0.673
@@ -144,10 +143,7 @@ i_first_halo_in_tree[1:]=np.cumsum(n_halo_in_tree)[:-1]
 n_graph=n_tree # Synonyms; use either depending upon context.
 
 # For testing, restrict number of trees
-n_tree_max=n_tree
-# n_tree_max=60
-
-n_tree=n_tree_max
+if n_tree_max>-1: n_tree=min(n_tree_max,n_tree)
 n_graph=n_tree
 n_halo_in_tree=n_halo_in_tree[:n_tree]
 print(n_halo_in_tree[58])

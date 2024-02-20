@@ -1,5 +1,5 @@
-Developers
-==========
+Developers reference
+====================
 
 Here lies nitty-gritty information that will be needed by developers.
 

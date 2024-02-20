@@ -8,10 +8,9 @@
 
 io_files:
  input_files:
-  graph_file:   'MergerGraphs/Mill/pygal_063_5.hdf5'
-  snap_file:    'MergerGraphs/Mill/snaplist.txt' # Should ideally be stored in graph_file
+  graph_file:   'MergerGraphs/Mill5.hdf5'
  output_files:
-  output_prefix: 'output/Mill/C_devel_' # Destination directory and prefix for all output
+  output_prefix: 'output/timing_1000_' # Destination directory and prefix for all output.
   halo_file:    'HaloOutput.hdf5'
   subhalo_file: 'SubhaloOutput.hdf5'
   galaxy_file:  'GalaxyOutput.hdf5'
@@ -20,7 +19,7 @@ io_files:
   profile_mem_file: 'profile_mem.pkl'
  auxiliary_files:
   cooling_function_file: 'aux_files/Lambda_table.npz'
-  
+
 # Number of graphs to process.
 graphs:
  n_graph_start:
@@ -28,7 +27,7 @@ graphs:
   Value: 0
  n_graph_end:
   Description: 'Last graph to process'
-  Value: 10    # -1 means process all graphs
+  Value: 1000  # -1 means process all graphs
 
 # Diagnostics
 diagnostics:
@@ -46,7 +45,7 @@ diagnostics:
   Value: False
  verbosity:
   Description: 'Level of diagnostic messages: 0 - None; 1/2 - main counters; 3/4/5 - debugging info'
-  Value: 1
+  Value: 0
 
 numerics:
  NO_DATA_INT:

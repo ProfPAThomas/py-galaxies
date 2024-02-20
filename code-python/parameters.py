@@ -50,6 +50,11 @@ class C_parameters:
                 for file_type, file_name in value.items():
                     exec('self.'+str(file_type)+'=file_name')
                     print('self.'+str(file_type)+' =',eval('self.'+str(file_type)))
+        # Graphs to process
+        for key, value in self.D_param['graphs'].items():
+            Value = value['Value']
+            exec('self.'+str(key)+'=Value')
+            print('self.'+str(key)+' =',eval('self.'+str(key)))
         # Diagnostics
         for key, value in self.D_param['diagnostics'].items():
             Value = value['Value']

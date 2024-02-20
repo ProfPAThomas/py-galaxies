@@ -1,6 +1,16 @@
 To-do
 =====
 
+Optimisation
+------------
+
+This is a priority for **v0.3** of the code prior to wider distribution.
+
+* Switch to using numpy structured arrays for halos and subhalos rather than python classes.
+* Convert the whole of :code:`driver.py`, including :code:`update_halos` and :code:`process_halos` into C.
+* Better timing tests needed to determine the efficiency of the code, ideally by comparison with the release version of L-Galaxies.
+  
+
 Major structural development
 ----------------------------
 
@@ -11,7 +21,7 @@ Major structural development
 Pre-processing development
 --------------------------
 
-* Write helper routines to convert from other tree formats to py-gal input.  A version now exists for Millennium trees but the resultant processing generates many odd-looking halos.
+* Write helper routines to convert from other tree formats to py-gal input.  A version now exists for Millennium trees (which does, however, still generate a very few broken graphs).
 
 Minor structural development
 ----------------------------
@@ -46,30 +56,25 @@ Galaxy physics modules to import from L-galaxies
   - add resolved galactic discs
   
 * Star formation and feedback:
+  Unresolved version implemented
   
   - add resolved galactic discs with inflow of gas
 
 * AGN accretion and feedback:
+  BH growth implemented
   
-  - BH growth from mergers: add in calculation of quasar luminosity.
+  - Add in calculation of quasar luminosity.
+  - Implement feedback models
   
 * Galaxy merging:
   Basic version with instantaneous merging implemented
   
-  - ideally need a way of dtermining merger time.
+  - ideally need a way of determining merger time.
   - triggering starburst (does this need to be explicit, or can it arise naturally from contraction of disc?).
 
 * Stripping:
 
   - Need to implement stripping of non-central galaxies (and subhalos).
-
-Optimisation
-------------
-
-* Better timing tests needed to determine the efficiency of the code, ideally by comparison with the release version of L-Galaxies.
-* (Almost certainly required) Switch to using numpy structured arrays for halos and subhalos rather than python classes.
-* (Almost certainly required) Convert the whole of :code:`driver.py`, including :code:`update_halos` and :code:`process_halos` into C.
-  
 
 Plotting developments
 ---------------------
@@ -82,7 +87,10 @@ Plotting developments
 Documentation
 -------------
 
-* Eliminate warnings and errors in documentation generation.
+.. * Eliminate warnings and errors in documentation generation.
+
+* Add in API for C code.
+* Check through documentation before public release as some may have become outdated.
 
 Pedagogy
 --------

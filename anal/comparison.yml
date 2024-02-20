@@ -3,12 +3,12 @@
 # (Could do something sophisticated, matching graphs, snaps, etc, but not here.)
 
 inputFiles:
-  haloFile1: 'data/C_prior_to_devel_HaloOutput.hdf5'
-  subhaloFile1: 'data/C_prior_to_devel_SubhaloOutput.hdf5'
-  galaxyFile1: 'data/C_prior_to_devel_GalaxyOutput.hdf5'
-  haloFile2: 'data/C_devel_HaloOutput.hdf5'
-  subhaloFile2: 'data/C_devel_SubhaloOutput.hdf5'
-  galaxyFile2: 'data/C_devel_GalaxyOutput.hdf5'
+  haloFile1: '../output/v0.1_10_HaloOutput.hdf5'
+  subhaloFile1: '../output/v0.1_10_SubhaloOutput.hdf5'
+  galaxyFile1: '../output/v0.1_10_GalaxyOutput.hdf5'
+  haloFile2: '../output/test_10_HaloOutput.hdf5'
+  subhaloFile2: '../output/test_10_SubhaloOutput.hdf5'
+  galaxyFile2: '../output/test_10_GalaxyOutput.hdf5'
 save_prefix: 'comparison_'
  
 plots:
