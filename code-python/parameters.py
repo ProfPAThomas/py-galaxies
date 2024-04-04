@@ -219,6 +219,78 @@ class C_parameters:
         print('  temp. ',self.units_temperature_internal)
         return ''
 
+    def F_create_header_file(self):
+        """
+        Writes out all the attributes of parameters to code/parameters.h.
+        
+        Attributes
+        ----------
+        """
+        attributes=[a for a in dir(self) if not a.startswith('__') and not callable(getattr(self, a))]
+        f=open('code-C/parameters.h','w')
+        f.write('/* Runtime parameters (fixed throughout run). */\n\
+\n\
+#include <stdbool.h>\n\
+\n\
+struct struct_param {\n\
+')
+        for a in attributes:
+            value=eval('self.'+a)
+            a_type=str(type(value)).split('\'')[1]
+            print(a,a_type,value)
+            # First the parts that we wish to ignore
+            if 'astropy' in a_type:
+                continue
+            elif 'ndarray' in a_type:
+                continue
+            elif 'C_sfh' in a_type:
+                continue
+            # Now the bits that we want to extract
+            elif a_type == 'bool':
+                if value==True:
+                    f.write('    bool '+a+';\n')
+                else:
+                    f.write('    bool '+a+';\n')
+            elif 'dict' in a_type:
+                continue
+            elif 'int' in a_type:
+                f.write('    int '+a+';\n')
+            elif 'float' in a_type:
+                f.write('    float '+a+';\n')
+            elif a_type == 'str':
+                f.write('    char* '+a+';\n')
+            else:
+                f.write('    '+a_type+' '+a+';\n')
+        f.write('};\n')
+        # Would like to use const here rather than static, but that seems to break the linker
+        f.write('static struct struct_param parameters = {\n')
+        for a in attributes:
+            value=eval('self.'+a)
+            a_type=str(type(value)).split('\'')[1]
+            # First the parts that we wish to ignore
+            if 'astropy' in a_type:
+                continue
+            elif 'ndarray' in a_type:
+                continue
+            elif 'C_sfh' in a_type:
+                continue
+            # Now the bits that we want to extract
+            elif a_type == 'bool':
+                if value==True:
+                    f.write('    .'+a+'=true,\n')
+                else:
+                    f.write('    .'+a+'=false,\n')
+            elif 'dict' in a_type:
+                continue
+            elif a_type == 'str':
+                f.write('    .'+a+'="'+value+'",\n')
+            else:
+                f.write('    .'+a+'='+str(value)+',\n')
+        f.write('};\n')
+   
+        f.close()
+        return None
+
     def F_update_parameters(self,graph_file):
         """ 
         Reads in attributes of the graph and the snapshot table

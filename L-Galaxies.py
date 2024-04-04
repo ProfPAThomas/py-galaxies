@@ -26,7 +26,7 @@
 # * [ijk]_ - variable counter (integer)
 # * n_ - total counter (integer)
 
-# In[ ]:
+# In[1]:
 
 
 # Imports of generic python routines
@@ -61,7 +61,7 @@ if is_interactive():
     get_ipython().run_line_magic('autoreload', '2')
 
 
-# In[ ]:
+# In[2]:
 
 
 # Ideally the following parameters should not be changed, but retained here as parameters for flexibility
@@ -70,13 +70,13 @@ if is_interactive():
 C_DIR='code-C'
 PYTHON_DIR='code-python'
 
-# Default location of runtime parameters
+# Default location of runtime parameters - can be over-ridden by command line parameter
 FILE_PARAMETERS='input/input.yml'
 
 
-# ### Imports of parameter and data classes
+# ### Imports of parameter and data classes, and of functions
 
-# In[ ]:
+# In[3]:
 
 
 # Imports of py-galaxies python routines
@@ -97,8 +97,10 @@ elif len(sys.argv)==2:
     parameters=C_parameters(sys.argv[1])
 else:
     raise ValueError('Usage: python3 L-Galaxies.py <input.yml>')
+# Define how verbose we want the terminal output to be
 verbosity=parameters.verbosity
-commons.add('verbosity',verbosity)
+#commons.add('verbosity',verbosity)
+# Define which graphs do we want to process
 n_graph_start=parameters.n_graph_start
 n_graph_end=parameters.n_graph_end
 if n_graph_end==-1: n_graph_end=np.inf
@@ -120,17 +122,15 @@ variables_dict=dict({
     'dt_snap':0.,      # Time between snaps
     'dt_halo':0.,      # Halo timestep
     'dt_gal':0.,       # Galaxy timestep
-    'i_dt_halo':-1,    # Current halo timestep this snapshot
     'n_dt_halo':-1,    # Number of halo timesteps per snapshot
     'n_dt_gal':-1      # Number of galaxy timesteps per halo timestep
 })
 
-
 # Need to set the timesteps now, because that information is needed to determine the structure of
 # the halo & subhalo classes and especially the galaxy arrays.
 # This loads in the snapshot times and determines the number of timesteps required.
-from misc import F_set_dt
-F_set_dt(parameters)
+from misc import F_misc_set_dt
+F_misc_set_dt(parameters)
 if verbosity >=2:
     for i_snap in range(n_snap):
         print('i_snap, n_dt_halo, dt_halo, n_dt_gal, dt_gal')
@@ -140,8 +140,7 @@ b_SFH=parameters.b_SFH
 if b_SFH:
     from sfh import C_sfh
     sfh=C_sfh(parameters)
-    from misc import F_create_sfh_header_file
-    F_create_sfh_header_file(sfh,parameters)
+    sfh.F_create_header_file(parameters)
     
 # These parameters are needed at import, so save to commons here
 commons.update('b_SFH',parameters.b_SFH)
@@ -157,40 +156,55 @@ from profiling import conditional_decorator
 # The graph class, used to store graphs for processing
 from graphs import C_graph
 
-# The halo class, used to store halo properties
-from halos import C_halo
-
-# The halo_output class and methods used to output halos
+# Halos
+from halos import F_halos_create_header_file
+F_halos_create_header_file()
+from halos import F_halos_initialise
+from halos import F_halos_template
+halo_template=F_halos_template(parameters)
 from halos import C_halo_output
+halo_output=C_halo_output(parameters)
 
-# The subhalo class, used to store subhalo properties
-from subs import C_sub
-
-# The subhalo_output class, used to output subhalos
+# Subhalos
+from subs import F_subs_create_header_file
+F_subs_create_header_file()
+from subs import F_subs_initialise
+from subs import F_subs_template
+sub_template=F_subs_template(parameters)
 from subs import C_sub_output
+sub_output=C_sub_output(parameters)
 
-# The galaxy_output class, used to output galaxies
+# Galaxies
+from gals import F_gals_template
+gal_template=F_gals_template(parameters)
+parameters.gal_template=gal_template
+from gals import F_gals_create_header_file
+F_gals_create_header_file()
 from gals import C_gal_output
+gal_output=C_gal_output(parameters)
 
 # Now create the C parameters.h file.
 # *** DO NOT MODIFY PARAMETERS AFTER THIS POINT ***
-# Note: numpy arrays are not being passed: use commons to store current values.
-from misc import F_create_parameters_header_file
-F_create_parameters_header_file(parameters)
+parameters.F_create_header_file()
 
-# Create the variables structure to be used for passing varibles to C
-from misc import F_create_variables_structure_and_header_file
-variables,C_variables=F_create_variables_structure_and_header_file(variables_dict)
+# Create the variables structure to be used for passing variables to C
+# *** DO NOT ADD VARIABLES AFTER THIS POINT ***
+from misc import F_misc_create_variables_structure_and_header_file
+C_variables=F_misc_create_variables_structure_and_header_file(variables_dict)
+variables=C_variables(variables_dict)
 del variables_dict
 
 # Create a header file containing the list of all other header files
-from misc import F_create_all_headers_header_file
-F_create_all_headers_header_file()
+from misc import F_misc_create_all_headers_header_file
+F_misc_create_all_headers_header_file()
+
+# Import driver routine
+from push_snap import F_push_snap     # Propagates info from last snapshot to current one
 
 
 # ### Initialisation of SAM
 
-# In[ ]:
+# In[4]:
 
 
 # Start CPU profiling, if required.
@@ -204,100 +218,12 @@ if b_profile_cpu:
 
 # Create counter to locate graphs within the galaxy output file
 n_gal_graph_start=np.full(n_graph_end,parameters.NO_DATA_INT,dtype=np.int32)
-n_gal=0
+n_gal=0  # This is the total number of galaxies over all graphs
 
 # Create cooling table
 import cooling
 cooling_table = cooling.C_cooling(parameters)
-# Not sure if this is the best way to do it, but for now store all globals in parameters
-parameters.cooling_table=cooling_table
-# Create C header file containing cooling table
-from misc import F_create_cooling_header_file
-F_create_cooling_header_file(cooling_table)
-
-# Create galaxy template
-from gals import F_gal_template
-gal_template=F_gal_template(parameters)
-# Not sure if this is the best way to do it, but for now store all globals in parameters
-parameters.gal_template=gal_template
-
-# Create output buffers
-halo_output=C_halo_output(parameters)
-sub_output=C_sub_output(parameters)
-gal_output=C_gal_output(parameters)
-
-
-# In[ ]:
-
-
-# C integration
-import ctypes
-
-# Make header files containing C stuct version of the relevant dtypes
-# halos.h
-halo_template=C_halo.template
-from misc import F_create_halo_struct_header_file
-F_create_halo_struct_header_file(halo_template.dtype)
-# subs.h
-sub_template=C_sub.template
-from misc import F_create_sub_struct_header_file
-F_create_sub_struct_header_file(sub_template.dtype)
-# gals.h
-from misc import F_create_galaxy_struct_header_file
-F_create_galaxy_struct_header_file(gal_template.dtype)
-
-# Make and load C-library
-from misc import F_create_Makefile
-F_create_Makefile(parameters)
-subprocess.run(['make'],cwd=C_DIR)
-L_C=ctypes.CDLL(C_DIR+'/lib_C.so')
-
-# Add reference to library to imported python modules that need it
-# This list will be much reduced once all the physics routines are written in C.
-cooling.L_C=L_C
-
-# Define interfaces to C functions
-L_C.F_cooling_halo.argtypes=(np.ctypeslib.ndpointer(halo_template.dtype),
-                    np.ctypeslib.ndpointer(sub_template.dtype),
-                    ctypes.c_double)
-L_C.F_cooling_halo.restype=None
-L_C.F_cooling_sub.argtypes=(np.ctypeslib.ndpointer(gal_template.dtype),
-                    np.ctypeslib.ndpointer(sub_template.dtype),
-                    ctypes.c_double)
-L_C.F_cooling_sub.restype=None
-L_C.F_halo_reincorporation.argtypes=(np.ctypeslib.ndpointer(halo_template.dtype),C_variables)
-L_C.F_halo_reincorporation.restype=None
-# Use the first form of the call if you need to change any entries in the struct variables and the second if not.
-# Will be interesting to see if it makes any difference in timing tests.
-# L_C.F_mergers_merge_gals.argtypes=(np.ctypeslib.ndpointer(halo_template.dtype),np.ctypeslib.ndpointer(sub_template.dtype),
-#                 np.ctypeslib.ndpointer(gal_template.dtype), ctypes.c_int,ctypes.POINTER(C_variables))
-L_C.F_mergers_merge_gals.argtypes=(np.ctypeslib.ndpointer(halo_template.dtype),np.ctypeslib.ndpointer(sub_template.dtype),
-                np.ctypeslib.ndpointer(gal_template.dtype), ctypes.c_int,C_variables)
-L_C.F_mergers_merge_gals.restype=ctypes.c_int
-# Use the first form of the call if you need to change any entries in the struct variables and the second if not.
-# Will be interesting to see if it makes any difference in timing tests.
-#L_C.F_SFF_gal_form_stars.argtypes=(np.ctypeslib.ndpointer(gal_template.dtype),ctypes.POINTER(C_variables))
-L_C.F_SFF_gal_form_stars.argtypes=(np.ctypeslib.ndpointer(gal_template.dtype),C_variables)
-L_C.F_SFF_gal_form_stars.restype=ctypes.c_double
-L_C.F_SFF_gal_SN_feedback.argtypes=(ctypes.c_double,np.ctypeslib.ndpointer(gal_template.dtype),
-                    np.ctypeslib.ndpointer(sub_template.dtype),np.ctypeslib.ndpointer(halo_template.dtype))
-L_C.F_SFF_gal_SN_feedback.restype=None
-L_C.F_SFF_orphan_SN_feedback.argtypes=(ctypes.c_double,np.ctypeslib.ndpointer(gal_template.dtype),
-                    np.ctypeslib.ndpointer(halo_template.dtype))
-L_C.F_SFF_orphan_SN_feedback.restype=None
-if b_SFH:
-    L_C.F_sfh_update_bins.argtypes=(np.ctypeslib.ndpointer(gal_template.dtype),ctypes.c_int,ctypes.c_int)
-    L_C.F_sfh_update_bins.restype=None
-
-
-# In[ ]:
-
-
-# Import driver routines and point them to the C libraries
-import driver
-driver.L_C=L_C
-from driver import F_update_halos     # Propagates info from last snapshot to current one
-from driver import F_process_halos    # Does all the astrophysics
+cooling_table.F_create_header_file()
 
 if b_profile_cpu: timer.stop('Initialisation')
     
@@ -313,13 +239,37 @@ if b_profile_mem:
     mem = C_mem()
 
 
+# ### C integration
+# 
+# Needs to be done after creation of all the header files, including for example that which stores the cooling tables.
+
+# In[5]:
+
+
+# C integration
+import ctypes
+
+# Make and load C-library
+from misc import F_misc_create_Makefile
+F_misc_create_Makefile(parameters)
+subprocess.run(['make'],cwd=C_DIR)
+L_C=ctypes.CDLL(C_DIR+'/lib_C.so')
+
+# Define interfaces to C functions: currently only one of these
+L_C.F_process_snap.argtypes=(np.ctypeslib.ndpointer(halo_template.dtype),ctypes.c_int,
+                             np.ctypeslib.ndpointer(sub_template.dtype),ctypes.c_int,
+                             np.ctypeslib.ndpointer(gal_template.dtype),ctypes.c_int,
+                             C_variables)
+L_C.F_process_snap.restype=None
+
+
 # ### Loop over graphs, snapshots, halos, implementing the SAM
 # 
 # Note that loops over graphs can be done in parallel.
 # 
-# Also, F_update_halos needs to be serial, but all halos can be processed in parallel in F_process_halos.
+# Also, F_push_snap needs to be serial, but all halos can be processed in parallel in F_process_snap.
 
-# In[ ]:
+# In[6]:
 
 
 # Loop over graphs
@@ -338,13 +288,13 @@ for i_graph in range(n_graph_start,n_graph_end):
     subs_last_snap = None
     gals_last_snap = None
     for i_snap in range(parameters.n_snap):
-        n_halo_in_snap=graph.snap_n_halo[i_snap]
-        if n_halo_in_snap == 0:
+        n_halo_this_snap=graph.snap_n_halo[i_snap]
+        if n_halo_this_snap == 0:
             assert halos_last_snap == None
             continue
         if verbosity >= 2: print('Processing snapshot',i_snap,flush=True)
             
-        # These timestepping parameters will be needed in the processing, so save them to commons
+        # These timestepping parameters will be needed in the processing
         variables.dt_snap=parameters.dt_snap[i_snap]
         variables.dt_halo=parameters.dt_halo[i_snap]
         variables.dt_gal=parameters.dt_gal[i_snap]
@@ -358,32 +308,31 @@ for i_graph in range(n_graph_start,n_graph_end):
             variables.i_bin_sfh=sfh.i_bin[i_dt_sfh]
         
         # Initialise halo and subhalo properties.
-        # This returns a list of halo and subhalo instances
-        # This may be slow: an alternative would be to use np arrays.
-        halos_this_snap = [C_halo(i_graph,i_snap,i_halo,graph,parameters) for i_halo in 
-                          graph.snap_first_halo_gid[i_snap]+range(graph.snap_n_halo[i_snap])]
-        subs_this_snap = [C_sub(i_graph,i_snap,i_sub,graph,parameters) for i_sub in 
-                         graph.snap_first_sub_gid[i_snap]+range(graph.snap_n_sub[i_snap])]
+        halos_this_snap = np.full(n_halo_this_snap,halo_template)
+        F_halos_initialise(halos_this_snap,i_graph,i_snap,graph,parameters)
+        n_sub_this_snap=graph.snap_n_sub[i_snap]
+        if n_sub_this_snap>0:
+            subs_this_snap = np.full(n_sub_this_snap,sub_template)
+            F_subs_initialise(subs_this_snap,i_graph,i_snap,graph,parameters)        
         
-        # Propagate information from progenitors to this generation
-        # Done as a push rather than a pull because sharing determined by progenitor
-        # Have to do this even if no progenitors in order to initialise galaxy array
-        gals_this_snap=F_update_halos(halos_last_snap,halos_this_snap,subs_last_snap,
-                                          subs_this_snap,gals_last_snap,graph,parameters,variables)
+        # Propagate information from progenitors to this generation.
+        # Done as a push rather than a pull because sharing determined by progenitor.
+        # Have to do this even if no progenitors in order to initialise galaxy array.
+        # This is in python rather than C because of lots of graph lookups and variable-length arrays.
+        gals_this_snap=F_push_snap(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap,
+                                   gals_last_snap,graph,parameters,variables)
         del halos_last_snap
         del subs_last_snap
         del gals_last_snap
-        #gc.collect() # garbage collection -- safe but potentially slow.
         
-        # Process the halos
-        for i_dt_halo in range(parameters.n_dt_halo[i_snap]):
-            variables.i_dt_halo=i_dt_halo
-            F_process_halos(halos_this_snap,subs_this_snap,gals_this_snap,graph,parameters,variables)
-            
+        # Perform the astrophysics
+        L_C.F_process_snap(halos_this_snap,n_halo_this_snap,subs_this_snap,n_sub_this_snap,
+                           gals_this_snap,len(gals_this_snap),variables)
+
         # Once all halos have been done, output results
         # This could instead be done on a halo-by-halo basis in F_process_halos
         halo_output.append(halos_this_snap,parameters)
-        if subs_this_snap != None: sub_output.append(subs_this_snap,parameters)
+        if n_sub_this_snap >0: sub_output.append(subs_this_snap,parameters)
         if isinstance(gals_this_snap, np.ndarray):
             gal_output.append(gals_this_snap,parameters)
             n_gal+=len(gals_this_snap)
@@ -412,7 +361,7 @@ for i_graph in range(n_graph_start,n_graph_end):
 
 # ###  Tidy up and exit
 
-# In[ ]:
+# In[7]:
 
 
 if b_profile_mem: tm_snap = tm.take_snapshot()

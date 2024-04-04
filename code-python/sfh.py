@@ -197,3 +197,79 @@ class C_sfh:
             print('{:.3f}'.format(self.t[i_step,i]),end=', ')
          print('\n')
       return ''
+
+   def F_create_header_file(self,parameters):
+      """
+      Creates a header file for the SFH containing parameters and fixed arrays describing the time bins.
+   
+      Attributes
+      ----------
+      parameters : obj : C_parameters
+          Instance of class containing global parameters
+      """
+      f=open('code-C/sfh.h','w')
+      f.write('/* SFH tables (fixed throughout run). */\n\n')
+   
+      n_dt=self.n_dt
+      n_bin=self.n_bin
+      n_level=self.n_level
+      n_merge=self.n_merge
+      f.write('#define n_dt '+str(n_dt)+'\n')
+      f.write('#define n_bin '+str(n_bin)+'\n')
+      f.write('#define n_level '+str(n_level)+'\n')
+      f.write('#define n_merge '+str(n_merge)+'\n\n')
+   
+      n_snap=parameters.n_snap
+      f.write('// Index of first galaxy timestep in each snapshot.\n')
+      f.write('const int i_dt_snap['+str(n_snap)+'] = {')
+      for i_snap in range(n_snap):
+         f.write(str(self.i_dt_snap[i_snap])+', ')
+      f.write('};\n\n')
+   
+      f.write('// Number of SFH bins used at each galaxy timestep.\n')   
+      f.write('const int i_bin_all['+str(n_dt)+'] = {')
+      for i_dt in range(n_dt):
+         f.write(str(self.i_bin[i_dt])+', ')
+      f.write('};\n\n')
+   
+      f.write('// Number of SFH bins in each level of the merging hierarchy.\n')   
+      f.write('const int n_bin_in_level_all['+str(n_dt)+']['+str(n_level)+'] = {\n')
+      for i_dt in range(n_dt):
+         f.write('{')
+         for i_level in range(n_level):
+            f.write(str(self.n_bin_in_level[i_dt,i_level])+', ')
+         f.write('},\n')
+      f.write('};\n\n')   
+   
+      f.write('// Level in merging hierarchy of each SFH bin.\n')   
+      f.write('const int level_all['+str(n_dt)+']['+str(n_bin)+'] = {\n')
+      for i_dt in range(n_dt):
+         f.write('{')
+         for i_bin in range(n_bin):
+            f.write(str(self.level[i_dt,i_bin])+', ')
+         f.write('},\n')
+      f.write('};\n\n')   
+   
+      # Not currently needed in C routines
+      # f.write('// Age of the Universe at the low-z edge of the SFH bin (code units).\n')   
+      # f.write('const double t['+str(n_dt)+']['+str(n_bin)+'] = {\n')
+      # for i_dt in range(n_dt):
+      #    f.write('{')
+      #    for i_bin in range(n_bin):
+      #       f.write(str(self.t[i_dt,i_bin])+', ')
+      #    f.write('},\n')
+      # f.write('};\n\n')   
+   
+      # Not currently needed in C routines
+      # f.write('// Time width of the SFH bin (code units).\n')   
+      # f.write('const double dt['+str(n_dt)+']['+str(n_bin)+'] = {\n')
+      # for i_dt in range(n_dt):
+      #    f.write('{')
+      #    for i_bin in range(n_bin):
+      #       f.write(str(self.dt[i_dt,i_bin])+', ')
+      #    f.write('},\n')
+      # f.write('};\n\n')   
+   
+      f.close()
+      return None
+

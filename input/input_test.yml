@@ -45,7 +45,7 @@ diagnostics:
   Value: False
  verbosity:
   Description: 'Level of diagnostic messages: 0 - None; 1/2 - main counters; 3/4/5 - debugging info'
-  Value: 2
+  Value: 1
 
 numerics:
  NO_DATA_INT:

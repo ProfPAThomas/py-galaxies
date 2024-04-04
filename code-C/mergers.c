@@ -6,23 +6,11 @@ Functions related to galaxy mergers.
 
 #include "all_headers.h"
 
-/* Currently dt and dt_snap not used (only needed to update SFRs).
-   Could eliminate the need for multiple function parameter lists, and excessive passing of variables,
-   if combined everything currently in common into a struct - 
-   should do that as it would be in the spirit of making the code much simpler to understand.
-*/
 /* Could avoid a return value below if included gal_central_sid in struct_sub.
    Not doing that at the moment as it is a book-keeping parameter rather than a physical property.
    However, this is maybe a moot point as struct_gal contains some book-keeping parameters.
 */
 
-/*
-  Use first form of call if you need to change entries in the struct variables, and the second if you do not.
-  Entries are accessed by (*variables).name in the first instance and variables.name in the latter.
-  Will be interesting to see if the two differ in timing test.
-*/
-// int F_mergers_merge_gals(struct struct_halo *halo, struct struct_sub *sub, struct struct_gal gals[],
-// 			 int n_gal, struct struct_var *variables) {
 int F_mergers_merge_gals(struct struct_halo *halo, struct struct_sub *sub, struct struct_gal gals[],
 			 int n_gal, struct struct_var variables) {
     /*
@@ -221,12 +209,6 @@ int F_mergers_merge_gals(struct struct_halo *halo, struct struct_sub *sub, struc
     return gal_central_sid;
 }
 
-/*
-  Use first form of call if you need to change entries in the struct variables, and the second if you do not.
-  Entries are accessed by (*variables).name in the first instance and variables.name in the latter.
-  Will be interesting to see if the two differ in a timing test.
-*/
-//double F_mergers_starburst(double mass_ratio, struct struct_gal *gal, struct struct_var *variables) {
 double F_mergers_starburst(double mass_ratio, struct struct_gal *gal, struct struct_var variables) {
     /*
       Major mergers of galaxies trigger a burst of star formation that goes into the bulge of the remnant.
@@ -257,7 +239,6 @@ double F_mergers_starburst(double mass_ratio, struct struct_gal *gal, struct str
     //dt_snap=variables.dt_snap;
 #ifdef SFH
     int i_bin_sfh;
-    // i_bin_sfh=(*variables).i_bin_sfh;
     i_bin_sfh=variables.i_bin_sfh;
 #endif
 

@@ -198,7 +198,7 @@ void F_cooling_halo(struct struct_halo *halo,struct struct_sub *sub, double dt) 
 
 //------------------------------------------------------------------------------------------------------------
 
-void F_cooling_sub(struct struct_gal *gal, struct struct_sub *sub, double dt) {
+void F_cooling_sub(struct struct_sub *sub, struct struct_gal *gal, double dt) {
     /*
     Cooling of subhalo onto galaxy.
     Also sets the radius of the disc.

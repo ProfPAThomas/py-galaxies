@@ -41,3 +41,52 @@ class C_cooling:
         # print('log10_lambda_table.shape =',self.log10_Lambda_table.shape)
         # print('log10_Lambda_table =',self.log10_Lambda_table)
 
+    def F_create_header_file(self):
+        """
+        Writes out the cooling tables as const C arrays.
+     
+        A more obvious way to do this would be to write out the tables as binary files, then read
+        them back in as const arrays in the C cooling routine the first time that it is called:
+        that would be quicker and more accurate.  I am doing it this way instead because:
+        * It makes the C-code cleaner (but this routine less so).
+        * We don't need high accuracy.
+        * I don't think that the speed difference will be very great.
+     
+        Note that a trailing comma seems to be permitted in C array initialisation, which simplifies things.
+     
+        Attributes
+        ----------
+        """
+        f=open('code-C/cooling.h','w')
+        f.write('/* Cooling tables (fixed throughout run). */\n\n')
+     
+        log10_T_table=self.log10_T_table
+        n_T=len(log10_T_table)
+        f.write('#define n_T '+str(n_T)+'\n')
+        f.write('const double log10_T_table['+str(n_T)+'] = {')
+        for i_T in range(n_T):
+           f.write(str(log10_T_table[i_T])+', ')
+        f.write('};\n\n')
+     
+        log10_Z_table=self.log10_Z_table
+        n_Z=len(log10_Z_table)
+        f.write('#define n_Z '+str(n_Z)+'\n')
+        f.write('const double log10_Z_table['+str(n_Z)+'] = {')
+        # Negative infinity will cause issues, so set first value to a very small number
+        f.write('-100., ')
+        for i_Z in range(1,n_Z):
+           f.write(str(log10_Z_table[i_Z])+', ')
+        f.write('};\n\n')
+     
+        log10_Lambda_table=self.log10_Lambda_table
+        f.write('const double log10_Lambda_table['+str(n_Z)+']['+str(n_T)+'] = {\n')
+        for i_Z in range(n_Z):
+           f.write('{')
+           for i_T in range(n_T):
+              f.write(str(log10_Lambda_table[i_Z,i_T])+', ')
+           f.write('},\n')
+        f.write('};\n\n')   
+     
+        f.close()
+        return None
+   

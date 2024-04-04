@@ -99,7 +99,41 @@ if b_SFH:
    _quantities.append(('mass_metals_stars_disc_sfh',ctypes.c_double,sfh_n_bin+1))
 D_gal=np.dtype(_quantities,align=True)
    
-def F_gal_template(parameters):
+#----------------------------------------------------------------------------------------------------
+
+def F_gals_create_header_file():
+   """
+   Creates a C struct definition that matches the galaxy dtype.
+   Writes out to code/gals.h
+
+   Attributes
+   ----------
+   """
+   f=open('code-C/gals.h','w')
+   f.write('/* Contains struct definition for galaxies. */\n\n#include <stdbool.h>\n\nstruct struct_gal {\n')
+   for key in D_gal.fields.keys():
+      var_type=str(D_gal[key])
+      # Do the awkward arrays first
+      if ',))' in var_type:
+         var_type=var_type.split(',')[1]
+         var_type=var_type.strip(' (')
+         f.write('    double '+key+'['+var_type+'];\n')
+      # Now the simple variables
+      elif 'bool' in var_type:
+         f.write('    bool '+key+';\n')         
+      elif 'int' in var_type:
+         f.write('    int '+key+';\n')
+      elif 'float' in var_type:
+         f.write('    double '+key+';\n')
+      else:
+         f.write('    '+var_type+' '+key+';\n')
+   f.write('}; \n')
+   f.close()
+   return None
+   
+#------------------------------------------------------------------------------------------------------------
+
+def F_gals_template(parameters):
    """
    Creates a template for the galaxies
 
