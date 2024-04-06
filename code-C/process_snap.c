@@ -64,6 +64,9 @@ void F_process_snap(struct struct_halo halos[], int n_halo,
     // Set the accretion rate required to bring the halos up to the universal mean over the course of a snapshot interval.
     F_halos_set_mass_baryon(halos, n_halo, subs, gals, n_dt_halo);
 
+    // Identify the central subhalo of each halo
+    F_halos_central_subhalo(halos, n_halo, subs);
+
     // Loop over halo timestep
     for (i_dt_halo=0; i_dt_halo<n_dt_halo; i_dt_halo++) {
     
@@ -117,6 +120,9 @@ void F_process_snap(struct struct_halo halos[], int n_halo,
 		// Cooling.  This also includes radio mode BH growth and feedback.
 		// Not all subhalos may have hot gas
 		if (subs[i_sub].mass_gas_hot > parameters.mass_minimum_internal) {
+		    if (subs[i_sub].gal_central_sid<0 || subs[i_sub].gal_central_sid >= n_gal) {
+			printf("subs[i_sub].gal_central_sid = %d\n",subs[i_sub].gal_central_sid);
+		    }
 		    F_cooling_sub(&subs[i_sub],&gals[subs[i_sub].gal_central_sid],dt_halo);
 		}
 
@@ -125,44 +131,43 @@ void F_process_snap(struct struct_halo halos[], int n_halo,
 	    }
 	    // End loop over subhalos
 	    
+/* 	    // Loop over galaxy timestep */
+/* 	    for (i_dt_gal=0; i_dt_gal<n_dt_gal; i_dt_gal++) { */
+	    
+/* 		// Loop over galaxies  */
+/* 		for (i_gal=halos[i_halo].gal_start_sid; i_gal<halos[i_halo].gal_end_sid; i_gal++) { */
+/* 		    if (!gals[i_gal].b_exists) continue; // Galaxies may have merged */
+/* 		    gals[i_gal].SFR_dt = 0.; // This will fail to capture mergers (done above in subs loop) until we have a proper merger time for them. */
+/* 		    if (gals[i_gal].mass_gas_cold > parameters.mass_minimum_internal) { */
+/* 			mass_stars = F_SFF_gal_form_stars(&gals[i_gal],variables); */
+/* 			// If subhalo does not exist, use halo as proxy.  This will work here as only need access to hot gas phase. */
+/* 			sub_sid=gals[i_gal].sub_sid; */
+/* 			if (sub_sid==parameters.NO_DATA_INT) { */
+/* 			    F_SFF_orphan_SN_feedback(mass_stars,&gals[i_gal],&halos[i_halo]); */
+/* 			} else { */
+/* 			    F_SFF_gal_SN_feedback(mass_stars,&gals[i_gal],&subs[sub_sid],&halos[i_halo]); */
+/* 			} */
+/* 		    } */
+/* 		} */
+/* 		// End loop over galaxies */
+		
+/* #ifdef SFH */
+/* 		// Update SFH bins */
+/* 		F_sfh_update_bins(gals,n_gal,i_dt_sfh); */
+/* 		i_dt_sfh+=1; */
+/* #endif */
+/* 		// Some SFR loggers */
+/* 		if (i_dt_gal==0 && i_dt_halo==0) { */
+/* 		    for (i_gal=0; i_gal<n_gal; i_gal++) { */
+/* 			gals[i_gal].SFR_dt_start=gals[i_gal].SFR_dt; // This will contain the mergers */
+/* 		    } */
+/* 		} */
+
+/* 	    } */
+/* 	    //End loop over galaxy timestep */
+	
 	    halos[i_halo].n_dt+=1;
 	    if (halos[i_halo].n_dt==n_dt_halo) halos[i_halo].b_done=true;
-
-	    // Loop over galaxy timestep
-	    for (i_dt_gal=0; i_dt_gal<n_dt_gal; i_dt_gal++) {
-	    
-		// Loop over galaxies 
-		for (i_gal=halos[i_halo].gal_start_sid; i_gal<halos[i_halo].gal_end_sid; i_gal++) {
-		    if (!gals[i_gal].b_exists) continue; // Galaxies may have merged
-		    gals[i_gal].SFR_dt = 0.; // This will fail to capture mergers (done above in subs loop) until we have a proper merger time for them.
-		    if (gals[i_gal].mass_gas_cold > parameters.mass_minimum_internal) {
-			mass_stars = F_SFF_gal_form_stars(&gals[i_gal],variables);
-			// If subhalo does not exist, use halo as proxy.  This will work here as only need access to hot gas phase.
-			sub_sid=gals[i_gal].sub_sid;
-			if (sub_sid==parameters.NO_DATA_INT) {
-			    F_SFF_orphan_SN_feedback(mass_stars,&gals[i_gal],&halos[i_halo]);
-			} else {
-			    F_SFF_gal_SN_feedback(mass_stars,&gals[i_gal],&subs[sub_sid],&halos[i_halo]);
-			}
-		    }
-		}
-		// End loop over galaxies
-		
-#ifdef SFH
-		// Update SFH bins
-		F_sfh_update_bins(gals,n_gal,i_dt_sfh);
-		i_dt_sfh+=1;
-#endif
-		// Some SFR loggers
-		if (i_dt_gal==0 && i_dt_halo==0) {
-		    for (i_gal=0; i_gal<n_gal; i_gal++) {
-			gals[i_gal].SFR_dt_start=gals[i_gal].SFR_dt; // This will contain the mergers
-		    }
-		}
-
-	    }
-	    //End loop over galaxy timestep
-	
 	}
 	// End loop over halos
 	

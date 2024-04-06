@@ -6,6 +6,7 @@ import commons
 b_profile_cpu=commons.load('b_profile_cpu')
 
 from gals import D_gal
+from subs import F_subs_mass_baryon
 
 @conditional_decorator(Timer(name='F_push_snap',logger=None),b_profile_cpu)
 def F_push_snap(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap,
@@ -140,22 +141,21 @@ def F_push_snap(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap,
     for i_halo_this_snap in range(n_halo_this_snap):
         halos_this_snap[i_halo_this_snap]['gal_start_sid'] = n_gal_this_snap
         # Place the subhalo galaxies before the orphans
-        if halos_this_snap[i_halo_this_snap]['n_sub']==0: continue  # May not be needed if sub_start_sid and sub_end_sid are set
         for i_sub in range(halos_this_snap[i_halo_this_snap]['sub_start_sid'],halos_this_snap[i_halo_this_snap]['sub_end_sid']):
             # Record the location of this subhalo's gals in the gal lookup table.
             # Require subhalo to have at least 1 galaxy
             subs_this_snap[i_sub]['n_gal'] = max(subs_this_snap[i_sub]['n_gal'],1)
             subs_this_snap[i_sub]['gal_start_sid'] = n_gal_this_snap
+            subs_this_snap[i_sub]['gal_next_sid'] = n_gal_this_snap # Will be used to keep track of galaxies during update_halo phase.
             gal_end_sid = n_gal_this_snap + subs_this_snap[i_sub]['n_gal']
             subs_this_snap[i_sub]['gal_end_sid'] = gal_end_sid
-            subs_this_snap[i_sub]['gal_next_sid'] = n_gal_this_snap # Will be used to keep track of galaxies during update_halo phase.
             n_gal_this_snap = gal_end_sid
         halos_this_snap[i_halo_this_snap]['orphan_start_sid'] = n_gal_this_snap
         halos_this_snap[i_halo_this_snap]['orphan_next_sid'] = n_gal_this_snap # Will be used to keep track of orphans during update_halo phase
         n_gal_this_snap += halos_this_snap[i_halo_this_snap]['n_orphan']
         halos_this_snap[i_halo_this_snap]['gal_end_sid']=n_gal_this_snap
         halos_this_snap[i_halo_this_snap]['orphan_end_sid']=n_gal_this_snap
-    # I don't think that it should be possible to have zero galaxies ass the code will probably break if so.
+    # I don't think that it should be possible to have zero galaxies as the code will probably break if so.
     assert n_gal_this_snap>0
 
     # Create new gal array
@@ -247,25 +247,26 @@ def F_push_snap(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap,
                 gals_this_snap[gal_this_start_sid:gal_this_end_sid]['first_prog_gid']=np.arange(gal_this_start_sid,gal_this_end_sid)
                 gals_this_snap[gal_this_start_sid:gal_this_end_sid]['next_prog_gid']=parameters.NO_DATA_INT
 
-        # Set galaxy properties that are not inherited
-        gals_this_snap['graph_ID']=graph.graph_ID
-        gals_this_snap['snap_ID']=halos_this_snap[0]['snap_ID']
-        gals_this_snap['gal_sid']=np.arange(len(gals_this_snap))
-        gals_this_snap['SFR_snap']=0.  # Needs to be zeroed as accumulates over snapshot timesteps.
-        # Need to set central galaxies for each subhalo as these are the ones that are accrete gas.
-        # Also, newly created galaxies (no progenitors) come into existence at this point.
-        for i_sub_this_snap in range(n_sub_this_snap): 
-            # Will eventually have fancy code to determine which, if any, galaxy is the central one.
-            # For now, just make that the first (and only) galaxy.
-            i_gal_central=subs_this_snap[i_sub_this_snap]['gal_start_sid']
-            subs_this_snap[i_sub_this_snap]['gal_central_sid'] = i_gal_central
-            gals_this_snap[i_gal_central]['b_exists']=True
-            gals_this_snap[i_gal_central]['sub_gid']=subs_this_snap[i_sub_this_snap]['sub_gid']
-            gals_this_snap[i_gal_central]['sub_sid']=subs_this_snap[i_sub_this_snap]['sub_sid']
-            gals_this_snap[i_gal_central]['halo_gid']=subs_this_snap[i_sub_this_snap]['halo_gid']
-            gals_this_snap[i_gal_central]['halo_sid']=subs_this_snap[i_sub_this_snap]['halo_sid']
-            # The central galaxies have their virial speed updated; the others keep their inherited virial speed
-            gals_this_snap[i_gal_central]['v_vir']=subs_this_snap[i_sub_this_snap]['half_mass_virial_speed']
+    # Set galaxy properties that are not inherited
+    gals_this_snap['graph_ID']=graph.graph_ID
+    gals_this_snap['snap_ID']=halos_this_snap[0]['snap_ID']
+    gals_this_snap['gal_sid']=np.arange(len(gals_this_snap))
+    gals_this_snap['SFR_snap']=0.  # Needs to be zeroed as accumulates over snapshot timesteps.
+    # Need to set central galaxies for each subhalo as these are the ones that are accrete gas.
+    # Also, newly created galaxies (no progenitors) come into existence at this point.
+    for i_sub_this_snap in range(n_sub_this_snap): 
+        # Will eventually have fancy code to determine which, if any, galaxy is the central one.
+        # For now, just make that the first (and only) galaxy.
+        i_gal_central=subs_this_snap[i_sub_this_snap]['gal_start_sid']
+        assert 0<=i_gal_central<n_gal_this_snap
+        subs_this_snap[i_sub_this_snap]['gal_central_sid'] = i_gal_central
+        gals_this_snap[i_gal_central]['b_exists']=True
+        gals_this_snap[i_gal_central]['sub_gid']=subs_this_snap[i_sub_this_snap]['sub_gid']
+        gals_this_snap[i_gal_central]['sub_sid']=subs_this_snap[i_sub_this_snap]['sub_sid']
+        gals_this_snap[i_gal_central]['halo_gid']=subs_this_snap[i_sub_this_snap]['halo_gid']
+        gals_this_snap[i_gal_central]['halo_sid']=subs_this_snap[i_sub_this_snap]['halo_sid']
+        # The central galaxies have their virial speed updated; the others keep their inherited virial speed
+        gals_this_snap[i_gal_central]['v_vir']=subs_this_snap[i_sub_this_snap]['half_mass_virial_speed']
 
     # Some sanity checks
     # In principle subhalos should aready have the correct baryon mass: this is a check

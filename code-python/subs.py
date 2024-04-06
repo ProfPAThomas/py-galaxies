@@ -197,23 +197,23 @@ def F_subs_initialise(subs_this_snap,graph_ID,snap_ID,graph,parameters):
 #--------------------------------------------------------------------------------------------------
 
 def F_subs_mass_baryon(sub,gals):
-       """
-       Calculates the total baryonic mass of the subhalo, including galaxies.
-       Returns value rather than setting it because being used as a check on simpler method.
+   """
+   Calculates the total baryonic mass of the subhalo, including galaxies.
+   Returns value rather than setting it because being used as a check on simpler method.
 
-       Parameters
-       ----------
-       gals : obj : D_gal[]
-          Array of records for the galaxies in this subhalo.
+   Parameters
+   ----------
+   gals : obj : D_gal[]
+      Array of records for the galaxies in this subhalo.
 
-       Returns
-       -------
-       float
-          The baryonic mass of the subhalo, inclusive of galaxies.
-       """
-       mass_baryon = sub['mass_gas_hot'] + sub['mass_stars'] + \
-                       np.sum(gals[sub['gal_start_sid']:sub['gal_end_sid']]['mass_baryon'])
-       return mass_baryon
+   Returns
+   -------
+   float
+      The baryonic mass of the subhalo, inclusive of galaxies.
+   """
+   mass_baryon = sub['mass_gas_hot'] + sub['mass_stars'] + \
+      np.sum(gals[sub['gal_start_sid']:sub['gal_end_sid']]['mass_baryon'])
+   return mass_baryon
         
 #--------------------------------------------------------------------------------------------------
 
