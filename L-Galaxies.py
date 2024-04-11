@@ -269,7 +269,7 @@ L_C.F_process_snap.restype=None
 # 
 # Also, F_push_snap needs to be serial, but all halos can be processed in parallel in F_process_snap.
 
-# In[6]:
+# In[ ]:
 
 
 # Loop over graphs
@@ -361,7 +361,7 @@ for i_graph in range(n_graph_start,n_graph_end):
 
 # ###  Tidy up and exit
 
-# In[7]:
+# In[ ]:
 
 
 if b_profile_mem: tm_snap = tm.take_snapshot()

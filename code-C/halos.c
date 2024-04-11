@@ -104,7 +104,7 @@ void F_halos_reincorporation(struct struct_halo *halo, struct struct_var variabl
 
 //------------------------------------------------------------------------------------------------------------
 
-void F_halos_set_mass_baryon(struct struct_halo halos[], int n_halo, struct struct_sub subs[], struct struct_gal gals[], int n_dt_halo) {
+void F_halos_baryon_accretion_rate(struct struct_halo halos[], int n_halo, struct struct_sub subs[], struct struct_gal gals[], int n_dt_halo) {
     /*
       Calculates and updates the total baryonic mass of each halo, inclusive of subhalos and galaxies.
       Also determines the accretion required to bring the halo up to the universal mean baryon fraction, 
@@ -128,7 +128,7 @@ void F_halos_set_mass_baryon(struct struct_halo halos[], int n_halo, struct stru
       None
     */
 
-    int i_halo, i_orphan, i_sub, orphan_end_sid;
+    int i_halo, i_orphan, i_sub;
     double mass_baryon_delta;
 
     for (i_halo=0; i_halo<n_halo; i_halo++) {
@@ -138,9 +138,8 @@ void F_halos_set_mass_baryon(struct struct_halo halos[], int n_halo, struct stru
 	}
         // The orphan galaxies are not included in the subhalo baryon count, so add them in here
 	if (halos[i_halo].n_orphan >0) {
-	    orphan_end_sid=halos[i_halo].orphan_start_sid+halos[i_halo].n_orphan;
-	    for (i_orphan=halos[i_halo].orphan_start_sid; i_orphan<orphan_end_sid; i_orphan++) {
-		halos[i_halo].mass_baryon += gals[i_sub].mass_gas_cold+gals[i_sub].mass_stars_bulge+gals[i_sub].mass_stars_disc;
+	    for (i_orphan=halos[i_halo].orphan_start_sid; i_orphan<halos[i_halo].orphan_start_sid; i_orphan++) {
+		halos[i_halo].mass_baryon += gals[i_orphan].mass_gas_cold+gals[i_orphan].mass_stars_bulge+gals[i_orphan].mass_stars_disc;
 	    }
 	}
          

@@ -12,17 +12,17 @@ void F_cooling_sub(struct struct_sub *sub, struct struct_gal *gal, double dt);
 
 // halos.c
 void F_halos_accrete_primordial_gas(struct struct_halo *halo);
+void F_halos_baryon_accretion_rate(struct struct_halo halos[], int n_halo, struct struct_sub subs[], struct struct_gal gals[], int n_dt_halo);
 void F_halos_central_subhalo(struct struct_halo halos[], int n_halo, struct struct_sub subs[]);
 void F_halos_reincorporation(struct struct_halo *halo, struct struct_var variables);
-void F_halos_set_mass_baryon(struct struct_halo halos[], int n_halo, struct struct_sub subs[], struct struct_gal gals[], int n_dt_halo);
 
 // mergers.c
 // Use first form of call if you need to change entries in the struct variables, and the second if you do not.
 // Will be interesting to see if the two differ in timing test.
 // int F_mergers_merge_gals(struct struct_halo *halo,struct struct_sub *sub, struct struct_gal gals[],
 // 			 int n_gal, struct struct_var *variables);
-int F_mergers_merge_gals(struct struct_halo *halo,struct struct_sub *sub, struct struct_gal gals[],
-			 int n_gal, struct struct_var variables);
+void F_mergers_merge_gals(struct struct_halo *halo, struct struct_sub *sub, struct struct_gal gals[],
+			  struct struct_var variables);
 // double F_mergers_starburst(double mass_ratio, struct struct_gal *gal_main, struct struct_var *variables);
 double F_mergers_starburst(double mass_ratio, struct struct_gal *gal_main, struct struct_var variables);
 

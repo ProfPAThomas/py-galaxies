@@ -158,7 +158,7 @@ def F_misc_create_Makefile(parameters):
    f.write('build_library:\n')
    f.write('\tgcc -Wall ')
    if parameters.b_debug:
-      f.write('-fsanitize=undefined -g ')
+      f.write('-fsanitize=undefined -fsanitize=bounds -g ')
    else:
       f.write('-O ')
    f.write('-shared -o lib_C.so \\\n')

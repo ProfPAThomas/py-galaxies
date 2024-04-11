@@ -6,13 +6,8 @@ Functions related to galaxy mergers.
 
 #include "all_headers.h"
 
-/* Could avoid a return value below if included gal_central_sid in struct_sub.
-   Not doing that at the moment as it is a book-keeping parameter rather than a physical property.
-   However, this is maybe a moot point as struct_gal contains some book-keeping parameters.
-*/
-
-int F_mergers_merge_gals(struct struct_halo *halo, struct struct_sub *sub, struct struct_gal gals[],
-			 int n_gal, struct struct_var variables) {
+void F_mergers_merge_gals(struct struct_halo *halo, struct struct_sub *sub, struct struct_gal gals[],
+			 struct struct_var variables) {
     /*
     Merges galaxies within subhalo.
 
@@ -34,11 +29,9 @@ int F_mergers_merge_gals(struct struct_halo *halo, struct struct_sub *sub, struc
 
     Returns
     -------
-    gal_central_sid : int
-       The sid of the galaxy at the centre of the subhalo
     */
 
-    int gal_central_sid, i_gal, i_main;
+    int i_gal, i_gal_start, i_gal_end, i_main;
     double ang_mom_gas_cold, dm_BH, dm_metals_BH, gal_main_mass_baryon;
     double mass_gas_cold_before_starburst, mass_bulge_main, mass_bulge_sat, mass_ratio, mass_starburst;
     double max_mass, PE_bulge, radius_half_main, radius_half_sat, radius_sum;
@@ -46,35 +39,34 @@ int F_mergers_merge_gals(struct struct_halo *halo, struct struct_sub *sub, struc
     
     // Find the most massive galaxy: we will take this to be the one onto which everything accretes
     // Note: this is a pain in C; would it be better to pass in from python? i_main=np.argmax(gals['mass_baryon'])
-    i_main=0;
-    max_mass=(gals[0]).mass_baryon;
-    for (i_gal=1; i_gal<n_gal; i_gal++) {
+    i_gal_start=(*sub).gal_start_sid;
+    i_gal_end=(*sub).gal_end_sid;
+    i_main=i_gal_start;
+    max_mass=gals[i_main].mass_baryon;
+    for (i_gal=i_gal_start+1; i_gal<i_gal_end; i_gal++) {
 	if ((gals[i_gal]).mass_baryon > max_mass) {
 	    i_main=i_gal;
 	    max_mass=(gals[i_gal]).mass_baryon;
 	}
     }
+    (*sub).gal_central_sid=i_main;
     gal_main=&gals[i_main];
 
     // The central galaxy mass may change as a result of mergers, so use the initial one to separate minor/major
     gal_main_mass_baryon=(*gal_main).mass_baryon;
-    // At this point rename the central galaxy to be the most massive one.
-    // Note that the need to return this value to the python calling routine could be another reason to identify
-    // the main galaxy within the python code instead.
-    gal_central_sid = (*gal_main).gal_sid;
 
     // If no galaxies have any mass then can quit early
     if (gal_main_mass_baryon <= parameters.mass_minimum_internal) {
 	// Newly created galaxies sharing a subhalo: nothing to do except set b_exists status
-	for (i_gal=0; i_gal<n_gal; i_gal++) {
+	for (i_gal=i_gal_start; i_gal<i_gal_end; i_gal++) {
 	    (gals[i_gal]).b_exists=false;
 	}
 	(*gal_main).b_exists=true;
-	return gal_central_sid;
+	return;
     }
     
     // Loop over each of the other galaxies in turn, triggering the mergers
-    for (i_gal=0; i_gal<n_gal; i_gal++) {
+    for (i_gal=i_gal_start; i_gal<i_gal_end; i_gal++) {
         gal_sat = &gals[i_gal];
 
 	// Don't merge with yourself or non-existent galaxies
@@ -206,7 +198,7 @@ int F_mergers_merge_gals(struct struct_halo *halo, struct struct_sub *sub, struc
             }
 	}
     }	
-    return gal_central_sid;
+    return;
 }
 
 double F_mergers_starburst(double mass_ratio, struct struct_gal *gal, struct struct_var variables) {
