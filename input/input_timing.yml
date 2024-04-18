@@ -8,7 +8,7 @@
 
 io_files:
  input_files:
-  graph_file:   'MergerGraphs/Mill5.hdf5'
+  graph_file:   'MergerGraphs/Mill/Mill5_1000.hdf5'
  output_files:
   output_prefix: 'output/timing_1000_' # Destination directory and prefix for all output.
   halo_file:    'HaloOutput.hdf5'

@@ -1,12 +1,12 @@
 # SFH plot parameters
 
 inputFiles:
-  haloFile: 'data/C_devel_HaloOutput.hdf5'
-  subhaloFile: 'data/C_devel_SubhaloOutput.hdf5'
-  galaxyFile: 'data/C_devel_GalaxyOutput.hdf5'
-  galaxyFile2: 'data/C_devel_GalaxyOutput.hdf5'
-  sfhFile: 'data/C_devel_SFH.hdf5'
-save_prefix: 'C_devel_SFH_'
+  haloFile: 'data/test_10_HaloOutput.hdf5'
+  subhaloFile: 'data/test_10_SubhaloOutput.hdf5'
+  galaxyFile: 'data/test_10_GalaxyOutput.hdf5'
+  galaxyFile2: 'data/v0.2_10_GalaxyOutput.hdf5'
+  sfhFile: 'data/test_10_SFH.hdf5'
+save_prefix: 'test_10_SFH_'
  
 # The following should really be attributes of the data
 cosmo:

@@ -69,7 +69,7 @@ void F_process_snap(struct struct_halo halos[], int n_halo,
 
     // Loop over halo timestep
     for (i_dt_halo=0; i_dt_halo<n_dt_halo; i_dt_halo++) {
-    
+
 	// Loop over halos
 	for (i_halo=0; i_halo<n_halo; i_halo++) {
 
@@ -154,21 +154,12 @@ void F_process_snap(struct struct_halo halos[], int n_halo,
 			    F_SFF_gal_SN_feedback(mass_stars,&gals[i_gal],&subs[sub_sid],&halos[i_halo]);
 			}
 		    }
-		}
-		// End loop over galaxies
-		
-#ifdef SFH
-		// Update SFH bins
-		F_sfh_update_bins(gals,n_gal,i_dt_sfh);
-		i_dt_sfh+=1;
-#endif
-		// Some SFR loggers
-		if (i_dt_gal==0 && i_dt_halo==0) {
-		    for (i_gal=0; i_gal<n_gal; i_gal++) {
+		    if (i_dt_gal==0 && i_dt_halo==0) {
 			gals[i_gal].SFR_dt_start=gals[i_gal].SFR_dt; // This will contain the mergers
 		    }
 		}
-
+		// End loop over galaxies
+		
 	    }
 	    //End loop over galaxy timestep
 	
@@ -179,6 +170,18 @@ void F_process_snap(struct struct_halo halos[], int n_halo,
 	
     }
     // End loop over halo timestep
-    
+
+
+#ifdef SFH
+    // Update SFH bins
+    // More efficient to do for all halos at once, so needs to be in separate loop
+    for (i_dt_halo=0; i_dt_halo<n_dt_halo; i_dt_halo++) {
+	for (i_dt_gal=0; i_dt_gal<n_dt_gal; i_dt_gal++) {
+	    F_sfh_update_bins(gals,n_gal,i_dt_sfh);
+	    i_dt_sfh+=1;
+	}
+    }
+#endif
+
     return;
 }

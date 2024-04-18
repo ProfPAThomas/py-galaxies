@@ -76,7 +76,6 @@ def F_push_snap(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap,
         if desc_start_gid==-1: n_desc=0
         if n_desc==0: 
             if parameters.verbosity >= 3: print('No descendants for halo:',halos_last_snap[i_halo_last_snap]['halo_gid'],flush=True)
-            halos_last_snap[i_halo_last_snap]['b_desc_exists'] = False
             # For now just skip this halo; might want in future to log these occurrences
             # Note that any orphan galaxies will cease to exist, gal['b_exists'] == False
             continue
@@ -191,7 +190,7 @@ def F_push_snap(halos_last_snap,halos_this_snap,subs_last_snap,subs_this_snap,
                 # and in the current snapshot
                 gal_this_start_sid=halos_this_snap[i_desc_halo]['orphan_next_sid']
                 gal_this_end_sid=gal_this_start_sid+n_orphan
-                halos_this_snap[i_desc_halo]['orphan_next_sid'] = gals_this_end_sid  # Have lost track of if/why I need this :-)
+                halos_this_snap[i_desc_halo]['orphan_next_sid'] = gal_this_end_sid  # Have lost track of if/why I need this :-)
                 # Copy over all properties
                 gals_this_snap[gal_this_start_sid:gal_this_end_sid]=gals_last_snap[gal_last_start_sid:gal_last_end_sid]
                 # Update the tracking pointers

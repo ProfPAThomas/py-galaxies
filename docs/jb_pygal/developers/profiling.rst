@@ -178,6 +178,80 @@ Here we see that:
   I suspect that the latter approach will be needed anyway to make the code run super-efficiently, as most halos adn subhalos require very little astrophysics work and the overhead associated with a class instance is too great to be justifiable.
        
 
+v0.3
+%%%%
+
+The following main changes were made:
+
+* Eliminate classes for halos and subhalos and instead use numpy arrays (keep classes for I/O)
+* Split :code:`driver.py` into two pieces:
+  
+  - :code:`push_snap.py` to do the logistics;
+  - :code:`process_snap.c` to perform the astrophysics.
+
+with these results:
+    
+   27393842 function calls (27332266 primitive calls) in 197.873 seconds
+
+.. list-table::
+   :widths: 10 10 10 70
+   :header-rows: 1
+		 
+   * - ncalls
+     - tottime
+     - cumtime
+     - filename:lineno(function)
+   * - 46895
+     - 52
+     - 73
+     - push_snap.py:11(F_push_snap)
+   * - 46895
+     - 49
+     - 65
+     - gals.py:277(append)
+   * - 2403
+     - 19
+     - 19
+     - dataset.py:858(append)
+   * - 46895
+     - 10  
+     - 12
+     - subs.py:346(append)
+   * - 46895
+     - 10
+     - 12
+     - halos.py:381(append)
+   * - 46895
+     - 10
+     - 10
+     - subs.py:146(F_subs_initialise)
+   * - 46895
+     - 10
+     - 10
+     - halos.py:146(F_halos_initialise)
+   * - 1000
+     - 4
+     - 15
+     - graphs.py:50(__init__)
+   * - 27003
+     - 4
+     - 6
+     - group.py:348(__getitem__)
+   * - 1455269
+     - 4
+     - 4       
+     - {method 'reduce' of numpy.ufunc' objects}
+
+Here we see that:
+
+* The :code:`ctypes` calls have effectively disappeared from the output.
+* The run time has more than halved.
+* The main time taken is now in :code:`push_snap`: that does a lot of work.  To convert this to C one would first have to extract all the required graph properties into numpy arrays, then pass those into this routine as arguments.  This would not be too hard to do.
+* A lot of the remaining CPU time seems to be taken up with the :code:`append` call in the instance of the galaxy output class.  As this is simply copying from one array to another, it seems likely that again converting to simply numpy and avoiding using a class would probably save a significant amount of time.  That then would presumably be true also for halos and subhalos.
+* The :code:`dataset.py:858(append)` call is probably related to :code:`h5py` and may not be reducible, except that I have not experimented with the size of the galaxy I/O buffer (parameter :code:`numerics:n_HDF5_io_rec`).
+
+       
+
 C_time class
 ^^^^^^^^^^^^
 

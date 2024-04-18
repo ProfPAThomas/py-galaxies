@@ -17,7 +17,7 @@ Parameters
 Main driver routine
 ^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: driver
+.. automodule:: push_snap
    :members:
 
 	     

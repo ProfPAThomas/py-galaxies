@@ -1,10 +1,10 @@
 # Galaxy plot parameters
 
 inputFiles:
-  haloFile: 'data/test_10_HaloOutput.hdf5'
-  subhaloFile: 'data/test_10_SubhaloOutput.hdf5'
-  galaxyFile: 'data/test_10_GalaxyOutput.hdf5'
-save_prefix: 'test_10_'
+  haloFile: 'data/timing_1000_HaloOutput.hdf5'
+  subhaloFile: 'data/timing_1000_SubhaloOutput.hdf5'
+  galaxyFile: 'data/timing_1000_GalaxyOutput.hdf5'
+save_prefix: 'timing_1000_'
  
 # The following should really be attributes of the data
 cosmo:

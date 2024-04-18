@@ -33,7 +33,7 @@ graphs:
 diagnostics:
  b_debug:
   Description: 'Print out debugging diagnostics'
-  Value: False
+  Value: True
  b_display_parameters:
   Description: 'Display runtime parameters after reading in'
   Value: True
