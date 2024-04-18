@@ -4,6 +4,11 @@ Change log
 Log of major changes to the code.
 
 
+18-Apr-24
+---------
+
+**v0.3** Halo and subhalo class instances have been removed and converted to numpy arrays.  :code:`driver.py` has been split into :code:`push_snap.py` and :code:`process_snap.c`.  This gives a speedup of more than a factor of 2.  Testing on the first 10 and 1000 halos in Mill/pygal_063_5.hdf5 gives *identical* results.
+
 20-Feb-24
 ---------
 
