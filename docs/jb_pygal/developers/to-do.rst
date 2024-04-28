@@ -4,10 +4,9 @@ To-do
 Optimisation
 ------------
 
-This is a priority for **v0.4** of the code prior to wider distribution.
+This is a priority for **v0.5** of the code prior to wider distribution.
 
 * Convert push_snap to C.  This will require switching to using numpy structured arrays for graphs.
-* Eliminate classes from halo, subhalo and galaxy output buffers: convert routines to C.
 * Better timing tests needed to determine the efficiency of the code, ideally by comparison with the release version of L-Galaxies.
   
 

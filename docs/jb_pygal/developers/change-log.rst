@@ -4,6 +4,11 @@ Change log
 Log of major changes to the code.
 
 
+28-Apr-24
+---------
+
+**v0.4** Altered the population of the output buffers for halos, subhalos and galaxies to be done using a range, rather than looping over objects one at a time.  This reduces the time taken to an insignificant amount.  Testing on the first 10 and 1000 halos in Mill/pygal_063_5.hdf5 gives *identical* results.
+
 18-Apr-24
 ---------
 
