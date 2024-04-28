@@ -390,24 +390,28 @@ class C_halo_output:
          parameters : obj : C_parameters
             The global run parameters.
       """
-      for i_halo in range(len(halos)):
-         halo=halos[i_halo]
-         self.io_buffer[self.i_rec]['graph_ID'] = halos[i_halo]['graph_ID']
-         self.io_buffer[self.i_rec]['snap_ID'] = halos[i_halo]['snap_ID']
-         self.io_buffer[self.i_rec]['halo_gid'] = halos[i_halo]['halo_gid']
-         self.io_buffer[self.i_rec]['pos'] = halos[i_halo]['pos'] * parameters.length_internal_to_output
-         self.io_buffer[self.i_rec]['vel'] = halos[i_halo]['vel'] * parameters.speed_internal_to_output
-         self.io_buffer[self.i_rec]['mass'] = halos[i_halo]['mass'] * parameters.mass_internal_to_output      
-         self.io_buffer[self.i_rec]['temperature'] = halos[i_halo]['temperature'] * parameters.temperature_internal_to_output
-         self.io_buffer[self.i_rec]['rms_speed'] = halos[i_halo]['rms_speed'] * parameters.speed_internal_to_output
-         self.io_buffer[self.i_rec]['half_mass_virial_speed'] = halos[i_halo]['half_mass_virial_speed'] * parameters.speed_internal_to_output
-         self.io_buffer[self.i_rec]['mass_baryon']= halos[i_halo]['mass_baryon']  * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_gas_hot'] = halos[i_halo]['mass_gas_hot']  * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_metals_gas_hot'] = halos[i_halo]['mass_metals_gas_hot']  * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_gas_eject'] = halos[i_halo]['mass_gas_eject']  * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_metals_gas_eject'] = halos[i_halo]['mass_metals_gas_eject']  * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_stars'] = halos[i_halo]['mass_stars']  * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_metals_stars'] = halos[i_halo]['mass_metals_stars']  * parameters.mass_internal_to_output
-         self.i_rec+=1
+      n_halo=len(halos)
+      n_offset=0
+      while n_halo>0:
+         n_add = min(n_halo, self.n_rec-self.i_rec)
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['graph_ID'] = halos[n_offset:n_offset+n_add]['graph_ID']
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['snap_ID'] = halos[n_offset:n_offset+n_add]['snap_ID']
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['halo_gid'] = halos[n_offset:n_offset+n_add]['halo_gid']
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['pos'] = halos[n_offset:n_offset+n_add]['pos'] * parameters.length_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['vel'] = halos[n_offset:n_offset+n_add]['vel'] * parameters.speed_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['mass'] = halos[n_offset:n_offset+n_add]['mass'] * parameters.mass_internal_to_output      
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['temperature'] = halos[n_offset:n_offset+n_add]['temperature'] * parameters.temperature_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['rms_speed'] = halos[n_offset:n_offset+n_add]['rms_speed'] * parameters.speed_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['half_mass_virial_speed'] = halos[n_offset:n_offset+n_add]['half_mass_virial_speed'] * parameters.speed_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_baryon']= halos[n_offset:n_offset+n_add]['mass_baryon']  * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_gas_hot'] = halos[n_offset:n_offset+n_add]['mass_gas_hot']  * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_metals_gas_hot'] = halos[n_offset:n_offset+n_add]['mass_metals_gas_hot']  * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_gas_eject'] = halos[n_offset:n_offset+n_add]['mass_gas_eject']  * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_metals_gas_eject'] = halos[n_offset:n_offset+n_add]['mass_metals_gas_eject']  * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_stars'] = halos[n_offset:n_offset+n_add]['mass_stars']  * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_metals_stars'] = halos[n_offset:n_offset+n_add]['mass_metals_stars']  * parameters.mass_internal_to_output
+         n_halo -= n_add
+         n_offset += n_add
+         self.i_rec += n_add
          if self.i_rec == self.n_rec: self.flush()
       return None

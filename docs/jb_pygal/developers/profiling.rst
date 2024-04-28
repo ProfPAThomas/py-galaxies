@@ -247,10 +247,75 @@ Here we see that:
 * The :code:`ctypes` calls have effectively disappeared from the output.
 * The run time has more than halved.
 * The main time taken is now in :code:`push_snap`: that does a lot of work.  To convert this to C one would first have to extract all the required graph properties into numpy arrays, then pass those into this routine as arguments.  This would not be too hard to do.
-* A lot of the remaining CPU time seems to be taken up with the :code:`append` call in the instance of the galaxy output class.  As this is simply copying from one array to another, it seems likely that again converting to simply numpy and avoiding using a class would probably save a significant amount of time.  That then would presumably be true also for halos and subhalos.
+* A lot of the remaining CPU time seems to be taken up with the :code:`append` call in the instance of the galaxy output class.  However, I realise now that I am doing a loop over galaxies in python rather than using block assignment using numpy ranges, so I'll try that and see what difference it makes (see v0.4, below)
 * The :code:`dataset.py:858(append)` call is probably related to :code:`h5py` and may not be reducible, except that I have not experimented with the size of the galaxy I/O buffer (parameter :code:`numerics:n_HDF5_io_rec`).
 
-       
+v0.4
+%%%%
+
+The following change was made:
+
+* When appending to output buffers (halos, subhalos, galaxies) use ranges [:] rather than looping over objects one at a time.
+
+with these results:
+    
+   27543316 function calls (27481677 primitive calls) in 128.781 seconds
+
+.. list-table::
+   :widths: 10 10 10 70
+   :header-rows: 1
+		 
+   * - ncalls
+     - tottime
+     - cumtime
+     - filename:lineno(function)
+   * - 46895
+     - 49
+     - 69
+     - push_snap.py:11(F_push_snap)
+   * - 2403
+     - 18
+     - 18
+     - dataset.py:858(__setitem__)
+   * - 46895
+     - 7
+     - 7
+     - subs.py:146(F_subs_initialise)
+   * - 46895
+     - 6  
+     - 6
+     - halos.py:178(F_halos_initialise)
+   * - 1000
+     - 4
+     - 14
+     - graphs.py:50(__init__)
+   * - 27003
+     - 4
+     - 6
+     - group.py:348(__getitem__)
+   * - 1455269
+     - 3
+     - 3
+     - {method 'reduce' of 'numpy.ufunc' objects}
+   * - 25000
+     - 3
+     - 3
+     - {method 'read' of 'h5py._selector.Reader' objects}
+   * - 631268
+     - 3
+     - 3
+     - {built-in method numpy.arange}
+   * - 46895
+     - 3
+     - 18       
+     - gals.py:275(append)
+
+Here we see that:
+
+* The append methods of the output classes do indeed now take a lot less time: almost certainly not worth making the code uglier by converting them into C.
+* The :code:`dataset.py` method now claims that :code:`__setitem__` is the offending routine rather that :code:`append`.  My guess is that these are essentially the same and experimenting with the size of the output buffer (:code:`n_HDF5_io_rec`) might help.
+* The time taken in :code:`push_snap` now dominates the python work.  To convert this to C one would first have to extract all the required graph properties into numpy arrays, then pass those into this routine as arguments.  This would not be too hard to do.
+
 
 C_time class
 ^^^^^^^^^^^^

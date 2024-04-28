@@ -183,8 +183,6 @@ def F_gals_template(parameters):
       template['mass_stars_disc_sfh']=0.
       template['mass_metals_stars_disc_sfh']=0.
    return template
-   print('template.itemsize =',template.itemsize)
-   print('template.dytpe.alignment =',template.dtype.alignment)
 
 class C_gal_output:
    """
@@ -286,37 +284,43 @@ class C_gal_output:
          parameters : obj : C_parameters
             Contains the global run paramters.
       """
-      for i_gal in range(len(gals)):
-         self.io_buffer[self.i_rec]['graph_ID'] = gals[i_gal]['graph_ID']
-         self.io_buffer[self.i_rec]['snap_ID'] = gals[i_gal]['snap_ID']
-         self.io_buffer[self.i_rec]['halo_gid'] = gals[i_gal]['halo_gid']
-         self.io_buffer[self.i_rec]['sub_gid'] = gals[i_gal]['sub_gid']
-         self.io_buffer[self.i_rec]['gal_gid'] = gals[i_gal]['gal_gid']
-         self.io_buffer[self.i_rec]['desc_gid'] = gals[i_gal]['desc_gid']
-         self.io_buffer[self.i_rec]['first_prog_gid'] = gals[i_gal]['first_prog_gid']
-         self.io_buffer[self.i_rec]['next_prog_gid'] = gals[i_gal]['next_prog_gid']
+      n_gal=len(gals)
+      n_offset=0
+      while n_gal>0:
+         n_add = min(n_gal, self.n_rec-self.i_rec)
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['graph_ID'] = gals[n_offset:n_offset+n_add]['graph_ID']
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['snap_ID'] = gals[n_offset:n_offset+n_add]['snap_ID']
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['halo_gid'] = gals[n_offset:n_offset+n_add]['halo_gid']
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['sub_gid'] = gals[n_offset:n_offset+n_add]['sub_gid']
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['gal_gid'] = gals[n_offset:n_offset+n_add]['gal_gid']
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['desc_gid'] = gals[n_offset:n_offset+n_add]['desc_gid']
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['first_prog_gid'] = gals[n_offset:n_offset+n_add]['first_prog_gid']
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['next_prog_gid'] = gals[n_offset:n_offset+n_add]['next_prog_gid']
          # Galaxy may have merged but still need to output it to avoid messing up indexing
-         self.io_buffer[self.i_rec]['b_exists'] = gals[i_gal]['b_exists']  
-         #self.io_buffer[self.i_rec]['pos'] = gals[i_gal]['pos']
-         #self.io_buffer[self.i_rec]['vel'] = gals[i_gal]['vel']
-         self.io_buffer[self.i_rec]['mass_stars_bulge'] = gals[i_gal]['mass_stars_bulge'] * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_metals_stars_bulge'] = gals[i_gal]['mass_metals_stars_bulge'] * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_stars_disc'] = gals[i_gal]['mass_stars_disc'] * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_metals_stars_disc'] = gals[i_gal]['mass_metals_stars_disc'] * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_gas_cold']= gals[i_gal]['mass_gas_cold'] * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_metals_gas_cold']= gals[i_gal]['mass_metals_gas_cold'] * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_BH']= gals[i_gal]['mass_BH'] * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['radius_gas_cold']= gals[i_gal]['radius_gas_cold'] * parameters.length_internal_to_output
-         self.io_buffer[self.i_rec]['radius_stars_disc']= gals[i_gal]['radius_stars_disc'] * parameters.length_internal_to_output
-         self.io_buffer[self.i_rec]['radius_stars_bulge']= gals[i_gal]['radius_stars_bulge'] * parameters.length_internal_to_output
-         self.io_buffer[self.i_rec]['SFR_dt']=gals[i_gal]['SFR_dt'] * parameters.mass_internal_to_output / parameters.time_internal_to_output
-         self.io_buffer[self.i_rec]['SFR_dt_start']=gals[i_gal]['SFR_dt_start'] * parameters.mass_internal_to_output / parameters.time_internal_to_output
-         self.io_buffer[self.i_rec]['SFR_snap']=gals[i_gal]['SFR_snap'] * parameters.mass_internal_to_output / parameters.time_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['b_exists'] = gals[n_offset:n_offset+n_add]['b_exists']  
+         #self.io_buffer[self.i_rec:self.i_rec+n_add]['pos'] = gals[n_offset:n_offset+n_add]['pos']
+         #self.io_buffer[self.i_rec:self.i_rec+n_add]['vel'] = gals[n_offset:n_offset+n_add]['vel']
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_stars_bulge'] = gals[n_offset:n_offset+n_add]['mass_stars_bulge'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_metals_stars_bulge'] = gals[n_offset:n_offset+n_add]['mass_metals_stars_bulge'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_stars_disc'] = gals[n_offset:n_offset+n_add]['mass_stars_disc'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_metals_stars_disc'] = gals[n_offset:n_offset+n_add]['mass_metals_stars_disc'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_gas_cold']= gals[n_offset:n_offset+n_add]['mass_gas_cold'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_metals_gas_cold']= gals[n_offset:n_offset+n_add]['mass_metals_gas_cold'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_BH']= gals[n_offset:n_offset+n_add]['mass_BH'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['radius_gas_cold']= gals[n_offset:n_offset+n_add]['radius_gas_cold'] * parameters.length_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['radius_stars_disc']= gals[n_offset:n_offset+n_add]['radius_stars_disc'] * parameters.length_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['radius_stars_bulge']= gals[n_offset:n_offset+n_add]['radius_stars_bulge'] * parameters.length_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['SFR_dt']=gals[n_offset:n_offset+n_add]['SFR_dt'] * parameters.mass_internal_to_output / parameters.time_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['SFR_dt_start']=gals[n_offset:n_offset+n_add]['SFR_dt_start'] * parameters.mass_internal_to_output / parameters.time_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['SFR_snap']=gals[n_offset:n_offset+n_add]['SFR_snap'] * parameters.mass_internal_to_output / parameters.time_internal_to_output
          if b_SFH:
-            self.io_buffer[self.i_rec]['mass_stars_bulge_sfh'] = gals[i_gal]['mass_stars_bulge_sfh'][:-1] * parameters.mass_internal_to_output
-            self.io_buffer[self.i_rec]['mass_metals_stars_bulge_sfh'] = gals[i_gal]['mass_metals_stars_bulge_sfh'][:-1] * parameters.mass_internal_to_output
-            self.io_buffer[self.i_rec]['mass_stars_disc_sfh'] = gals[i_gal]['mass_stars_disc_sfh'][:-1] * parameters.mass_internal_to_output
-            self.io_buffer[self.i_rec]['mass_metals_stars_disc_sfh'] = gals[i_gal]['mass_metals_stars_disc_sfh'][:-1] * parameters.mass_internal_to_output
-         self.i_rec+=1
+            # if we include a range for the galaxies then the [:-1] syntax used up to v0.3 no longer seems to work.
+            self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_stars_bulge_sfh'] = (gals[n_offset:n_offset+n_add]['mass_stars_bulge_sfh'])[:,:-1] * parameters.mass_internal_to_output
+            self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_metals_stars_bulge_sfh'] = (gals[n_offset:n_offset+n_add]['mass_metals_stars_bulge_sfh'])[:,:-1] * parameters.mass_internal_to_output
+            self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_stars_disc_sfh'] = (gals[n_offset:n_offset+n_add]['mass_stars_disc_sfh'])[:,:-1] * parameters.mass_internal_to_output
+            self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_metals_stars_disc_sfh'] = (gals[n_offset:n_offset+n_add]['mass_metals_stars_disc_sfh'])[:,:-1] * parameters.mass_internal_to_output
+         n_gal -= n_add
+         n_offset += n_add
+         self.i_rec += n_add
          if self.i_rec == self.n_rec: self.flush()
       return None

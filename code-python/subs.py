@@ -354,21 +354,26 @@ class C_sub_output:
          parameters : obj : C_parameters
             The global run parameters.
       """
-      for i_sub in range(len(subs)):
-         self.io_buffer[self.i_rec]['graph_ID'] = subs[i_sub]['graph_ID']
-         self.io_buffer[self.i_rec]['snap_ID'] = subs[i_sub]['snap_ID']
-         self.io_buffer[self.i_rec]['halo_gid'] = subs[i_sub]['halo_gid']
-         self.io_buffer[self.i_rec]['sub_gid'] = subs[i_sub]['sub_gid']
-         self.io_buffer[self.i_rec]['pos'] = subs[i_sub]['pos'] * parameters.length_internal_to_output
-         self.io_buffer[self.i_rec]['vel'] = subs[i_sub]['vel'] * parameters.speed_internal_to_output
-         self.io_buffer[self.i_rec]['mass'] = subs[i_sub]['mass'] * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['rms_speed'] = subs[i_sub]['rms_speed'] * parameters.speed_internal_to_output
-         self.io_buffer[self.i_rec]['half_mass_virial_speed'] = subs[i_sub]['half_mass_virial_speed'] * parameters.speed_internal_to_output
-         self.io_buffer[self.i_rec]['temperature'] = subs[i_sub]['temperature'] * parameters.temperature_internal_to_output
-         self.io_buffer[self.i_rec]['mass_gas_hot']= subs[i_sub]['mass_gas_hot'] * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_metals_gas_hot']= subs[i_sub]['mass_metals_gas_hot'] * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_stars']= subs[i_sub]['mass_stars'] * parameters.mass_internal_to_output
-         self.io_buffer[self.i_rec]['mass_metals_stars']= subs[i_sub]['mass_metals_stars'] * parameters.mass_internal_to_output
-         self.i_rec+=1
+      n_sub=len(subs)
+      n_offset=0
+      while n_sub>0:
+         n_add = min(n_sub, self.n_rec-self.i_rec)
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['graph_ID'] = subs[n_offset:n_offset+n_add]['graph_ID']
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['snap_ID'] = subs[n_offset:n_offset+n_add]['snap_ID']
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['halo_gid'] = subs[n_offset:n_offset+n_add]['halo_gid']
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['sub_gid'] = subs[n_offset:n_offset+n_add]['sub_gid']
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['pos'] = subs[n_offset:n_offset+n_add]['pos'] * parameters.length_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['vel'] = subs[n_offset:n_offset+n_add]['vel'] * parameters.speed_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['mass'] = subs[n_offset:n_offset+n_add]['mass'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['rms_speed'] = subs[n_offset:n_offset+n_add]['rms_speed'] * parameters.speed_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['half_mass_virial_speed'] = subs[n_offset:n_offset+n_add]['half_mass_virial_speed'] * parameters.speed_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['temperature'] = subs[n_offset:n_offset+n_add]['temperature'] * parameters.temperature_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_gas_hot']= subs[n_offset:n_offset+n_add]['mass_gas_hot'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_metals_gas_hot']= subs[n_offset:n_offset+n_add]['mass_metals_gas_hot'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_stars']= subs[n_offset:n_offset+n_add]['mass_stars'] * parameters.mass_internal_to_output
+         self.io_buffer[self.i_rec:self.i_rec+n_add]['mass_metals_stars']= subs[n_offset:n_offset+n_add]['mass_metals_stars'] * parameters.mass_internal_to_output
+         n_sub -= n_add
+         n_offset += n_add
+         self.i_rec += n_add
          if self.i_rec == self.n_rec: self.flush()
       return None
